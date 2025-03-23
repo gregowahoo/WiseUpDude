@@ -1,0 +1,108 @@
+﻿@code {
+    // Child component markup for QuestionCard
+}
+
+@inherits ComponentBase
+@using WiseUpDude.Services
+@code {
+    [Parameter] public QuizQuestion Question { get; set; }
+    [Parameter] public int QuestionIndex { get; set; }
+
+    private string userAnswer = string.Empty;
+    private bool submitted = false;
+
+    private void OnSelectAnswer(ChangeEventArgs e)
+    {
+        userAnswer = e.Value?.ToString() ?? string.Empty;
+        submitted = false; // reset if user changes selection
+    }
+
+    private void CheckAnswer()
+    {
+        submitted = true;
+    }
+}
+
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title">@($"Q{QuestionIndex + 1}: {Question.Question}")</h5>
+
+        @if (Question.Options != null && Question.Options.Count > 0)
+        {
+            <!-- Multiple Choice Options -->
+            @foreach (var option in Question.Options)
+            {
+                <div class="form-check">
+                    <input class="form-check-input"
+                           type="radio"
+                           name="@($"question-{QuestionIndex}")"
+                           value="@option"
+                           @onchange="OnSelectAnswer"
+                           checked="@((userAnswer == option))" />
+                    <label class="form-check-label">
+                        @option
+                    </label>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- True/False question -->
+            <div class="form-check">
+                <input class="form-check-input"
+                       type="radio"
+                       name="@($"question-{QuestionIndex}")"
+                       value="True"
+                       @onchange="OnSelectAnswer"
+                       checked="@((userAnswer == "True"))" />
+                <label class="form-check-label">
+                    True
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input"
+                       type="radio"
+                       name="@($"question-{QuestionIndex}")"
+                       value="False"
+                       @onchange="OnSelectAnswer"
+                       checked="@((userAnswer == "False"))" />
+                <label class="form-check-label">
+                    False
+                </label>
+            </div>
+        }
+
+        <button class="btn btn-sm btn-primary mt-3" @onclick="CheckAnswer">Check Answer</button>
+
+        @if (submitted)
+        {
+            <!-- Show result -->
+            @if (string.IsNullOrEmpty(userAnswer))
+            {
+                <div class="mt-2 text-warning">
+                    Please select an answer first.
+                </div>
+            }
+            else
+            {
+                <!-- Compare userAnswer with question.Answer -->
+                @if (userAnswer == Question.Answer)
+                {
+                    <div class="mt-2 text-success">
+                        <strong>Correct!</strong>
+                    </div>
+                }
+                else
+                {
+                    <div class="mt-2 text-danger">
+                        <strong>Incorrect!</strong>
+                    </div>
+                }
+
+                <div class="mt-2">
+                    <em>Explanation:</em> @Question.Explanation
+                </div>
+            }
+        }
+    </div>
+</div>

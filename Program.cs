@@ -1,15 +1,22 @@
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WiseUpDude.Components;
 using WiseUpDude.Components.Account;
 using WiseUpDude.Data;
+using WiseUpDude.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddHttpClient(); // Required for making API calls
+
+builder.Services.AddScoped<ContentFetchingService>();
+builder.Services.AddScoped<QuizService>();
+builder.Services.AddScoped<QuizStateService>();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();

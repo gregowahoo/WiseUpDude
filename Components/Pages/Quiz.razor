@@ -1,0 +1,30 @@
+﻿@page "/quiz"
+
+@rendermode InteractiveServer
+
+@* @using WiseUpDude.State *@
+@using WiseUpDude.Services
+@using WiseUpDude.Components.Controls
+
+@inject QuizStateService QuizState
+
+<div class="container mt-4">
+    <h3>Quiz Questions</h3>
+    <p class="text-muted">Select an answer for each question to see if you’re correct.</p>
+
+    @if (QuizState?.CurrentQuiz == null || QuizState.CurrentQuiz.Questions.Count == 0)
+    {
+        <div class="alert alert-warning">
+            No quiz questions found. Please go back and generate a quiz first.
+        </div>
+    }
+    else
+    {
+        @for (int i = 0; i < QuizState.CurrentQuiz.Questions.Count; i++)
+        {
+            var question = QuizState.CurrentQuiz.Questions[i];
+            <QuestionCard Question="question" QuestionIndex="i" />
+        }
+    }
+</div>
+

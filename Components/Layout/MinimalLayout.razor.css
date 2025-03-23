@@ -1,0 +1,10 @@
+﻿body {
+}
+
+
+.nav-link.active {
+    font-weight: bold;
+    color: #0000ff; /* or any color you like */
+    /* Or add underline, background, etc. */
+    /* text-decoration: underline; */
+}

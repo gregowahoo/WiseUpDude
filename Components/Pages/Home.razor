@@ -1,7 +1,108 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+@layout WiseUpDude.Components.Layout.MinimalLayout
 
-<h1>Hello, world!</h1>
+@using WiseUpDude.Services
+@using WiseUpDude.Components.Controls
 
-Welcome to your new app.
+@inject WiseUpDude.Services.ContentFetchingService ContentService
+
+@* @inject BlazorQuizApp.Services.QuizService_OpenAI QuizService *@
+@inject WiseUpDude.Services.QuizService QuizService
+
+@inject QuizStateService QuizState
+@inject NavigationManager NavManager
+
+@rendermode InteractiveServer
+
+@if (showOverlay)
+{
+	<div class="overlay">
+		<div class="spinner"></div>
+		<p class="overlay-text">Please wait...</p>
+	</div>
+}    
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+	<p class="text-danger">@errorMessage</p>
+}
+
+<div class="container">
+    <h1 class="title">Quiz Generator</h1>
+    <div class="card">        
+        <UrlSelector UrlList="@myUrls"
+                     SelectedUrl="@url"
+                     SelectedUrlChanged="@OnSelectedUrlChanged"
+                     OnGenerateQuiz="@GenerateQuiz" />
+        <button class="btn btn-primary" @onclick="GenerateQuiz">Generate Quiz</button>
+    </div>
+</div>
+
+@code {    
+    private List<string> myUrls = new List<string>                          // Example list of URLs for the dropdown
+    {
+        "https://www.webmd.com/vitamins/ai/ingredientmono-954/vitamin-e",
+        "https://www.webmd.com/menopause/understanding-menopause-treatment#1-2",
+        "https://www.verywellhealth.com/mounjaro-for-weight-loss-8689784",
+        "https://www.history.com/articles/department-education-andrew-johnson-reconstruction"
+    };
+    
+    private string url { get; set; } = string.Empty;
+    
+    private void OnSelectedUrlChanged(string newValue)                      // Called whenever the user picks from the dropdown in the UrlSelector control.
+    {
+        url = newValue;
+    }
+}
+
+@code {
+    private bool isLoading = false;
+    private string errorMessage = string.Empty;
+    private bool showOverlay = false;
+
+    private async Task GenerateQuiz()
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return;
+
+        isLoading = true;
+        errorMessage = string.Empty;
+
+        // Set flag to show overlay
+        showOverlay = true;
+        StateHasChanged();                                                  // Force re-render so overlay appears immediately
+        
+        await Task.Delay(500);                                              // Optional delay to simulate processing or ensure the user sees the overlay
+
+        try
+        {
+            // 1) fetch the text from the URL
+            var contentText = await ContentService.FetchTextContentAsync(url);
+
+            // 2) pass that text to QuizService
+            var quizResponse = await QuizService.GenerateQuizAsync(contentText);
+
+            // If quizResponse is valid, store it in QuizState
+            if (quizResponse.Questions != null && quizResponse.Questions.Count > 0)
+            {
+                QuizState.CurrentQuiz = quizResponse;
+
+                // 3) navigate to /quiz
+                NavManager.NavigateTo("/quiz");
+            }
+            else
+            {
+                errorMessage = "No questions were generated.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

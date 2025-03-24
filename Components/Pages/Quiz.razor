@@ -2,11 +2,12 @@
 
 @rendermode InteractiveServer
 
-@* @using WiseUpDude.State *@
 @using WiseUpDude.Services
 @using WiseUpDude.Components.Controls
 
 @inject QuizStateService QuizState
+
+@attribute [Authorize]
 
 <div class="container mt-4">
     <h3>Quiz Questions</h3>
@@ -15,7 +16,7 @@
     @if (QuizState?.CurrentQuiz == null || QuizState.CurrentQuiz.Questions.Count == 0)
     {
         <div class="alert alert-warning">
-            No quiz questions found. Please go back and generate a quiz first.
+            No quiz questions found. Please go to Home and generate a quiz first.
         </div>
     }
     else

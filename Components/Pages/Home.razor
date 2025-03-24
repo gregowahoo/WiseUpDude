@@ -15,6 +15,10 @@
 
 @rendermode InteractiveServer
 
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
+
 @if (showOverlay)
 {
 	<div class="overlay">

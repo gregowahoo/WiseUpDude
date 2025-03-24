@@ -1,0 +1,31 @@
+﻿@page "/Account/Logout"
+
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using WiseUpDude.Data
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ILogger<Login> Logger
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+
+<h3>Logging out...</h3>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // Sign the user out
+        await SignInManager.SignOutAsync();
+
+        // Wait for render to complete before navigating
+        await Task.Yield();
+
+        NavigationManager.NavigateTo("/", forceLoad: true);
+
+        // // Redirect to home (or wherever you want)
+        // NavigationManager.NavigateTo("/");
+    }
+}

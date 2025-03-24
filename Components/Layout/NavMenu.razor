@@ -1,92 +1,57 @@
-﻿@implements IDisposable
+﻿<header class="p-3 bg-dark text-white">
+        <div class="container">
+            <div class="d-flex flex-wrap align-items-center justify-content-between">
+                <a href="/" class="d-flex align-items-center text-white text-decoration-none">
+                    <!-- Replace this with your logo if desired -->
+                    @* <img src="https://getbootstrap.com/docs/5.3/assets/brand/bootstrap-logo.svg" alt="Logo" width="40" height="32" class="me-2" /> *@
+                    <span class="fs-4">Wise Up Dude</span>
+                </a>
 
-@inject NavigationManager NavigationManager
+                <ul class="nav">
+                    <li class="nav-item">
+                        <NavLink class="nav-link px-2 text-white" href="/" Match="NavLinkMatch.All">Home</NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link px-2 text-white" href="/quiz" Match="NavLinkMatch.Prefix">Quiz</NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link px-2 text-white" href="/about" Match="NavLinkMatch.Prefix">About</NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link px-2 text-white" href="/contact" Match="NavLinkMatch.Prefix">Contact</NavLink>
+                    </li>
+@*                     <li class="nav-item">
+                        <NavLink class="nav-link px-2 text-white" href="/auth" Match="NavLinkMatch.Prefix">Auth Required</NavLink>
+                    </li> *@
+                </ul>
 
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">WiseUpDude</a>
+            <div class="text-end">
+            <AuthorizeView>
+                <NotAuthorized>
+                    <ul class="nav">
+                        <li class="nav-item">
+                            <NavLink class="nav-link px-2 text-white" href="/Account/Login" Match="NavLinkMatch.Prefix">Login</NavLink>
+                        </li>
+                        <li class="nav-item">
+                            <NavLink class="nav-link px-2 text-white" href="/Account/Register" Match="NavLinkMatch.Prefix">Sign-up</NavLink>
+                        </li>
+                    </ul>
+                </NotAuthorized>
+                <Authorized>
+                    <ul class="nav">
+                        <li class="nav-item">
+                            <NavLink class="nav-link px-2 text-white" href="/Account/logout" Match="NavLinkMatch.Prefix">Logout</NavLink>
+                        </li>
+                    </ul>
+                </Authorized>
+            </AuthorizeView>
+            </div>
+
+        <div class="text-end">
+            <AuthorizeView>
+                Hello @context.User.Identity?.Name!
+            </AuthorizeView>
+        </div>
     </div>
-</div>
-
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="auth">
-                <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> Auth Required
-            </NavLink>
-        </div>
-
-        <AuthorizeView>
-            <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <form action="Account/Logout" method="post">
-                        <AntiforgeryToken />
-                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        <button type="submit" class="nav-link">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
-                        </button>
-                    </form>
-                </div>
-            </Authorized>
-            <NotAuthorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Register">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
-                    </NavLink>
-                </div>
-            </NotAuthorized>
-        </AuthorizeView>
-    </nav>
-</div>
-
-@code {
-    private string? currentUrl;
-
-    protected override void OnInitialized()
-    {
-        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-        NavigationManager.LocationChanged += OnLocationChanged;
-    }
-
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
-    {
-        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
-        StateHasChanged();
-    }
-
-    public void Dispose()
-    {
-        NavigationManager.LocationChanged -= OnLocationChanged;
-    }
-}
-
+    </div>
+</header>

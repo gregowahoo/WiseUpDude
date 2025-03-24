@@ -1,55 +1,24 @@
 ﻿@inherits LayoutComponentBase
 
 <HeadContent>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-	<link href="~/css/overlayspinner.css" rel="stylesheet" />
-
-	<style>
-		.nav-link.active {
-			font-weight: bold;
-			/* color: #0d6efd;  */
-		.nav-link {
-			font-weight: normal;
-			/* color: #d7dbe0;  */
-		}
-	</style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/css/overlayspinner.css" rel="stylesheet" />
+    <style>
+        .nav-link.active {
+            font-weight: bold;
+            /* color: #0d6efd;  */
+        }
+        .nav-link {
+            font-weight: normal;
+            /* color: #d7dbe0;  */
+        }
+    </style>
 </HeadContent>
 
-<header class="p-3 bg-dark text-white">
-	<div class="container">
-		<div class="d-flex flex-wrap align-items-center justify-content-between">
-			<a href="/" class="d-flex align-items-center text-white text-decoration-none">
-				<!-- Replace this with your logo if desired -->
-				@* <img src="https://getbootstrap.com/docs/5.3/assets/brand/bootstrap-logo.svg" alt="Logo" width="40" height="32" class="me-2" /> *@
-				<span class="fs-4">Wise Up Dude</span>
-			</a>
-
-			<ul class="nav">
-				<li class="nav-item">
-					<NavLink class="nav-link px-2 text-white" href="/" Match="NavLinkMatch.All">Home</NavLink>
-				</li>
-				<li class="nav-item">
-					<NavLink class="nav-link px-2 text-white" href="/quiz" Match="NavLinkMatch.Prefix">Quiz</NavLink>
-				</li>
-				<li class="nav-item">
-					<NavLink class="nav-link px-2 text-white " href="/about" Match="NavLinkMatch.Prefix">About</NavLink>
-				</li>
-				<li class="nav-item">
-					<NavLink class="nav-link px-2 text-white" href="/contact" Match="NavLinkMatch.Prefix">Contact</NavLink>
-				</li>
-			</ul>
-
-				<div class="text-end">
-				<button type="button" class="btn btn-outline-primary me-2">Login</button>
-				<button type="button" class="btn btn-primary">Sign-up</button>
-			</div>
-		</div>
-	</div>
-</header>
+<NavMenu />
 
 <div class="container mt-4">
-	@Body
+    @Body
 </div>
 
 <script src="js/site.js"></script>
-

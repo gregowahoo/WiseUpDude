@@ -1,0 +1,42 @@
+﻿@using System.Threading.Tasks
+
+<div class="col-md-3 mb-4">
+    <div class="card">
+        @if (ImageLoaded)
+        {
+            <img src="@ThumbnailUrl" class="card-img-top" alt="@Title Thumbnail" />
+        }
+        else
+        {
+            <div class="card-img-top bg-secondary text-white d-flex justify-content-center align-items-center" style="height: 200px;">
+                Loading...
+            </div>
+        }
+        <div class="card-body">
+            <h5 class="card-title">@Title</h5>
+            <p class="card-text">@Description</p>
+            <a href="@Url" class="btn btn-primary" target="_blank">Visit</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; }
+    [Parameter] public string Description { get; set; }
+    [Parameter] public string Url { get; set; }
+    [Parameter] public int DelayMilliseconds { get; set; } = 0;
+
+    private bool ImageLoaded = false;
+    private string ThumbnailUrl => $"https://s.wordpress.com/mshots/v1/{Url}/?w=300";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Delay before loading the image.
+            await Task.Delay(DelayMilliseconds);
+            ImageLoaded = true;
+            StateHasChanged();
+        }
+    }
+}

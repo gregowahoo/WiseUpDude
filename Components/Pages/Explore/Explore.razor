@@ -1,0 +1,59 @@
+﻿@page "/Explore/Explore"
+
+@using System.Collections.Generic
+
+@using WiseUpDude.Components.Controls
+@using WiseUpDude.Components.Pages.Explore.Controls
+
+@attribute [Authorize]
+
+@rendermode InteractiveServer
+
+<div class="container mt-5">
+  <h1 class="mb-4">Explore Sources for Quiz Content</h1>
+    <p>Take a peek at some curated sources before generating questions. When you find a page you'd like to learn, copy the URL of that page to the clipboard (from the address bar in your browser), come back to this site and on the Home page paste the URL in to the textbox.</p>
+  
+  <div class="row">
+    @foreach (var source in Sources)
+    {
+        <!-- The delay increases with each card (base delay * index) -->
+        <SourceCard Title="@source.Title"
+                    Description="@source.Description"
+                    Url="@source.Url"
+                    DelayMilliseconds="@(source.Index * BaseDelay)" />
+    }
+  </div>
+</div>
+
+@code {
+    // Base delay in milliseconds between each card loading
+    private const int BaseDelay = 1000;
+
+    private List<Source> Sources = new List<Source>
+    {
+        // Health-related sites come first
+        new Source { Index = 0, Title = "WebMD A-to-Z Health Topics", Description = "An easy-to-navigate directory offering expert-reviewed insights into diverse health conditions and treatments.", Url = "https://www.webmd.com/a-to-z-guides/health-topics" },
+        new Source { Index = 1, Title = "Mayo Clinic", Description = "Comprehensive health insights and expert medical advice on conditions, treatments, and wellness.", Url = "https://www.mayoclinic.org" },
+        new Source { Index = 2, Title = "Healthline", Description = "Up-to-date, expert-curated content covering health, nutrition, and wellness topics.", Url = "https://www.healthline.com" },
+        new Source { Index = 3, Title = "MedlinePlus", Description = "Reliable, consumer-friendly medical information from the U.S. National Library of Medicine.", Url = "https://medlineplus.gov" },
+        new Source { Index = 4, Title = "Everyday Health", Description = "User-friendly health news and interactive tools to help manage your wellness.", Url = "https://www.everydayhealth.com" },
+        new Source { Index = 5, Title = "Cleveland Clinic", Description = "Expert-developed resources and detailed articles on a wide range of medical conditions.", Url = "https://my.clevelandclinic.org" },
+        // Original sources follow
+        new Source { Index = 6, Title = "Wikipedia", Description = "A vast, user-driven encyclopedia covering countless topics.", Url = "https://www.wikipedia.org" },
+        new Source { Index = 7, Title = "History.com", Description = "Detailed historical narratives and engaging documentaries.", Url = "https://www.history.com" },
+        new Source { Index = 8, Title = "Smithsonian Magazine", Description = "In-depth articles on history, culture, science, and art.", Url = "https://www.smithsonianmag.com" },
+        new Source { Index = 9, Title = "National Geographic", Description = "Immersive stories in history, science, and world cultures.", Url = "https://www.nationalgeographic.com" },
+        new Source { Index = 10, Title = "The Atlantic", Description = "Long-form journalism on history, politics, and society.", Url = "https://www.theatlantic.com" },
+        // new Source { Index = 11, Title = "BBC History", Description = "Trusted historical analysis and narratives.", Url = "https://www.bbc.com/history" },
+        new Source { Index = 12, Title = "Mental Floss", Description = "Fun, quirky articles that mix trivia with history.", Url = "https://www.mentalfloss.com" },
+        new Source { Index = 13, Title = "Atlas Obscura", Description = "Unusual and fascinating stories for unique quiz questions.", Url = "https://www.atlasobscura.com" }
+    };
+
+    public class Source
+    {
+        public int Index { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Url { get; set; } = string.Empty;
+    }
+}

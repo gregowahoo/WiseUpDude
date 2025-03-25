@@ -15,12 +15,17 @@
                         <NavLink class="nav-link px-2 text-white" href="/quiz" Match="NavLinkMatch.Prefix">Quiz</NavLink>
                     </li>
                     <li class="nav-item">
+                        <NavLink class="nav-link px-2 text-white" href="/Explore/Explore" Match="NavLinkMatch.Prefix">Explore</NavLink>
+                    </li>
+
+                    <li class="nav-item">
                         <NavLink class="nav-link px-2 text-white" href="/about" Match="NavLinkMatch.Prefix">About</NavLink>
                     </li>
                     <li class="nav-item">
                         <NavLink class="nav-link px-2 text-white" href="/contact" Match="NavLinkMatch.Prefix">Contact</NavLink>
                     </li>
-@*                     <li class="nav-item">
+
+@*                  <li class="nav-item">
                         <NavLink class="nav-link px-2 text-white" href="/auth" Match="NavLinkMatch.Prefix">Auth Required</NavLink>
                     </li> *@
                 </ul>
@@ -49,7 +54,7 @@
 
         <div class="text-end">
             <AuthorizeView>
-                Hello @context.User.Identity?.Name!
+                Hello wise guy: @context.User.Identity?.Name!
             </AuthorizeView>
         </div>
     </div>

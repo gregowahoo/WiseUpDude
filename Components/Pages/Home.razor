@@ -39,11 +39,17 @@
                      SelectedUrlChanged="@OnSelectedUrlChanged"
                      OnGenerateQuiz="@GenerateQuiz" />
         <button class="btn btn-primary" @onclick="GenerateQuiz">Generate Quiz</button>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="useTestData" @bind="useTestData">
+            <label class="form-check-label" for="useTestData">
+                Use Test Data
+            </label>
+        </div>
     </div>
 </div>
 
 @code {    
-    private List<string> myUrls = new List<string>                          // Example list of URLs for the dropdown
+    private List<string> myUrls = new List<string>
     {
         "https://www.webmd.com/vitamins/ai/ingredientmono-954/vitamin-e",
         "https://www.webmd.com/menopause/understanding-menopause-treatment#1-2",
@@ -54,24 +60,40 @@
     };
     
     private string url { get; set; } = string.Empty;
+    private bool useTestData { get; set; } = false;
     
-    private void OnSelectedUrlChanged(string newValue)                      // Called whenever the user picks from the dropdown in the UrlSelector control.
+    private void OnSelectedUrlChanged(string newValue)
     {
         url = newValue;
     }
 }
 
 @code {
-    private bool isLoading = false;
     private string errorMessage = string.Empty;
     private bool showOverlay = false;
 
     private async Task GenerateQuiz()
     {
+        QuizResponse quizResponse;
+
+        if (useTestData)
+        {
+            quizResponse = await QuizService.LoadQuizFromFileAsync("wwwroot/data/quiz.json");
+            if (quizResponse.Questions != null && quizResponse.Questions.Count > 0)
+            {
+                QuizState.CurrentQuiz = quizResponse;
+                NavManager.NavigateTo("/quiz");
+            }
+            else
+            {
+                errorMessage = "No questions were generated from the test data.";
+            }
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(url))
             return;
 
-        isLoading = true;
         errorMessage = string.Empty;
         showOverlay = true;
         StateHasChanged();
@@ -84,13 +106,12 @@
         if (!fetchResult.IsSuccess)
         {
             errorMessage = fetchResult.ErrorMessage;
-            isLoading = false;
             showOverlay = false; 
             return;
         }
 
         // 2) Pass the validated text content to QuizService.
-        var quizResponse = await QuizService.GenerateQuizAsync(fetchResult.Content);
+        quizResponse = await QuizService.GenerateQuizAsync(fetchResult.Content);
 
         // 3) Navigate or show an error based on the quiz response.
         if (quizResponse.Questions != null && quizResponse.Questions.Count > 0)
@@ -103,7 +124,6 @@
             errorMessage = "No questions were generated.";
         }
 
-        isLoading = false;
         showOverlay = false;
     }
 }

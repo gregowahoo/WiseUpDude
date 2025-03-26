@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using WiseUpDude.Model;
@@ -116,6 +117,27 @@ namespace WiseUpDude.Services
             {
                 Console.WriteLine($"An error occurred: {ex.Message}");
                 return finalQuizResponse = new QuizResponse { Questions = allQuestions };
+            }
+        }
+
+        public async Task<QuizResponse> LoadQuizFromFileAsync(string filePath)
+        {
+            try
+            {
+                var json = await File.ReadAllTextAsync(filePath);
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                    Converters = { new QuizQuestionTypeConverter() }
+                };
+                var quizResponse = JsonSerializer.Deserialize<QuizResponse>(json, options);
+                return quizResponse ?? new QuizResponse();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while reading the file: {ex.Message}");
+                return new QuizResponse();
             }
         }
 

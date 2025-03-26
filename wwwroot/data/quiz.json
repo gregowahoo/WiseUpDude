@@ -1,0 +1,84 @@
+{
+  "Questions": [
+    {
+      "Question": "The Earth is flat.",
+      "QuestionType": "TrueFalse",
+      "Options": [ "True", "False" ],
+      "Answer": "False",
+      "Explanation": "The Earth is an oblate spheroid, not flat.",
+      "UserAnswer": null
+    },
+    {
+      "Question": "What is the capital of France?",
+      "QuestionType": "MultipleChoice",
+      "Options": [ "Berlin", "Madrid", "Paris", "Rome" ],
+      "Answer": "Paris",
+      "Explanation": "Paris is the capital city of France.",
+      "UserAnswer": null
+    },
+    {
+      "Question": "Water boils at 100 degrees Celsius.",
+      "QuestionType": "TrueFalse",
+      "Options": [ "True", "False" ],
+      "Answer": "True",
+      "Explanation": "At standard atmospheric pressure, water boils at 100 degrees Celsius.",
+      "UserAnswer": null
+    },
+    {
+      "Question": "Which planet is known as the Red Planet?",
+      "QuestionType": "MultipleChoice",
+      "Options": [ "Earth", "Mars", "Jupiter", "Saturn" ],
+      "Answer": "Mars",
+      "Explanation": "Mars is known as the Red Planet due to its reddish appearance.",
+      "UserAnswer": null
+    },
+    {
+      "Question": "The Great Wall of China is visible from space.",
+      "QuestionType": "TrueFalse",
+      "Options": [ "True", "False" ],
+      "Answer": "False",
+      "Explanation": "The Great Wall of China is not visible from space with the naked eye.",
+      "UserAnswer": null
+    },
+    {
+      "Question": "What is the largest mammal in the world?",
+      "QuestionType": "MultipleChoice",
+      "Options": [ "Elephant", "Blue Whale", "Giraffe", "Hippopotamus" ],
+      "Answer": "Blue Whale",
+      "Explanation": "The Blue Whale is the largest mammal in the world.",
+      "UserAnswer": null
+    },
+    {
+      "Question": "Light travels faster than sound.",
+      "QuestionType": "TrueFalse",
+      "Options": [ "True", "False" ],
+      "Answer": "True",
+      "Explanation": "Light travels faster than sound in air.",
+      "UserAnswer": null
+    },
+    {
+      "Question": "Which element has the chemical symbol 'O'?",
+      "QuestionType": "MultipleChoice",
+      "Options": [ "Oxygen", "Gold", "Silver", "Iron" ],
+      "Answer": "Oxygen",
+      "Explanation": "The chemical symbol 'O' stands for Oxygen.",
+      "UserAnswer": null
+    },
+    {
+      "Question": "The human body has four lungs.",
+      "QuestionType": "TrueFalse",
+      "Options": [ "True", "False" ],
+      "Answer": "False",
+      "Explanation": "The human body has two lungs.",
+      "UserAnswer": null
+    },
+    {
+      "Question": "What is the smallest prime number?",
+      "QuestionType": "MultipleChoice",
+      "Options": [ "1", "2", "3", "5" ],
+      "Answer": "2",
+      "Explanation": "2 is the smallest prime number.",
+      "UserAnswer": null
+    }
+  ]
+}

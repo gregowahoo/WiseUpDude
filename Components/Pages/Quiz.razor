@@ -13,6 +13,13 @@
     <h3>Quiz Questions</h3>
     <p class="text-muted">Select an answer for each question to see if you’re correct.</p>
 
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="autoSubmit" @bind="autoSubmit">
+        <label class="form-check-label" for="autoSubmit">
+            Auto Submit Answers
+        </label>
+    </div>
+
     @if (QuizState?.CurrentQuiz == null || QuizState.CurrentQuiz.Questions.Count == 0)
     {
         <div class="alert alert-warning">
@@ -24,8 +31,11 @@
         @for (int i = 0; i < QuizState.CurrentQuiz.Questions.Count; i++)
         {
             var question = QuizState.CurrentQuiz.Questions[i];
-            <QuestionCard Question="question" QuestionIndex="i" />
+            <QuestionCard Question="question" QuestionIndex="i" AutoSubmit="autoSubmit" />
         }
     }
 </div>
 
+@code {
+    private bool autoSubmit = true;
+}

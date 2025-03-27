@@ -14,6 +14,7 @@
         public string? Answer { get; set; }         // The correct answer
         public string? Explanation { get; set; }    // Explanation for the correct answer
         public string? UserAnswer { get; set; }       // To store the answer provided by the user
+        public int QuizId { get; set; } // P6a97
     }
 
     public class QuizResponse

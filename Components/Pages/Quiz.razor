@@ -4,8 +4,10 @@
 
 @using WiseUpDude.Services
 @using WiseUpDude.Components.Controls
+@using WiseUpDude.Model
 
 @inject QuizStateService QuizState
+@inject QuizService QuizService
 
 @attribute [Authorize]
 
@@ -33,9 +35,26 @@
             var question = QuizState.CurrentQuiz.Questions[i];
             <QuestionCard Question="question" QuestionIndex="i" AutoSubmit="autoSubmit" />
         }
+
+        <button class="btn btn-primary mt-3" @onclick="SaveQuiz">Save Quiz</button>
     }
 </div>
 
 @code {
     private bool autoSubmit = true;
+
+    private async Task SaveQuiz()
+    {
+        if (QuizState?.CurrentQuiz != null)
+        {
+            var quiz = new Quiz
+            {
+                Title = "Generated Quiz",
+                UserId = "current_user_id", // Replace with actual user ID
+                Questions = QuizState.CurrentQuiz.Questions
+            };
+
+            await QuizService.SaveQuizAsync(quiz);
+        }
+    }
 }

@@ -361,3 +361,11 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Data/Migrations/20250327202643_AddNewFields.cs
+/Data/Migrations/20250327202643_AddNewFields.Designer.cs
+/Data/Migrations/20250327214402_RemoveQuizIdColumn.cs
+/Data/Migrations/20250327214402_RemoveQuizIdColumn.Designer.cs
+/Data/Migrations/20250327214600_RemoveQuizIdColumnAgainLOL.cs
+/Data/Migrations/20250327214600_RemoveQuizIdColumnAgainLOL.Designer.cs
+/Data/Migrations/20250327220350_UpdateQuizIdToId.cs
+/Data/Migrations/20250327220350_UpdateQuizIdToId.Designer.cs

@@ -160,17 +160,60 @@ namespace WiseUpDude.Services
             return chunks;
         }
 
-        public async Task SaveQuizAsync(Quiz quiz)
+        public async Task SaveQuizAsync(QuizModel quiz)
         {
             _dbContext.Quizzes.Add(quiz);
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<Quiz?> GetQuizAsync(int quizId)
+        public async Task<QuizModel?> GetQuizAsync(int quizId)
         {
             return await _dbContext.Quizzes
                 .Include(q => q.Questions)
                 .FirstOrDefaultAsync(q => q.Id == quizId);
+        }
+
+        public async Task UpdateQuizAsync(QuizModel quiz)
+        {
+            _dbContext.Quizzes.Update(quiz);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteQuizAsync(int quizId)
+        {
+            var quiz = await _dbContext.Quizzes.FindAsync(quizId);
+            if (quiz != null)
+            {
+                _dbContext.Quizzes.Remove(quiz);
+                await _dbContext.SaveChangesAsync();
+            }
+        }
+
+        public async Task AddQuizQuestionAsync(QuizQuestion quizQuestion)
+        {
+            _dbContext.QuizQuestions.Add(quizQuestion);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<QuizQuestion?> GetQuizQuestionAsync(int quizQuestionId)
+        {
+            return await _dbContext.QuizQuestions.FindAsync(quizQuestionId);
+        }
+
+        public async Task UpdateQuizQuestionAsync(QuizQuestion quizQuestion)
+        {
+            _dbContext.QuizQuestions.Update(quizQuestion);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteQuizQuestionAsync(int quizQuestionId)
+        {
+            var quizQuestion = await _dbContext.QuizQuestions.FindAsync(quizQuestionId);
+            if (quizQuestion != null)
+            {
+                _dbContext.QuizQuestions.Remove(quizQuestion);
+                await _dbContext.SaveChangesAsync();
+            }
         }
     }
 }

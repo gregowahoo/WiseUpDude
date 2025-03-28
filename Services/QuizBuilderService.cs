@@ -10,13 +10,13 @@ using WiseUpDude.Model;
 
 namespace WiseUpDude.Services
 {
-    public class QuizService
+    public class QuizBuilderService
     {
         private readonly HttpClient _httpClient;
         private readonly string _openAiApiKey;
         private const string OpenAiApiUrl = "https://api.openai.com/v1/chat/completions";
 
-        public QuizService(HttpClient httpClient, IConfiguration configuration)
+        public QuizBuilderService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
             _openAiApiKey = configuration["OpenAI:ApiKey"] ?? throw new ArgumentNullException("OpenAI API key is missing.");

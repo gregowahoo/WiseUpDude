@@ -15,7 +15,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddHttpClient(); // Required for making API calls
 
 builder.Services.AddScoped<ContentFetchingService>();
-builder.Services.AddScoped<QuizService>();
+builder.Services.AddScoped<QuizBuilderService>();
 builder.Services.AddScoped<QuizStateService>();
 
 builder.Services.AddCascadingAuthenticationState();

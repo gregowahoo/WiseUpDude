@@ -6,7 +6,7 @@
 @using WiseUpDude.Components.Controls
 
 @inject WiseUpDude.Services.ContentFetchingService ContentService
-@inject WiseUpDude.Services.QuizService QuizService
+@inject WiseUpDude.Services.QuizBuilderService QuizService
 
 @inject QuizStateService QuizState
 @inject NavigationManager NavManager
@@ -110,7 +110,7 @@
             return;
         }
 
-        // 2) Pass the validated text content to QuizService.
+        // 2) Pass the validated text content to QuizBuilderService.
         quizResponse = await QuizService.GenerateQuizAsync(fetchResult.Content);
 
         // 3) Navigate or show an error based on the quiz response.

@@ -155,25 +155,25 @@ namespace WiseUpDude.Services
 
             for (int i = 0; i < content.Length; i += chunkSize)
             {
-                chunks.Add(content.Substring(i, Math.Min(chunkSize, content.Length - i)));
+                chunks.Add(content.Substring(i, Math.min(chunkSize, content.Length - i)));
             }
             return chunks;
         }
 
-        public async Task SaveQuizAsync(QuizModel quiz)
+        public async Task SaveQuizAsync(Quiz quiz)
         {
             _dbContext.Quizzes.Add(quiz);
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<QuizModel?> GetQuizAsync(int quizId)
+        public async Task<Quiz?> GetQuizAsync(int quizId)
         {
             return await _dbContext.Quizzes
                 .Include(q => q.Questions)
                 .FirstOrDefaultAsync(q => q.Id == quizId);
         }
 
-        public async Task UpdateQuizAsync(QuizModel quiz)
+        public async Task UpdateQuizAsync(Quiz quiz)
         {
             _dbContext.Quizzes.Update(quiz);
             await _dbContext.SaveChangesAsync();

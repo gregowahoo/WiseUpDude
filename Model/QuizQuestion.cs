@@ -16,8 +16,8 @@
         public string? Explanation { get; set; }    // Explanation for the correct answer
         public string? UserAnswer { get; set; }       // To store the answer provided by the user
 
-        public int QuizId { get; set; } // Foreign key to reference QuizModel entity
-        public QuizModel Quiz { get; set; } // Navigation property to reference QuizModel entity
+        public int QuizId { get; set; } // Foreign key to reference Quiz entity
+        public Quiz Quiz { get; set; } // Navigation property to reference Quiz entity
     }
 
     public class QuizResponse

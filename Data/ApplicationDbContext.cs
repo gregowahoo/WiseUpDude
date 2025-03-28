@@ -6,19 +6,19 @@ namespace WiseUpDude.Data;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
-    public DbSet<QuizModel> Quizzes { get; set; }
+    public DbSet<Quiz> Quizzes { get; set; }
     public DbSet<QuizQuestion> QuizQuestions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<QuizModel>()
+        modelBuilder.Entity<Quiz>()
             .HasOne(q => q.User)
             .WithMany(u => u.Quizzes)
             .HasForeignKey(q => q.UserId);
 
-        modelBuilder.Entity<QuizModel>()
+        modelBuilder.Entity<Quiz>()
             .Property(q => q.RowVersion)
             .IsRowVersion();
 

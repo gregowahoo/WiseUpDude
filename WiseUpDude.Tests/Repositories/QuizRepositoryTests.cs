@@ -28,7 +28,7 @@ namespace WiseUpDude.Tests.Repositories
         public async Task AddQuiz_ShouldAddQuizToDatabase()
         {
             // Arrange
-            var quiz = new QuizModel
+            var quiz = new Quiz
             {
                 Name = "Sample Quiz",
                 UserId = "user1"
@@ -48,7 +48,7 @@ namespace WiseUpDude.Tests.Repositories
         public async Task GetQuiz_ShouldReturnQuizFromDatabase()
         {
             // Arrange
-            var quiz = new QuizModel
+            var quiz = new Quiz
             {
                 Name = "Sample Quiz",
                 UserId = "user1"
@@ -69,7 +69,7 @@ namespace WiseUpDude.Tests.Repositories
         public async Task UpdateQuiz_ShouldUpdateQuizInDatabase()
         {
             // Arrange
-            var quiz = new QuizModel
+            var quiz = new Quiz
             {
                 Name = "Sample Quiz",
                 UserId = "user1"
@@ -91,7 +91,7 @@ namespace WiseUpDude.Tests.Repositories
         public async Task DeleteQuiz_ShouldRemoveQuizFromDatabase()
         {
             // Arrange
-            var quiz = new QuizModel
+            var quiz = new Quiz
             {
                 Name = "Sample Quiz",
                 UserId = "user1"

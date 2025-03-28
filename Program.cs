@@ -5,6 +5,7 @@ using WiseUpDude.Components;
 using WiseUpDude.Components.Account;
 using WiseUpDude.Data;
 using WiseUpDude.Services;
+using WiseUpDude.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,9 @@ builder.Services.AddHttpClient(); // Required for making API calls
 builder.Services.AddScoped<ContentFetchingService>();
 builder.Services.AddScoped<QuizBuilderService>();
 builder.Services.AddScoped<QuizStateService>();
+
+builder.Services.AddScoped<IQuizRepository, QuizRepository>();
+builder.Services.AddScoped<IQuizQuestionRepository, QuizQuestionRepository>();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();

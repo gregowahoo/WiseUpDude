@@ -7,6 +7,8 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using WiseUpDude.Model;
+using WiseUpDude.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace WiseUpDude.Services
 {
@@ -15,11 +17,13 @@ namespace WiseUpDude.Services
         private readonly HttpClient _httpClient;
         private readonly string _openAiApiKey;
         private const string OpenAiApiUrl = "https://api.openai.com/v1/chat/completions";
+        private readonly ApplicationDbContext _dbContext;
 
-        public QuizService(HttpClient httpClient, IConfiguration configuration)
+        public QuizService(HttpClient httpClient, IConfiguration configuration, ApplicationDbContext dbContext)
         {
             _httpClient = httpClient;
             _openAiApiKey = configuration["OpenAI:ApiKey"] ?? throw new ArgumentNullException("OpenAI API key is missing.");
+            _dbContext = dbContext;
         }
 
         public async Task<QuizResponse> GenerateQuizAsync(string content)
@@ -154,6 +158,19 @@ namespace WiseUpDude.Services
                 chunks.Add(content.Substring(i, Math.Min(chunkSize, content.Length - i)));
             }
             return chunks;
+        }
+
+        public async Task SaveQuizAsync(Quiz quiz)
+        {
+            _dbContext.Quizzes.Add(quiz);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<Quiz?> GetQuizAsync(int quizId)
+        {
+            return await _dbContext.Quizzes
+                .Include(q => q.Questions)
+                .FirstOrDefaultAsync(q => q.Id == quizId);
         }
     }
 }

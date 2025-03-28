@@ -6,11 +6,12 @@
 @using WiseUpDude.Components.Controls
 
 @inject QuizStateService QuizState
+@inject QuizService QuizService
 
 @attribute [Authorize]
 
 <div class="container mt-4">
-    <h3>Quiz Questions</h3>
+    <h3>@QuizState?.CurrentQuiz?.Name</h3>
     <p class="text-muted">Select an answer for each question to see if you’re correct.</p>
 
     <div class="form-check mb-3">
@@ -34,8 +35,29 @@
             <QuestionCard Question="question" QuestionIndex="i" AutoSubmit="autoSubmit" />
         }
     }
+
+    <div class="mb-3">
+        <label for="quizName" class="form-label">Quiz Name</label>
+        <input type="text" class="form-control" id="quizName" @bind="quizName">
+    </div>
+    <button class="btn btn-success" @onclick="SaveQuiz">Save Quiz</button>
 </div>
 
 @code {
     private bool autoSubmit = true;
+    private string quizName = string.Empty;
+
+    private async Task SaveQuiz()
+    {
+        if (QuizState.CurrentQuiz != null && !string.IsNullOrWhiteSpace(quizName))
+        {
+            var quiz = new Quiz
+            {
+                Name = quizName,
+                Questions = QuizState.CurrentQuiz.Questions
+            };
+
+            await QuizService.SaveQuizAsync(quiz);
+        }
+    }
 }

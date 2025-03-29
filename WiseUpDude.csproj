@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="WiseUpDude.Tests\**" />
+    <Content Remove="WiseUpDude.Tests\**" />
+    <EmbeddedResource Remove="WiseUpDude.Tests\**" />
+    <None Remove="WiseUpDude.Tests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-grid.css" />
     <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-grid.css.map" />
     <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-grid.min.css" />

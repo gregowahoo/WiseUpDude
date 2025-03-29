@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using WiseUpDude.Data;
 using WiseUpDude.Model;
 
-namespace GarbageIn.Data.Repositories
+namespace WiseUpDude.Data.Repositories
 {
     public class QuizQuestionRepository : IRepository<QuizQuestion>
     {

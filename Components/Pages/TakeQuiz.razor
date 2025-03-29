@@ -7,10 +7,12 @@
 @using WiseUpDude.Services
 @using WiseUpDude.Components.Controls
 @using WiseUpDude.Data.Repositories
+
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IRepository<Quiz> QuizRepository
 @inject QuizStateService QuizState
+@inject IJSRuntime JS
 
 @attribute [Authorize]
 
@@ -18,6 +20,13 @@
 <p>Select an answer for each question to see if you're correct.</p>
 
 <ScoreTracker TotalQuestions="@totalQuestions" CorrectAnswers="@correctAnswers" />
+
+@if (showFinalMessage)
+{
+    <div class="alert alert-success mt-4 fs-5 text-center fw-bold">
+        🎉 You Wise’d Up! Final Score: @correctAnswers / @totalAnswered
+    </div>
+}
 
 <div class="mb-3 form-check">
     <input class="form-check-input" type="checkbox" id="autoSubmitToggle" @bind="autoSubmit" />
@@ -55,7 +64,11 @@ else
     private string? saveMessage;
 
     private int totalQuestions;
+    private int totalAnswered;
     private int correctAnswers;
+
+    private bool showFinalMessage = false;
+
 
     protected override void OnInitialized()
     {
@@ -67,10 +80,21 @@ else
 
     private void HandleAnswerSubmitted(bool isCorrect)
     {
+        totalAnswered++;
+
         if (isCorrect)
         {
             correctAnswers++;
         }
+
+        if (QuizState.CurrentQuiz?.Questions != null && totalAnswered >= QuizState.CurrentQuiz.Questions.Count)
+        {
+            // 🎉 Final question answered – party time
+            _ = JS.InvokeVoidAsync("launchConfetti");
+            _ = JS.InvokeVoidAsync("playVictorySound");
+            showFinalMessage = true;
+        }
+
         StateHasChanged();
     }
 

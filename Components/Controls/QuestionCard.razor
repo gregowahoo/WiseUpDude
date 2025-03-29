@@ -4,6 +4,7 @@
     [Parameter] public QuizQuestion? Question { get; set; }
     [Parameter] public int QuestionIndex { get; set; }
     [Parameter] public bool AutoSubmit { get; set; }
+    [Parameter] public EventCallback<bool> OnAnswerSubmitted { get; set; }
 
     private string userAnswer = string.Empty;
     private bool submitted = false;
@@ -15,18 +16,28 @@
 
         if (AutoSubmit)
         {
-            CheckAnswer();
+            CheckAnswerAndNotify();
         }
     }
 
-    private void CheckAnswer()
+    private async void CheckAnswerAndNotify()
     {
         submitted = true;
 
         if (Question is not null)
         {
             Question.UserAnswer = userAnswer;
+
+            bool isCorrect = userAnswer == Question.Answer;
+            await OnAnswerSubmitted.InvokeAsync(isCorrect);
         }
+
+        StateHasChanged();
+    }
+
+    private void CheckAnswer()
+    {
+        CheckAnswerAndNotify();
     }
 
     private string GetOptionClass(string option)
@@ -50,7 +61,6 @@
 
         @if (Question?.Options != null && Question.Options.Count > 0)
         {
-            <!-- Multiple Choice Options -->
             @foreach (var option in Question.Options)
             {
                 <button class="@GetOptionClass(option)"
@@ -61,7 +71,6 @@
         }
         else
         {
-            <!-- True/False Question -->
             @foreach (var tf in new[] { "True", "False" })
             {
                 <button class="@GetOptionClass(tf)"

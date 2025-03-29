@@ -17,6 +17,8 @@
 <h3 class="mb-3">🧠 Take Quiz</h3>
 <p>Select an answer for each question to see if you're correct.</p>
 
+<ScoreTracker TotalQuestions="@totalQuestions" CorrectAnswers="@correctAnswers" />
+
 <div class="mb-3 form-check">
     <input class="form-check-input" type="checkbox" id="autoSubmitToggle" @bind="autoSubmit" />
     <label class="form-check-label" for="autoSubmitToggle">Auto-submit Answers</label>
@@ -33,7 +35,11 @@ else
     @for (int i = 0; i < QuizState.CurrentQuiz.Questions.Count; i++)
     {
         var question = QuizState.CurrentQuiz.Questions[i];
-        <QuestionCard Question="question" QuestionIndex="i" AutoSubmit="autoSubmit" />
+        <QuestionCard 
+            Question="question" 
+            QuestionIndex="i" 
+            AutoSubmit="autoSubmit"
+            OnAnswerSubmitted="HandleAnswerSubmitted" />
     }
 
     <button class="btn btn-success mt-4" @onclick="SaveQuizAsync">Save Quiz</button>
@@ -47,6 +53,26 @@ else
 @code {
     private bool autoSubmit = true;
     private string? saveMessage;
+
+    private int totalQuestions;
+    private int correctAnswers;
+
+    protected override void OnInitialized()
+    {
+        if (QuizState.CurrentQuiz?.Questions != null)
+        {
+            totalQuestions = QuizState.CurrentQuiz.Questions.Count;
+        }
+    }
+
+    private void HandleAnswerSubmitted(bool isCorrect)
+    {
+        if (isCorrect)
+        {
+            correctAnswers++;
+        }
+        StateHasChanged();
+    }
 
     private async Task SaveQuizAsync()
     {

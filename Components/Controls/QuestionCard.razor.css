@@ -1,0 +1,12 @@
+﻿.btn {
+    transition: all 0.15s ease-in-out;
+}
+
+    .btn:hover {
+        transform: scale(1.04);
+    }
+
+    .btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }

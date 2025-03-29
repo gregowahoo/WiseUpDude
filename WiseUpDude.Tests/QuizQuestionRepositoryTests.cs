@@ -15,7 +15,7 @@ namespace WiseUpDude.Tests
         public QuizQuestionRepositoryTests()
         {
             _options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: "TestDatabase")
+                .UseInMemoryDatabase(databaseName: $"TestDatabase_{Guid.NewGuid()}")
                 .Options;
         }
 
@@ -47,6 +47,7 @@ namespace WiseUpDude.Tests
 
             Assert.NotNull(result);
             Assert.Equal("Sample Question", result.Question);
+            await context.Database.EnsureDeletedAsync();
         }
 
         [Fact]
@@ -80,6 +81,7 @@ namespace WiseUpDude.Tests
             var result = await repository.GetAllAsync();
 
             Assert.Equal(2, result.Count());
+            await context.Database.EnsureDeletedAsync();
         }
 
         [Fact]
@@ -103,6 +105,7 @@ namespace WiseUpDude.Tests
 
             Assert.NotNull(result);
             Assert.Equal("Sample Question", result.Question);
+            await context.Database.EnsureDeletedAsync();
         }
 
         [Fact]
@@ -130,6 +133,7 @@ namespace WiseUpDude.Tests
 
             Assert.NotNull(result);
             Assert.Equal("Updated Question", result.Question);
+            await context.Database.EnsureDeletedAsync();
         }
 
         [Fact]
@@ -154,6 +158,7 @@ namespace WiseUpDude.Tests
             var result = await context.QuizQuestions.FindAsync(1);
 
             Assert.Null(result);
+            await context.Database.EnsureDeletedAsync();
         }
     }
 }

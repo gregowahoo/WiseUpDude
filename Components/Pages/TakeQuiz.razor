@@ -23,15 +23,37 @@
 
 @if (showFinalMessage)
 {
-    <div class="alert alert-success mt-4 fs-5 text-center fw-bold">
-        🎉 You Wise’d Up! Final Score: @correctAnswers / @totalAnswered
-    </div>
+    @if ((double)correctAnswers / totalAnswered >= 0.8)
+    {
+        <div class="alert alert-success mt-4 fs-5 text-center fw-bold">
+            🎉 You Wise’d Up! Final Score: @correctAnswers / @totalAnswered
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger mt-4 fs-5 text-center fw-bold">
+            😬 You’ve got work to do, wise guy. Final Score: @correctAnswers / @totalAnswered
+        </div>
+    }
 }
 
-<div class="mb-3 form-check">
-    <input class="form-check-input" type="checkbox" id="autoSubmitToggle" @bind="autoSubmit" />
-    <label class="form-check-label" for="autoSubmitToggle">Auto-submit Answers</label>
+<div class="d-flex align-items-center gap-4 mb-3">
+    <button type="button"
+            class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+            @onclick="ToggleAutoSubmit">
+        <i class="bi @(autoSubmit ? "bi-lightning-fill" : "bi-lightning") me-1"></i>
+        @(autoSubmit ? "Auto-Submit On" : "Auto-Submit Off")
+    </button>
+
+    <button type="button"
+            class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+            @onclick="ToggleMute">
+        <i class="bi @(muteSound ? "bi-volume-mute-fill" : "bi-volume-up-fill") me-1"></i>
+        @(muteSound ? "Muted" : "Sound On")
+    </button>
+
 </div>
+
 
 @if (QuizState.CurrentQuiz == null || QuizState.CurrentQuiz.Questions.Count == 0)
 {
@@ -48,6 +70,7 @@ else
             Question="question" 
             QuestionIndex="i" 
             AutoSubmit="autoSubmit"
+            MuteSound="muteSound"
             OnAnswerSubmitted="HandleAnswerSubmitted" />
     }
 
@@ -69,6 +92,17 @@ else
 
     private bool showFinalMessage = false;
 
+    private bool muteSound = false;
+
+    private void ToggleAutoSubmit()
+    {
+        autoSubmit = !autoSubmit;
+    }
+
+    private void ToggleMute()
+    {
+        muteSound = !muteSound;
+    }
 
     protected override void OnInitialized()
     {
@@ -89,9 +123,16 @@ else
 
         if (QuizState.CurrentQuiz?.Questions != null && totalAnswered >= QuizState.CurrentQuiz.Questions.Count)
         {
-            // 🎉 Final question answered – party time
-            _ = JS.InvokeVoidAsync("launchConfetti");
-            _ = JS.InvokeVoidAsync("playVictorySound");
+            _ = JS.InvokeVoidAsync("scrollToTopSmooth");
+
+            double scorePercent = (double)correctAnswers / totalAnswered;
+
+            if (scorePercent >= 0.8)
+            {
+                _ = JS.InvokeVoidAsync("launchConfetti");
+                _ = JS.InvokeVoidAsync("playVictorySound");
+            }
+
             showFinalMessage = true;
         }
 

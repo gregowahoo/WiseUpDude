@@ -13,3 +13,8 @@ window.playVictorySound = () => {
         sound.play();
     }
 };
+
+window.scrollToTopSmooth = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+};
+

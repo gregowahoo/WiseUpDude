@@ -9,6 +9,7 @@
     [Parameter] public int QuestionIndex { get; set; }
     [Parameter] public bool AutoSubmit { get; set; }
     [Parameter] public EventCallback<bool> OnAnswerSubmitted { get; set; }
+    [Parameter] public bool MuteSound { get; set; }
 
     private string userAnswer = string.Empty;
     private bool submitted = false;
@@ -33,8 +34,12 @@
             Question.UserAnswer = userAnswer;
 
             bool isCorrect = userAnswer == Question.Answer;
-            await JS.InvokeVoidAsync("playSound", isCorrect ? "correct-sound" : "incorrect-sound");
-            await OnAnswerSubmitted.InvokeAsync(isCorrect);
+
+            if (!MuteSound)
+            {
+                await JS.InvokeVoidAsync("playSound", isCorrect ? "correct-sound" : "incorrect-sound");
+                await OnAnswerSubmitted.InvokeAsync(isCorrect);
+            }
         }
 
         StateHasChanged();

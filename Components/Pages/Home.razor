@@ -5,8 +5,8 @@
 @using WiseUpDude.Services
 @using WiseUpDude.Components.Controls
 
-@inject WiseUpDude.Services.ContentFetchingService ContentService
-@inject WiseUpDude.Services.QuizBuilderService QuizService
+@inject WiseUpDude.Services.ContentFetchingService ContentFetchingService
+@inject WiseUpDude.Services.QuizBuilderService QuizBuilderService
 
 @inject QuizStateService QuizState
 @inject NavigationManager NavManager
@@ -78,7 +78,7 @@
 
         if (useTestData)
         {
-            quizResponse = await QuizService.LoadQuizFromFileAsync("wwwroot/data/quiz.json");
+            quizResponse = await QuizBuilderService.LoadQuizFromFileAsync("wwwroot/data/quiz.json");
             if (quizResponse.Questions != null && quizResponse.Questions.Count > 0)
             {
                 QuizState.CurrentQuiz = quizResponse;
@@ -101,7 +101,7 @@
         await Task.Delay(500); // Optional delay to allow overlay to appear
 
         // 1) Fetch and validate text content from the URL.
-        var fetchResult = await ContentService.FetchValidatedTextContentAsync(url);
+        var fetchResult = await ContentFetchingService.FetchValidatedTextContentAsync(url);
 
         if (!fetchResult.IsSuccess)
         {
@@ -111,13 +111,13 @@
         }
 
         // 2) Pass the validated text content to QuizBuilderService.
-        quizResponse = await QuizService.GenerateQuizAsync(fetchResult.Content);
+        quizResponse = await QuizBuilderService.GenerateQuizAsync(fetchResult.Content);
 
         // 3) Navigate or show an error based on the quiz response.
         if (quizResponse.Questions != null && quizResponse.Questions.Count > 0)
         {
             QuizState.CurrentQuiz = quizResponse;
-            NavManager.NavigateTo("/quiz");
+            NavManager.NavigateTo("/takequiz");
         }
         else
         {

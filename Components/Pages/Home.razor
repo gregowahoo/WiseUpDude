@@ -37,9 +37,80 @@
         </div>
     </div>
 
-    <!-- Final CTA -->
-    <div class="text-center">
-        <a href="/quizme" class="btn btn-success btn-lg">Jump In Now!</a>
-    </div>
+@code {    
+    private List<string> myUrls = new List<string>
+    {
+        "https://www.webmd.com/vitamins/ai/ingredientmono-954/vitamin-e",
+        "https://www.webmd.com/menopause/understanding-menopause-treatment#1-2",
+        "https://www.verywellhealth.com/mounjaro-for-weight-loss-8689784",
+        "https://www.history.com/articles/department-education-andrew-johnson-reconstruction",
+        "https://www.mayoclinic.org/diseases-conditions/parkinsons-disease/symptoms-causes/syc-20376055",        
+        "https://www.healthline.com/health/neck-pain"
+    };
+    
+    private string url { get; set; } = string.Empty;
+    private bool useTestData { get; set; } = false;
+    
+    private void OnSelectedUrlChanged(string newValue)
+    {
+        url = newValue;
+    }
+}
+
+@code {
+    private string errorMessage = string.Empty;
+    private bool showOverlay = false;
+
+    private async Task GenerateQuiz()
+    {
+        QuizResponse quizResponse;
+
+        if (useTestData)
+        {
+            quizResponse = await QuizBuilderService.LoadQuizFromFileAsync("wwwroot/data/quiz.json");
+            if (quizResponse.Questions != null && quizResponse.Questions.Count > 0)
+            {
+                QuizState.CurrentQuiz = quizResponse;
+                NavManager.NavigateTo("/takequiz");
+            }
+            else
+            {
+                errorMessage = "No questions were generated from the test data.";
+            }
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(url))
+            return;
+
+        errorMessage = string.Empty;
+        showOverlay = true;
+        StateHasChanged();
+
+        await Task.Delay(500); // Optional delay to allow overlay to appear
+
+        // 1) Fetch and validate text content from the URL.
+        var fetchResult = await ContentFetchingService.FetchValidatedTextContentAsync(url);
+
+        if (!fetchResult.IsSuccess)
+        {
+            errorMessage = fetchResult.ErrorMessage;
+            showOverlay = false; 
+            return;
+        }
+
+        // 2) Pass the validated text content to QuizBuilderService.
+        quizResponse = await QuizBuilderService.GenerateQuizAsync(fetchResult.Content);
+
+        // 3) Navigate or show an error based on the quiz response.
+        if (quizResponse.Questions != null && quizResponse.Questions.Count > 0)
+        {
+            QuizState.CurrentQuiz = quizResponse;
+            NavManager.NavigateTo("/takequiz");
+        }
+        else
+        {
+            errorMessage = "No questions were generated.";
+        }
 
 </div>

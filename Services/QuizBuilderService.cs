@@ -155,5 +155,73 @@ namespace WiseUpDude.Services
             }
             return chunks;
         }
+
+
+        public async Task<QuizResponse> GenerateQuizFromTopicAsync(string topic, string difficulty)
+        {
+            var prompt = $@"Create a quiz on the topic: ""{topic}"" with a {difficulty.ToLower()} difficulty level. Include both multiple-choice and true/false questions. For each question, output this structure in JSON:
+                        {{
+                          ""Questions"": [
+                            {{
+                              ""Question"": ""string"",
+                              ""Options"": [""option1"", ""option2"", ...],  // Leave empty for true/false
+                              ""Answer"": ""string"",
+                              ""Explanation"": ""string""
+                            }}
+                          ]
+                        }}
+
+                        Return only valid JSON.
+                        ";
+
+            var requestBody = new
+            {
+                model = "gpt-4",
+                messages = new[]
+                {
+            new { role = "system", content = "You are a quiz-generating AI." },
+            new { role = "user", content = prompt }
+        },
+                temperature = 0.7,
+                max_tokens = 1000
+            };
+
+            var jsonContent = new StringContent(
+                JsonSerializer.Serialize(requestBody),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _openAiApiKey);
+
+            var response = await _httpClient.PostAsync(OpenAiApiUrl, jsonContent);
+            response.EnsureSuccessStatusCode();
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+            var openAiResponse = JsonSerializer.Deserialize<OpenAiChatCompletionResponse>(jsonResponse,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (openAiResponse?.Choices == null || openAiResponse.Choices.Count == 0)
+            {
+                return new QuizResponse();
+            }
+
+            var quizJson = openAiResponse.Choices[0].Message.Content;
+
+            try
+            {
+                var quizResponse = JsonSerializer.Deserialize<QuizResponse>(quizJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                return quizResponse ?? new QuizResponse();
+            }
+            catch (JsonException ex)
+            {
+                Console.WriteLine($"Error parsing quiz JSON: {ex.Message}");
+                return new QuizResponse();
+            }
+        }
+
     }
 }

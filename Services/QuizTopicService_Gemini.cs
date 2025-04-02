@@ -20,7 +20,7 @@ namespace WiseUpDude.Services
             _openAIKey = _configuration["OpenAI:ApiKey"]; // Load the API key
         }
 
-        public async Task<(List<string>? Topics, string? ErrorMessage)> GetQuizTopics()
+        public async Task<(List<string>? Topics, string? ErrorMessage)> GetRelevantQuizTopicsAsync()
         {
             if (string.IsNullOrEmpty(_openAIKey))
             {
@@ -44,7 +44,7 @@ namespace WiseUpDude.Services
                 var userPrompt = new
                 {
                     role = "user",
-                    content = "Suggest 20 current and relevant topics that people would be interested in taking a short quiz about.  Give me only the topic names, not any extra information."
+                    content = "Suggest 20 current and relevant topics that people would be interested in taking a short quiz about. Topics should be interesting and current."
                 };
 
                 // Create the request payload

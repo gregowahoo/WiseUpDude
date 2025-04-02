@@ -34,7 +34,7 @@ namespace WiseUpDude.Services
                     messages = new[]
                     {
                     new { role = "system", content = "You are a helpful assistant that suggests topics for short, engaging quizzes." },
-                    new { role = "user", content = "Suggest 20 current and relevant topics that people would be interested in taking a short quiz about. Give me only the topic names, not any extra information." }
+                    new { role = "user", content = "Suggest 20 current and relevant topics that people would be interested in taking a short quiz about. Topics should be interesting and current. Include a description of the topic." }
                 },
                     temperature = 0.7,
                     max_tokens = 300

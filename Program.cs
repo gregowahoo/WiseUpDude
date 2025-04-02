@@ -34,6 +34,8 @@ builder.Services.AddScoped<ContentFetchingService>();
 builder.Services.AddScoped<QuizBuilderService>();
 builder.Services.AddScoped<QuizStateService>();
 builder.Services.AddScoped<IRepository<Quiz>, QuizRepository>();
+builder.Services.AddScoped<QuizTopicService_OpenAI>();
+builder.Services.AddScoped<QuizTopicService_Gemini>();
 
 // Identity
 builder.Services.AddScoped<IdentityUserAccessor>();

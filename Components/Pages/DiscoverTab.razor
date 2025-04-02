@@ -1,0 +1,101 @@
+﻿@page "/myquizzes"
+@layout WiseUpDude.Components.Layout.MinimalLayout
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+<div class="container-fluid bg-dark text-light vh-100 p-4">
+    <div class="row h-100">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-12 border-end border-secondary">
+            <h4 class="fw-bold mb-4">My Quizzes</h4>
+
+            <ul class="nav flex-column nav-pills">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#">🔍 Discover</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-light" href="#">⭐ Following</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-12">
+            <h5 class="fw-semibold">Recommended Topics</h5>
+            <p class="text-muted">Pick a topic to follow and quiz yourself anytime.</p>
+
+            <!-- Carousel (NO AUTO-SLIDE) -->
+            <div id="quizCarousel" class="carousel slide">
+                <div class="carousel-inner">
+                    @for (int i = 0; i < RecommendedTopics.Count; i += 3)
+                    {
+                        var chunk = RecommendedTopics.Skip(i).Take(3).ToList();
+                        <div class="carousel-item @(i == 0 ? "active" : "")">
+                            <div class="container">
+                                <div class="row justify-content-center">
+                                    @foreach (var topic in chunk)
+                                    {
+                                        <div class="col-12 col-sm-6 col-md-4 d-flex justify-content-center mb-4">
+                                            <div class="card bg-secondary text-white" style="width: 12rem;">
+                                                <img src="@topic.ImageUrl"
+                                                     class="card-img-top img-fluid"
+                                                     style="height: 120px; object-fit: cover;"
+                                                     alt="@topic.Name" />
+                                                <div class="card-body">
+                                                    <h6 class="card-title text-truncate">@topic.Name</h6>
+                                                    <button class="btn btn-outline-light btn-sm w-100"
+                                                            @onclick="() => ToggleFollow(topic.Name)">
+                                                        @(topic.IsFollowing ? "✔️ Following" : "+ Follow")
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <button class="carousel-control-prev" type="button" data-bs-target="#quizCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#quizCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    public class QuizTopic
+    {
+        public string Name { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+        public bool IsFollowing { get; set; } = false;
+    }
+
+    private List<QuizTopic> RecommendedTopics = new()
+    {
+        new QuizTopic { Name = "Space", ImageUrl = "https://placehold.co/200x120/333/fff?text=Space" },
+        new QuizTopic { Name = "AI & Tech", ImageUrl = "https://placehold.co/200x120/444/fff?text=AI+%26+Tech" },
+        new QuizTopic { Name = "History", ImageUrl = "https://placehold.co/200x120/555/fff?text=History" },
+        new QuizTopic { Name = "Pop Culture", ImageUrl = "https://placehold.co/200x120/666/fff?text=Pop+Culture" },
+        new QuizTopic { Name = "Politics", ImageUrl = "https://placehold.co/200x120/777/fff?text=Politics" },
+        new QuizTopic { Name = "Animals", ImageUrl = "https://placehold.co/200x120/888/fff?text=Animals" },
+        new QuizTopic { Name = "Science", ImageUrl = "https://placehold.co/200x120/999/fff?text=Science" }
+    };
+
+    private void ToggleFollow(string topicName)
+    {
+        var topic = RecommendedTopics.FirstOrDefault(t => t.Name == topicName);
+        if (topic is not null)
+        {
+            topic.IsFollowing = !topic.IsFollowing;
+        }
+    }
+}

@@ -1,5 +1,4 @@
-﻿// QuizMe.razor
-@page "/quizme"
+﻿@page "/quizme"
 
 @inject NavigationManager NavigationManager
 @inject QuizTopicService QuizTopicService
@@ -22,7 +21,10 @@
                     @foreach (var (topic, description) in SuggestedTopics)
                     {
                         <button class="btn btn-outline-secondary btn-sm rounded-pill"
-                                title="@description"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="top"
+                                data-bs-content="@description"
                                 @onclick="@(() => UserTopic = topic)">
                             @topic
                         </button>

@@ -4,22 +4,22 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
-
+using System.Text.Json.Serialization;
 
 namespace WiseUpDude.Services
 {
-    public class QuizTopicService_OpenAI
+    public class QuizTopicService
     {
         private readonly HttpClient _httpClient;
         private readonly string? _apiKey;
 
-        public QuizTopicService_OpenAI(HttpClient httpClient, IConfiguration configuration)
+        public QuizTopicService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
             _apiKey = configuration["OpenAI:ApiKey"];
         }
 
-        public async Task<(List<string>? Topics, string? ErrorMessage)> GetRelevantQuizTopicsAsync()
+        public async Task<(List<(string Topic, string Description)>? Topics, string? ErrorMessage)> GetRelevantQuizTopicsAsync()
         {
             if (string.IsNullOrEmpty(_apiKey))
             {
@@ -33,11 +33,11 @@ namespace WiseUpDude.Services
                     model = "gpt-4",
                     messages = new[]
                     {
-                    new { role = "system", content = "You are a helpful assistant that suggests topics for short, engaging quizzes." },
-                    new { role = "user", content = "Suggest 20 current and relevant topics that people would be interested in taking a short quiz about. Topics should be interesting and current. Include a description of the topic." }
-                },
+                        new { role = "system", content = "You are a helpful assistant that suggests topics for short, engaging quizzes. Each topic should include a short 1-sentence description explaining why it's interesting or relevant." },
+                        new { role = "user", content = "Return a JSON array of 20 objects, each with 'topic' and 'description'. Format: [{\"topic\":\"...\",\"description\":\"...\"}, ...]. No intro or closing." }
+                    },
                     temperature = 0.7,
-                    max_tokens = 300
+                    max_tokens = 600
                 };
 
                 var jsonRequestBody = JsonSerializer.Serialize(requestBody);
@@ -63,25 +63,48 @@ namespace WiseUpDude.Services
                     string? content = responseObject.choices[0]?.message?.content;
                     if (!string.IsNullOrEmpty(content))
                     {
-                        var topics = content.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
-                                            .Select(t => t.Trim().TrimStart('-').Trim())
-                                            .ToList();
-                        return (topics, null);
+                        try
+                        {
+                            string jsonArray = ExtractJsonArray(content);
+                            //var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                            var topics = JsonSerializer.Deserialize<List<QuizTopicService.TopicItem>>(jsonArray);
+
+                            if (topics != null)
+                            {
+                                var result = topics.Select(t => (t.Topic, t.Description)).ToList();
+                                return (result, null);
+                            }
+
+                            return (null, "Failed to parse topic data from OpenAI.");
+                        }
+                        catch (JsonException jex)
+                        {
+                            return (null, $"JSON parsing error: {jex.Message}");
+                        }
                     }
-                    else
-                    {
-                        return (null, "No topics were returned from the OpenAI API.");
-                    }
+
+                    return (null, "No topics were returned from the OpenAI API.");
                 }
-                else
-                {
-                    return (null, "Invalid response format from OpenAI API.");
-                }
+
+                return (null, "Invalid response format from OpenAI API.");
             }
             catch (Exception ex)
             {
                 return (null, $"Error: {ex.Message}");
             }
+        }
+
+        private static string ExtractJsonArray(string content)
+        {
+            var start = content.IndexOf('[');
+            var end = content.LastIndexOf(']');
+
+            if (start >= 0 && end > start)
+            {
+                return content.Substring(start, end - start + 1);
+            }
+
+            return "[]";
         }
 
         public class OpenAIResponse
@@ -99,5 +122,15 @@ namespace WiseUpDude.Services
             public string? role { get; set; }
             public string? content { get; set; }
         }
+
+        public class TopicItem
+        {
+            [JsonPropertyName("topic")]
+            public string Topic { get; set; } = string.Empty;
+
+            [JsonPropertyName("description")]
+            public string Description { get; set; } = string.Empty;
+        }
+
     }
 }

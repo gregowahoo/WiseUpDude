@@ -1,34 +1,30 @@
-﻿@page "/quizme"
+﻿// QuizMe.razor
+@page "/quizme"
+
 @inject NavigationManager NavigationManager
-
-@* @inject QuizTopicService_Gemini QuizTopicService *@
-@inject QuizTopicService_OpenAI QuizTopicService
-@* @inject QuizTopicService QuizTopicService *@
-
+@inject QuizTopicService QuizTopicService
 
 <div class="container mt-5">
-    <!-- Header -->
     <div class="text-center mb-4">
         <h2 class="fw-bold">🎯 Quiz Me!</h2>
         <p class="text-muted">Type a topic you're curious about, pick a difficulty, and go!</p>
     </div>
 
-    <!-- Input Box -->
     <div class="row justify-content-center">
         <div class="col-md-8">
             <label for="topicInput" class="form-label fw-semibold">What do you want to learn today?</label>
             <InputText id="topicInput" @bind-Value="UserTopic" class="form-control form-control-lg mb-3"
-                       placeholder="e.g. Space exploration, Taylor Swift, World War II, I want to improve my English. " />
+                       placeholder="e.g. Space exploration, Taylor Swift, World War II, I want to improve my English." />
 
-            <!-- Suggested Prompts -->
             <div class="d-flex flex-wrap gap-2 mb-3">
                 @if (SuggestedTopics?.Any() == true)
                 {
-                    @foreach (var suggestion in SuggestedTopics)
+                    @foreach (var (topic, description) in SuggestedTopics)
                     {
                         <button class="btn btn-outline-secondary btn-sm rounded-pill"
-                                @onclick="@(() => UserTopic = suggestion)">
-                            @suggestion
+                                title="@description"
+                                @onclick="@(() => UserTopic = topic)">
+                            @topic
                         </button>
                     }
                 }
@@ -42,7 +38,6 @@
                 }
             </div>
 
-            <!-- Difficulty Selection -->
             <label class="form-label fw-semibold">Choose Difficulty:</label>
             <div class="btn-group w-100 mb-4" role="group">
                 @foreach (var level in DifficultyLevels)
@@ -58,7 +53,6 @@
                 }
             </div>
 
-            <!-- Start Button -->
             <div class="text-center">
                 <button class="btn btn-success btn-lg px-5" @onclick="GenerateQuiz">
                     🚀 Generate Quiz
@@ -72,7 +66,7 @@
     private string? UserTopic { get; set; }
     private string SelectedDifficulty { get; set; } = "Medium";
 
-    private List<string>? SuggestedTopics;
+    private List<(string Topic, string Description)>? SuggestedTopics;
     private string? ErrorMessage;
 
     private readonly string[] DifficultyLevels = new[] { "Easy", "Medium", "Hard" };
@@ -87,7 +81,7 @@
     private void GenerateQuiz()
     {
         var topicToUse = string.IsNullOrWhiteSpace(UserTopic)
-            ? SuggestedTopics?.FirstOrDefault() ?? "General Knowledge"
+            ? SuggestedTopics?.FirstOrDefault().Topic ?? "General Knowledge"
             : UserTopic;
 
         var encodedTopic = Uri.EscapeDataString(topicToUse);

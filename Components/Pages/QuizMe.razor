@@ -1,7 +1,14 @@
-﻿@page "/quizme"
+﻿@* QuizMe.razor *@
+@page "/quizme"
+
+@using Microsoft.AspNetCore.Authorization
 
 @inject NavigationManager NavigationManager
 @inject QuizTopicService QuizTopicService
+@inject IJSRuntime JSRuntime
+
+@rendermode InteractiveServer
+@attribute [Authorize]
 
 <div class="container mt-5">
     <div class="text-center mb-4">
@@ -20,14 +27,9 @@
                 {
                     @foreach (var (topic, description) in SuggestedTopics)
                     {
-                        <button class="btn btn-outline-secondary btn-sm rounded-pill"
-                                data-bs-toggle="popover"
-                                data-bs-trigger="hover focus"
-                                data-bs-placement="top"
-                                data-bs-content="@description"
-                                @onclick="@(() => UserTopic = topic)">
-                            @topic
-                        </button>
+                        <HoverPopover TargetText="@topic" OnClick="@(() => UserTopic = topic)">
+                            @description
+                        </HoverPopover>
                     }
                 }
                 else if (!string.IsNullOrEmpty(ErrorMessage))
@@ -75,6 +77,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        Console.WriteLine("👀 OnInitializedAsync was called.");
         var result = await QuizTopicService.GetRelevantQuizTopicsAsync();
         SuggestedTopics = result.Topics;
         ErrorMessage = result.ErrorMessage;

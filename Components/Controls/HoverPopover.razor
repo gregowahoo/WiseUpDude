@@ -1,7 +1,7 @@
-﻿@* HoverPopover.razor *@
-<div @onmouseenter="ShowPopover"
+﻿<div @onmouseenter="ShowPopover"
      @onmouseleave="HidePopover"
      class="d-inline-block position-relative">
+
     <button class="btn btn-outline-secondary btn-sm rounded-pill"
             @onclick="OnClick">
         @TargetText
@@ -11,7 +11,14 @@
     {
         <div class="popover-box">
             <span class="popover-arrow"></span>
-            @ChildContent
+            @if (ChildContent is not null)
+            {
+                @ChildContent
+            }
+            else if (!string.IsNullOrWhiteSpace(Description))
+            {
+                <span>@Description</span>
+            }
         </div>
     }
 </div>
@@ -20,6 +27,7 @@
     private bool isVisible;
 
     [Parameter] public string TargetText { get; set; } = string.Empty;
+    [Parameter] public string? Description { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public EventCallback OnClick { get; set; }
 

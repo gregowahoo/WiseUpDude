@@ -27,9 +27,9 @@
                 {
                     @foreach (var (topic, description) in SuggestedTopics)
                     {
-                        <HoverPopover TargetText="@topic" OnClick="@(() => UserTopic = topic)">
-                            @description
-                        </HoverPopover>
+                        <HoverPopover TargetText="@topic"
+                                      Description="@description"
+                                      OnClick="@(() => UserTopic = topic)" />
                     }
                 }
                 else if (!string.IsNullOrEmpty(ErrorMessage))

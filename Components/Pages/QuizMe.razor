@@ -2,10 +2,14 @@
 @page "/quizme"
 
 @using Microsoft.AspNetCore.Authorization
+@using WiseUpDude.Services
+@using WiseUpDude.Services.Interfaces
 
 @inject NavigationManager NavigationManager
 @inject QuizTopicService QuizTopicService
 @inject IJSRuntime JSRuntime
+
+@inject ITopicsCacheService<TopicItem> TopicsCacheService
 
 @rendermode InteractiveServer
 @attribute [Authorize]
@@ -19,17 +23,17 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <label for="topicInput" class="form-label fw-semibold">What do you want to learn today?</label>
-            <InputText id="topicInput" @bind-Value="UserTopic" class="form-control form-control-lg mb-3"
-                       placeholder="e.g. Space exploration, Taylor Swift, World War II, I want to improve my English." />
-
+            <InputText id="topicInput" @bind-Value="UserTopic" class="form-control form-control-lg mb3"
+                       placeholder="e.g. Space exploration, AI, World War II, Mi English no hasta bueno." />
+            <br />
             <div class="d-flex flex-wrap gap-2 mb-3">
                 @if (SuggestedTopics?.Any() == true)
                 {
-                    @foreach (var (topic, description) in SuggestedTopics)
+                    @foreach (var topicItem in SuggestedTopics)
                     {
-                        <HoverPopover TargetText="@topic"
-                                      Description="@description"
-                                      OnClick="@(() => UserTopic = topic)" />
+                        <HoverPopover TargetText="@topicItem.Topic"
+                                      Description="@topicItem.Description"
+                                      OnClick="@(() => UserTopic = topicItem.Topic)" />
                     }
                 }
                 else if (!string.IsNullOrEmpty(ErrorMessage))
@@ -70,23 +74,43 @@
     private string? UserTopic { get; set; }
     private string SelectedDifficulty { get; set; } = "Medium";
 
-    private List<(string Topic, string Description)>? SuggestedTopics;
+    private List<TopicItem>? SuggestedTopics;
     private string? ErrorMessage;
 
     private readonly string[] DifficultyLevels = new[] { "Easy", "Medium", "Hard" };
 
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine("👀 OnInitializedAsync was called.");
-        var result = await QuizTopicService.GetRelevantQuizTopicsAsync();
-        SuggestedTopics = result.Topics;
-        ErrorMessage = result.ErrorMessage;
+        CheckCache();
+
+        if (SuggestedTopics == null || !SuggestedTopics.Any())
+        {
+            Console.WriteLine("👀 OnInitializedAsync was called.");
+            var result = await QuizTopicService.GetRelevantQuizTopicsAsync();
+
+            SuggestedTopics = result.Topics;
+            ErrorMessage = result.ErrorMessage;
+
+            if (SuggestedTopics != null && SuggestedTopics.Any())
+            {
+                TopicsCacheService.SetItems(SuggestedTopics);
+            }
+        }
+    }
+
+    private void CheckCache()
+    {
+        var cachedTopics = TopicsCacheService.GetItems();
+        if (cachedTopics != null && cachedTopics.Any())
+        {
+            SuggestedTopics = cachedTopics;
+        }
     }
 
     private void GenerateQuiz()
     {
         var topicToUse = string.IsNullOrWhiteSpace(UserTopic)
-            ? SuggestedTopics?.FirstOrDefault().Topic ?? "General Knowledge"
+            ? SuggestedTopics?.FirstOrDefault()?.Topic ?? "General Knowledge"
             : UserTopic;
 
         var encodedTopic = Uri.EscapeDataString(topicToUse);

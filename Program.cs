@@ -7,6 +7,7 @@ using WiseUpDude.Data;
 using WiseUpDude.Data.Repositories;
 using WiseUpDude.Model;
 using WiseUpDude.Services;
+using WiseUpDude.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,9 +23,13 @@ builder.Configuration
 
 #region Services
 
+builder.Services.AddMemoryCache();
+
+// Register TopicsCacheService as a singleton
+builder.Services.AddSingleton<ITopicsCacheService<TopicItem>, TopicsCacheService<TopicItem>>();
+
 // Razor Components with Interactivity
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 // HTTP Client (for external API calls)
 builder.Services.AddHttpClient();
@@ -57,8 +62,7 @@ builder.Services.AddAuthentication(options =>
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

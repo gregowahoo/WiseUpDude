@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json.Serialization;
+using WiseUpDude.Model;
 
 namespace WiseUpDude.Services
 {
@@ -19,7 +20,7 @@ namespace WiseUpDude.Services
             _apiKey = configuration["OpenAI:ApiKey"];
         }
 
-        public async Task<(List<(string Topic, string Description)>? Topics, string? ErrorMessage)> GetRelevantQuizTopicsAsync()
+        public async Task<(List<TopicItem>? Topics, string? ErrorMessage)> GetRelevantQuizTopicsAsync()
         {
             if (string.IsNullOrEmpty(_apiKey))
             {
@@ -67,12 +68,11 @@ namespace WiseUpDude.Services
                         {
                             string jsonArray = ExtractJsonArray(content);
                             //var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                            var topics = JsonSerializer.Deserialize<List<QuizTopicService.TopicItem>>(jsonArray);
+                            var topics = JsonSerializer.Deserialize<List<TopicItem>>(jsonArray);
 
                             if (topics != null)
                             {
-                                var result = topics.Select(t => (t.Topic, t.Description)).ToList();
-                                return (result, null);
+                                return (topics, null);
                             }
 
                             return (null, "Failed to parse topic data from OpenAI.");
@@ -123,14 +123,7 @@ namespace WiseUpDude.Services
             public string? content { get; set; }
         }
 
-        public class TopicItem
-        {
-            [JsonPropertyName("topic")]
-            public string Topic { get; set; } = string.Empty;
 
-            [JsonPropertyName("description")]
-            public string Description { get; set; } = string.Empty;
-        }
 
     }
 }

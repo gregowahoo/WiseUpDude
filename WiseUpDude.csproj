@@ -64,6 +64,8 @@
     <Content Remove="Components\Controls\QuestionCardGemini.razor" />
   </ItemGroup>
 
+
+
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.2.0" />
     <PackageReference Include="bootstrap" Version="5.3.3" />
@@ -81,6 +83,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\css\" />
     <Folder Include="wwwroot\sounds\" />
   </ItemGroup>
 

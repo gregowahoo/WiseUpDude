@@ -20,7 +20,7 @@
 @if (showOverlay)
 {
     <div class="overlay">
-        <div class="spinner"></div>
+        <i class="fas fa-brain spinner"></i>
         <p class="overlay-text">Please wait...</p>
     </div>
 }
@@ -107,6 +107,7 @@
         {
             errorMessage = fetchResult.ErrorMessage;
             showOverlay = false;
+            StateHasChanged();          //Do I really need this?
             return;
         }
 

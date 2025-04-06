@@ -5,14 +5,21 @@
 @using WiseUpDude.Services
 @using WiseUpDude.Services.Interfaces
 
+@inject QuizStateService QuizState
 @inject NavigationManager NavigationManager
 @inject QuizTopicService QuizTopicService
 @inject IJSRuntime JSRuntime
 
 @inject ITopicsCacheService<TopicItem> TopicsCacheService
+@inject QuizQuestionsFromTopic QuizQuestionsFromTopic
 
 @rendermode InteractiveServer
 @attribute [Authorize]
+
+@if (IsGenerating)
+{
+    <p class="text-center mt-3 text-muted">🧠 Generating your quiz...</p>
+}
 
 <div class="container mt-5">
     <div class="text-center mb-4">
@@ -79,6 +86,8 @@
 
     private readonly string[] DifficultyLevels = new[] { "Easy", "Medium", "Hard" };
 
+    private bool IsGenerating = false;
+
     protected override async Task OnInitializedAsync()
     {
         CheckCache();
@@ -107,15 +116,36 @@
         }
     }
 
-    private void GenerateQuiz()
+    private async Task GenerateQuiz()
     {
+        IsGenerating = true;
+
         var topicToUse = string.IsNullOrWhiteSpace(UserTopic)
             ? SuggestedTopics?.FirstOrDefault()?.Topic ?? "General Knowledge"
             : UserTopic;
 
-        var encodedTopic = Uri.EscapeDataString(topicToUse);
-        var encodedDifficulty = Uri.EscapeDataString(SelectedDifficulty);
+        var criteria = new QuizRequestCriteria
+            {
+                Topic = topicToUse,
+                Difficulty = SelectedDifficulty
+            };
 
-        NavigationManager.NavigateTo($"/takequiz?topic={encodedTopic}&difficulty={encodedDifficulty}");
+        var quiz = await QuizQuestionsFromTopic.GenerateQuizAsync(criteria);
+
+        // var encodedTopic = Uri.EscapeDataString(topicToUse);
+        // var encodedDifficulty = Uri.EscapeDataString(SelectedDifficulty);
+
+        if (quiz != null && quiz.Questions?.Any() == true)
+        {
+            QuizState.CurrentQuiz = quiz;
+            NavigationManager.NavigateTo("/TakeQuiz");
+        }
+        else
+        {
+            Console.WriteLine("🚫 Failed to generate quiz from topic and difficulty.");
+            // Optional: show user-friendly error UI
+        }
+
+        IsGenerating = false;
     }
 }

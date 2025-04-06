@@ -30,13 +30,20 @@ var innerChatClientAzure = new AzureOpenAIClient(
     new ApiKeyCredential(builder.Configuration["AI:Key"] ?? throw new InvalidOperationException("Missing AI:Key")))
     .AsChatClient("gpt-35-turbo");
 
-// 2) Create a second chat client for OpenAI GPT-4
+// 2) Create an Github chat client for ???
+var innerChatClientGithub = new AzureOpenAIClient(
+    new Uri(builder.Configuration["GithubAI:Endpoint"] ?? throw new InvalidOperationException("Missing GithubAI:Endpoint")),
+    new ApiKeyCredential(builder.Configuration["GithubAI:Key"] ?? throw new InvalidOperationException("Missing GithubAI:Key")))
+    .AsChatClient("gpt-4o");
+
+// 2) Create a third chat client for OpenAI gpt-4o-mini
 var innerChatClientOpenAI = new OpenAI.Chat.ChatClient("gpt-4o-mini",
     builder.Configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("Missing OpenAI:ApiKey"))
     .AsChatClient();
 
-builder.Services.AddChatClient(innerChatClientAzure);   // Azure-based GPT-3.5
-//builder.Services.AddChatClient(innerChatClientOpenAI);  // “gpt-4o-mini” from OpenAI
+//builder.Services.AddChatClient(innerChatClientAzure);             // Azure-based GPT-3.5
+builder.Services.AddChatClient(innerChatClientGithub);              // Azure-based GPT-3.5
+//builder.Services.AddChatClient(innerChatClientOpenAI);            // “gpt-4o-mini” from OpenAI
 
 #region Services
 
@@ -57,6 +64,7 @@ builder.Services.AddScoped<QuizBuilderService>();
 builder.Services.AddScoped<QuizStateService>();
 builder.Services.AddScoped<IRepository<Quiz>, QuizRepository>();
 builder.Services.AddScoped<QuizTopicService>();
+builder.Services.AddScoped<QuizQuestionsFromTopic>();
 
 // Identity
 builder.Services.AddScoped<IdentityUserAccessor>();

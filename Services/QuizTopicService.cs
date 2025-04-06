@@ -1,92 +1,39 @@
-﻿// QuizTopicService_OpenAI.cs
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
-using Microsoft.Extensions.Configuration;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json;
+using Microsoft.Extensions.AI;
 using WiseUpDude.Model;
 
 namespace WiseUpDude.Services
 {
     public class QuizTopicService
     {
-        private readonly HttpClient _httpClient;
-        private readonly string? _apiKey;
+        private readonly IChatClient _chatClient;
 
-        public QuizTopicService(HttpClient httpClient, IConfiguration configuration)
+        public QuizTopicService(IChatClient chatClient)
         {
-            _httpClient = httpClient;
-            _apiKey = configuration["OpenAI:ApiKey"];
+            _chatClient = chatClient;
         }
 
         public async Task<(List<TopicItem>? Topics, string? ErrorMessage)> GetRelevantQuizTopicsAsync()
         {
-            if (string.IsNullOrEmpty(_apiKey))
-            {
-                return (null, "OpenAI API key is not configured.");
-            }
-
             try
             {
-                var requestBody = new
-                {
-                    model = "gpt-4",
-                    messages = new[]
-                    {
-                        new { role = "system", content = "You are a helpful assistant that suggests topics for short, engaging quizzes. Each topic should include a short 1-sentence description explaining why it's interesting or relevant." },
-                        new { role = "user", content = "Return a JSON array of 20 objects, each with 'topic' and 'description'. Format: [{\"topic\":\"...\",\"description\":\"...\"}, ...]. No intro or closing." }
-                    },
-                    temperature = 0.7,
-                    max_tokens = 600
-                };
+                var prompt = "Return a JSON array of 40 objects, each with 'topic' and 'description'. Format: [{\"topic\":\"...\",\"description\":\"...\"}, ...]. No intro or closing. Return only the raw JSON without any code block formatting or prefixes like 'json'.";
 
-                var jsonRequestBody = JsonSerializer.Serialize(requestBody);
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions")
-                {
-                    Content = new StringContent(jsonRequestBody, Encoding.UTF8, "application/json")
-                };
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+                var result = await _chatClient.GetResponseAsync($"You are a helpful assistant that suggests topics for short, engaging quizzes. Each topic should include a short 1-sentence description explaining why it's interesting or relevant.\n\n{prompt}");
+                var content = result.Text;
 
-                var response = await _httpClient.SendAsync(request);
-
-                if (!response.IsSuccessStatusCode)
+                try
                 {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    return (null, $"OpenAI API error: {response.StatusCode} - {errorContent}");
+                    string jsonArray = ExtractJsonArray(content);
+                    var topics = JsonSerializer.Deserialize<List<TopicItem>>(jsonArray);
+                    return topics != null
+                        ? (topics, null)
+                        : (null, "Failed to parse topic data from model response.");
                 }
-
-                var responseJson = await response.Content.ReadAsStringAsync();
-                var responseObject = JsonSerializer.Deserialize<OpenAIResponse>(responseJson);
-
-                if (responseObject?.choices != null && responseObject.choices.Length > 0)
+                catch (JsonException jex)
                 {
-                    string? content = responseObject.choices[0]?.message?.content;
-                    if (!string.IsNullOrEmpty(content))
-                    {
-                        try
-                        {
-                            string jsonArray = ExtractJsonArray(content);
-                            //var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                            var topics = JsonSerializer.Deserialize<List<TopicItem>>(jsonArray);
-
-                            if (topics != null)
-                            {
-                                return (topics, null);
-                            }
-
-                            return (null, "Failed to parse topic data from OpenAI.");
-                        }
-                        catch (JsonException jex)
-                        {
-                            return (null, $"JSON parsing error: {jex.Message}");
-                        }
-                    }
-
-                    return (null, "No topics were returned from the OpenAI API.");
+                    return (null, $"JSON parsing error: {jex.Message}");
                 }
-
-                return (null, "Invalid response format from OpenAI API.");
             }
             catch (Exception ex)
             {
@@ -98,32 +45,7 @@ namespace WiseUpDude.Services
         {
             var start = content.IndexOf('[');
             var end = content.LastIndexOf(']');
-
-            if (start >= 0 && end > start)
-            {
-                return content.Substring(start, end - start + 1);
-            }
-
-            return "[]";
+            return (start >= 0 && end > start) ? content.Substring(start, end - start + 1) : "[]";
         }
-
-        public class OpenAIResponse
-        {
-            public Choice[]? choices { get; set; }
-        }
-
-        public class Choice
-        {
-            public Message? message { get; set; }
-        }
-
-        public class Message
-        {
-            public string? role { get; set; }
-            public string? content { get; set; }
-        }
-
-
-
     }
 }

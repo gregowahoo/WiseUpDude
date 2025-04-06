@@ -87,31 +87,19 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\css\" />
-    <Folder Include="wwwroot\sounds\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="wwwroot\sounds\264779__anthonychan0__civilian-stun-gun-110s-zap.mp3">
+    <Content Update="wwwroot\sounds\applause.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Update="wwwroot\sounds\381355__funwithsound__applause-1.mp3">
+    <Content Update="wwwroot\sounds\correct.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Update="wwwroot\sounds\546081__stavsounds__correct3.wav">
+    <Content Update="wwwroot\sounds\incorrect.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\sounds\546082__stavsounds__correct2.wav">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\sounds\546083__stavsounds__correct1.wav">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\sounds\546084__stavsounds__correct.wav">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\sounds\644951__craigscottuk__quiz-gameshow-correct-ping-04.mp3">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
 
 </Project>

@@ -1,9 +1,6 @@
 ﻿@using WiseUpDude.Model
 @inject IJSRuntime JS
 
-<audio id="correct-sound" src="/sounds/correct.mp3" preload="none"></audio>
-<audio id="incorrect-sound" src="/sounds/incorrect.mp3" preload="none"></audio>
-
 @code {
     [Parameter] public QuizQuestion? Question { get; set; }
     [Parameter] public int QuestionIndex { get; set; }

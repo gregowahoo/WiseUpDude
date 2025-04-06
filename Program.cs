@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Components.Authorization;
+﻿using Azure.AI.OpenAI;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
+using System.ClientModel;
 using WiseUpDude.Components;
 using WiseUpDude.Components.Account;
 using WiseUpDude.Data;
@@ -20,6 +23,20 @@ builder.Configuration
     .AddEnvironmentVariables();
 
 #endregion
+
+// 1) Create an Azure-based chat client for GPT-3.5
+var innerChatClientAzure = new AzureOpenAIClient(
+    new Uri(builder.Configuration["AI:Endpoint"] ?? throw new InvalidOperationException("Missing AI:Endpoint")),
+    new ApiKeyCredential(builder.Configuration["AI:Key"] ?? throw new InvalidOperationException("Missing AI:Key")))
+    .AsChatClient("gpt-35-turbo");
+
+// 2) Create a second chat client for OpenAI GPT-4
+var innerChatClientOpenAI = new OpenAI.Chat.ChatClient("gpt-4o-mini",
+    builder.Configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("Missing OpenAI:ApiKey"))
+    .AsChatClient();
+
+builder.Services.AddChatClient(innerChatClientAzure);   // Azure-based GPT-3.5
+//builder.Services.AddChatClient(innerChatClientOpenAI);  // “gpt-4o-mini” from OpenAI
 
 #region Services
 

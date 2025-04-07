@@ -17,9 +17,15 @@ namespace WiseUpDude.Services
         {
             try
             {
-                var prompt = "Return a JSON array of 40 objects, each with 'topic' and 'description'. Format: [{\"topic\":\"...\",\"description\":\"...\"}, ...]. No intro or closing. Return only the raw JSON without any code block formatting or prefixes like 'json'.";
+                var prompt = "Return a JSON array of 40 objects, each with 'topic' and 'description'. " +
+                             "Format: [{\"topic\":\"...\",\"description\":\"...\"}, ...]. No intro or closing. " +
+                             "Return only the raw JSON without any code block formatting or prefixes like 'json'.";
 
-                var result = await _chatClient.GetResponseAsync($"You are a helpful assistant that suggests topics for short, engaging quizzes. Each topic should include a short 1-sentence description explaining why it's interesting or relevant.\n\n{prompt}");
+                var result = await _chatClient.GetResponseAsync(
+                    "You are a helpful assistant that suggests topics for short, engaging quizzes. " +
+                    "Can you create a list of at least 20 topics that would be interesting for people to take a quiz on? " +
+                    "Topics should be interesting and current. Each topic should include a short 1-sentence description " +
+                    "explaining why it's interesting or relevant. \n\n" + prompt);
                 var content = result.Text;
 
                 try

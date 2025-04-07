@@ -64,8 +64,6 @@
     <Content Remove="Components\Controls\QuestionCardGemini.razor" />
   </ItemGroup>
 
-
-
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.2.0" />
     <PackageReference Include="Azure.AI.OpenAI" Version="2.2.0-beta.4" />
@@ -84,22 +82,5 @@
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="nunit" Version="3.13.2" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="wwwroot\css\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="wwwroot\sounds\applause.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\sounds\correct.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\sounds\incorrect.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
 
 </Project>

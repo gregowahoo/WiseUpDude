@@ -21,6 +21,7 @@ namespace WiseUpDude.Services
                 $"The difficulty level should be: {criteria.Difficulty}.",
                 "Use the following difficulty scale: Easy (basic knowledge), Medium (moderate understanding), Hard (advanced understanding).",
                 "Adjust the question complexity and vocabulary based on this scale.",
+                "Try to create at least 20 questions.",
                 "Include both multiple-choice and true/false questions.",
                 "Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\".",
                 "Return only valid JSON in the format:",

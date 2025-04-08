@@ -1,22 +1,31 @@
 ﻿@page "/"
 
-@layout WiseUpDude.Components.Layout.MinimalLayout
-
-@using WiseUpDude.Services
-@using WiseUpDude.Components.Controls
-
-@inject WiseUpDude.Services.ContentFetchingService ContentFetchingService
-@inject WiseUpDude.Services.QuizBuilderService QuizBuilderService
-@inject NavigationManager NavManager
-
-@inject QuizStateService QuizState
-@inject NavigationManager NavManager
+@layout WiseUpDude.Components.Layout.LandingLayout
 
 @rendermode InteractiveServer
 
-@using Microsoft.AspNetCore.Authorization
+@code {
+    [Inject] NavigationManager NavManager { get; set; } = default!;
+    [Inject] AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
 
-@attribute [Authorize]
+    private bool _isFirstRender = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _isFirstRender)
+        {
+            _isFirstRender = false;
+
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                NavManager.NavigateTo("/urlquiz");
+            }
+        }
+    }
+}
 
 <div class="container py-5">
     <!-- Hero Section -->
@@ -74,15 +83,7 @@
     <!-- Call-to-action Section -->
     <section class="cta-section py-5 bg-primary text-white text-center">
         <h2>Ready to Learn?</h2>
-        <p>Register and use for free today and start mastering your favorite subjects with ease!</p>
-        <!-- Updated button text -->
-        <button class="btn btn-light btn-lg mt-3" onclick="NavigateToSignUp()">I Need To Wise Up!</button>
+        <p>Register and use Wise Up Dude for free and start mastering your favorite subjects! Click Below!</p>
+        <a class="btn btn-light btn-lg mt-3" href="/Account/Login">I Want To Be A Wise Guy!</a>
     </section>
-
 </div>
-
-<script>
-    function NavigateToSignUp() {
-        window.location.href = "/signup";
-    }
-</script>

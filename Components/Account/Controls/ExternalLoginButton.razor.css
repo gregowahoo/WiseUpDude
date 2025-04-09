@@ -1,0 +1,41 @@
+﻿.google-pill-button {
+    /* Pill shape and layout */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 9999px; /* Fully rounded edges for the pill look */
+    /* Border and background */
+    background-color: #fff;
+    border: 1px solid #d2d2d2; /* Slightly darker outline */
+    color: #3c4043;
+    /* Typography */
+    font-family: Roboto, Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: normal;
+    text-decoration: none;
+    /* Visual and interaction styles */
+    cursor: pointer;
+    box-shadow: none;
+    transition: background-color 0.2s ease-in-out;
+}
+
+    .google-pill-button:hover {
+        background-color: #f7f7f7;
+    }
+
+    .google-pill-button:active {
+        background-color: #eee;
+    }
+
+    .google-pill-button:focus {
+        outline: 2px solid #4285f4;
+        outline-offset: 2px;
+    }
+
+.google-signin-logo {
+    width: 20px; /* Increased for better visibility */
+    height: 20px;
+    margin-right: 8px; /* Spacing between the icon and the text */
+}

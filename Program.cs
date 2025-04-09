@@ -11,6 +11,7 @@ using WiseUpDude.Data.Repositories;
 using WiseUpDude.Model;
 using WiseUpDude.Services;
 using WiseUpDude.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.Google;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,8 @@ builder.Configuration
     .AddEnvironmentVariables();
 
 #endregion
+
+#region Chat Client Configuration
 
 // 1) Create an Azure-based chat client for GPT-3.5
 var innerChatClientAzure = new AzureOpenAIClient(
@@ -44,6 +47,8 @@ var innerChatClientOpenAI = new OpenAI.Chat.ChatClient("gpt-4o-mini",
 builder.Services.AddChatClient(innerChatClientAzure);             // Azure-based GPT-3.5
 //builder.Services.AddChatClient(innerChatClientGithub);              // Azure-based GPT-3.5
 //builder.Services.AddChatClient(innerChatClientOpenAI);            // “gpt-4o-mini” from OpenAI
+
+#endregion
 
 #region Services
 
@@ -82,6 +87,20 @@ builder.Services.AddAuthentication(options =>
     options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
 })
 .AddIdentityCookies();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+});
+
+builder.Services.AddAuthentication()
+    .AddGoogle(googleOptions =>
+    {
+        googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? throw new InvalidOperationException("Missing Google ClientId in configuration.");
+        googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? throw new InvalidOperationException("Missing Google ClientSecret in configuration.");
+        googleOptions.CallbackPath = new PathString("/signin-google"); // Default redirect URI
+    });
 
 // EF Core and Identity
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")

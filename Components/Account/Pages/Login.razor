@@ -75,8 +75,22 @@
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
+    private string? _returnUrl;
+
     [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; }
+    private string? ReturnUrl
+    {
+        get
+        {
+            Console.WriteLine($"[GET] in Login ReturnUrl: {_returnUrl}");
+            return _returnUrl;
+        }
+        set
+        {
+            Console.WriteLine($"[SET] ReturnUrl in Login: {value}");
+            _returnUrl = string.Empty;
+        }
+    }
 
     private AuthenticationScheme[] externalLogins = [];
 

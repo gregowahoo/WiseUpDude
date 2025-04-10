@@ -1,89 +1,130 @@
-﻿@page "/"
+﻿@page "/home"
 
-@layout WiseUpDude.Components.Layout.LandingLayout
+@layout WiseUpDude.Components.Layout.MinimalLayout
+
+@using WiseUpDude.Services
+@using WiseUpDude.Components.Controls
+
+@inject WiseUpDude.Services.ContentFetchingService ContentFetchingService
+@inject WiseUpDude.Services.QuizBuilderService QuizBuilderService
+
+@inject QuizStateService QuizState
+@inject NavigationManager NavManager
 
 @rendermode InteractiveServer
 
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
+
+@if (showOverlay)
+{
+    <div class="overlay">
+        <i class="fas fa-brain spinner"></i>
+        <p class="overlay-text">Please wait...</p>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p class="text-danger">@errorMessage</p>
+    <p class="text-danger">That site is not valid for generating a quiz, sorry.</p>
+}
+
+<div class="container">
+    <h1 class="title">Quiz Generator</h1>
+    <div class="card">
+        <UrlSelector UrlList="@myUrls"
+                     SelectedUrl="@url"
+                     SelectedUrlChanged="@OnSelectedUrlChanged"
+                     OnGenerateQuiz="@GenerateQuiz" />
+        <button class="btn btn-primary" @onclick="GenerateQuiz">Generate Quiz</button>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="useTestData" @bind="useTestData">
+            <label class="form-check-label" for="useTestData">
+                Use Test Data
+            </label>
+        </div>
+    </div>
+</div>
+
 @code {
-    [Inject] NavigationManager NavManager { get; set; } = default!;
-    [Inject] AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
-
-    private bool _isFirstRender = true;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private List<string> myUrls = new List<string>
     {
-        if (firstRender && _isFirstRender)
-        {
-            _isFirstRender = false;
+        "https://www.webmd.com/vitamins/ai/ingredientmono-954/vitamin-e",
+        "https://www.webmd.com/menopause/understanding-menopause-treatment#1-2",
+        "https://www.verywellhealth.com/mounjaro-for-weight-loss-8689784",
+        "https://www.history.com/articles/department-education-andrew-johnson-reconstruction",
+        "https://www.mayoclinic.org/diseases-conditions/parkinsons-disease/symptoms-causes/syc-20376055",
+        "https://www.healthline.com/health/neck-pain"
+    };
 
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
+    private string url { get; set; } = string.Empty;
+    private bool useTestData { get; set; } = false;
 
-            if (user.Identity?.IsAuthenticated == true)
-            {
-                NavManager.NavigateTo("/urlquiz");
-            }
-        }
+    private void OnSelectedUrlChanged(string newValue)
+    {
+        url = newValue;
     }
 }
 
-<div class="container py-5">
-    <!-- Hero Section -->
-    <section class="text-center mb-5">
-        <h1 class="display-4 fw-bold">Wise Up Dude</h1>
-        <p class="lead text-muted">Learn, quiz, repeat. Master any topic effortlessly through quizzes.</p>
-    </section>
+@code {
+    private string errorMessage = string.Empty;
+    private bool showOverlay = false;
 
-    <!-- Features Section -->
-    <section class="features-section py-5 bg-light">
-        <div class="container">
-            <h2 class="text-center mb-4">What is Wise Up Dude?</h2>
-            <div class="row g-4">
-                <div class="col-md-3">
-                    <div class="card border-0 shadow-sm text-center p-4">
-                        <i class="bi bi-person-check fs-1 text-primary mb-3"></i>
-                        <h5>Personalized Learning</h5>
-                        <p>Quizzes tailored specifically to your learning needs and interests.</p>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card border-0 shadow-sm text-center p-4">
-                        <i class="bi bi-lightbulb fs-1 text-warning mb-3"></i>
-                        <h5>Adaptive Quizzes</h5>
-                        <p>Practice and reinforce knowledge with quizzes that adapt as you learn.</p>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card border-0 shadow-sm text-center p-4">
-                        <i class="bi bi-cpu fs-1 text-success mb-3"></i>
-                        <h5>AI Quiz Prompt</h5>
-                        <p>Instantly generate quizzes by simply entering any topic or idea using AI.</p>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card border-0 shadow-sm text-center p-4">
-                        <i class="bi bi-bar-chart-line fs-1 text-danger mb-3"></i>
-                        <h5>Progress Tracking</h5>
-                        <p>Easily track your quiz results and measure your improvement.</p>
-                    </div>
-                </div>
+    private async Task GenerateQuiz()
+    {
+        QuizResponse quizResponse;
 
-                <!-- Save and Repeat Quizzes Card -->
-                <div class="col-md-12 mt-4">
-                    <div class="card border-0 shadow-sm text-center p-4">
-                        <i class="bi bi-arrow-repeat fs-1 text-info mb-3"></i>
-                        <h5>Save and Repeat Quizzes</h5>
-                        <p>Your progress is optionally tracked! Wise Up Dude can make sure you know the material.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+        if (useTestData)
+        {
+            quizResponse = await QuizBuilderService.LoadQuizFromFileAsync("wwwroot/data/quiz.json");
+            if (quizResponse.Questions != null && quizResponse.Questions.Count > 0)
+            {
+                QuizState.CurrentQuiz = quizResponse;
+                NavManager.NavigateTo("/takequiz");
+            }
+            else
+            {
+                errorMessage = "No questions were generated from the test data.";
+            }
+            return;
+        }
 
-    <!-- Call-to-action Section -->
-    <section class="cta-section py-5 bg-primary text-white text-center">
-        <h2>Ready to Learn, Anything?</h2>
-        <p>Register and use Wise Up Dude for free and start mastering any subject! Click Below!</p>
-        <a class="btn btn-light btn-lg mt-3" href="/Account/Login">I Want To Be A Wise Guy!</a>
-    </section>
-</div>
+        if (string.IsNullOrWhiteSpace(url))
+            return;
+
+        errorMessage = string.Empty;
+        showOverlay = true;
+        StateHasChanged();
+
+        await Task.Delay(500); // Optional delay to allow overlay to appear
+
+        // 1) Fetch and validate text content from the URL.
+        var fetchResult = await ContentFetchingService.FetchValidatedTextContentAsync(url);
+
+        if (!fetchResult.IsSuccess)
+        {
+            errorMessage = fetchResult.ErrorMessage;
+            showOverlay = false;
+            StateHasChanged();          //Do I really need this?
+            return;
+        }
+
+        // 2) Pass the validated text content to QuizBuilderService.
+        quizResponse = await QuizBuilderService.GenerateQuizAsync(fetchResult.Content);
+
+        // 3) Navigate or show an error based on the quiz response.
+        if (quizResponse.Questions != null && quizResponse.Questions.Count > 0)
+        {
+            QuizState.CurrentQuiz = quizResponse;
+            NavManager.NavigateTo("/takequiz");
+        }
+        else
+        {
+            errorMessage = "No questions were generated.";
+        }
+
+        showOverlay = false;
+    }
+}

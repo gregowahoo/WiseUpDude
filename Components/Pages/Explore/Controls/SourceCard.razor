@@ -21,9 +21,9 @@
 </div>
 
 @code {
-    [Parameter] public string Title { get; set; }
-    [Parameter] public string Description { get; set; }
-    [Parameter] public string Url { get; set; }
+    [Parameter] public string Title { get; set; } = string.Empty; // Default value to avoid nullability issues
+    [Parameter] public string Description { get; set; } = string.Empty; // Default value to avoid nullability issues
+    [Parameter] public string Url { get; set; } = string.Empty; // Default value to avoid nullability issues
     [Parameter] public int DelayMilliseconds { get; set; } = 0;
 
     private bool ImageLoaded = false;

@@ -1,70 +1,69 @@
 ﻿<header class="p-3 bg-dark text-white">
-        <div class="container">
-            <div class="d-flex flex-wrap align-items-center justify-content-between">
-                <a href="/" class="d-flex align-items-center text-white text-decoration-none">
-                    <!-- Replace this with your logo if desired -->
-                    @* <img src="https://getbootstrap.com/docs/5.3/assets/brand/bootstrap-logo.svg" alt="Logo" width="40" height="32" class="me-2" /> *@
-                    <span class="fs-4">Wise Up Dude</span>
-                </a>
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-center justify-content-between">
+            <!-- Add the logo aligned to the left -->
+            <a class="navbar-brand" href="/">
+                <img src="images/WiseUpDudeLogoWhite.png" alt="Wise Up Dude Logo" style="height: 50px; width: auto;" />
+            </a>
 
-                <ul class="nav">
-                    <li class="nav-item">
-                        <NavLink class="nav-link px-2 text-white" href="/" Match="NavLinkMatch.All">Home</NavLink>
-                    </li>
-                    <li class="nav-item">
-                        <NavLink class="nav-link px-2 text-white" href="/quizfromurl" Match="NavLinkMatch.Prefix">Quiz From URL</NavLink>
-                    </li>
-                    <li class="nav-item">
-                        <NavLink class="nav-link px-2 text-white" href="/pickatopic" Match="NavLinkMatch.Prefix">Pick a Topic</NavLink>
-                    </li>
-                    <li class="nav-item">
-                        <NavLink class="nav-link px-2 text-white" href="/Explore/Explore" Match="NavLinkMatch.Prefix">Explore</NavLink>
-                    </li>
+            <ul class="nav">
+                <li class="nav-item">
+                    <NavLink class="nav-link px-2 text-white" href="/" Match="NavLinkMatch.All">Home</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link px-2 text-white" href="/quizfromurl" Match="NavLinkMatch.Prefix">Quiz From URL</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link px-2 text-white" href="/pickatopic" Match="NavLinkMatch.Prefix">Pick a Topic</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link px-2 text-white" href="/Explore/Explore" Match="NavLinkMatch.Prefix">Explore</NavLink>
+                </li>
 
-                    <li class="nav-item">
-                        <NavLink class="nav-link px-2 text-white" href="/myquizzes" Match="NavLinkMatch.Prefix">Discover</NavLink>
-                    </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link px-2 text-white" href="/myquizzes" Match="NavLinkMatch.Prefix">Discover</NavLink>
+                </li>
 
-@*                     <li class="nav-item">
+                @*                     <li class="nav-item">
                         <NavLink class="nav-link px-2 text-white" href="/about" Match="NavLinkMatch.Prefix">About</NavLink>
                     </li> *@
 
-@*                     <li class="nav-item">
+                @*                     <li class="nav-item">
                         <NavLink class="nav-link px-2 text-white" href="/contact" Match="NavLinkMatch.Prefix">Contact</NavLink>
                     </li> *@
 
-@*                  <li class="nav-item">
+                @*                  <li class="nav-item">
                         <NavLink class="nav-link px-2 text-white" href="/auth" Match="NavLinkMatch.Prefix">Auth Required</NavLink>
                     </li> *@
-                </ul>
+            </ul>
 
             <div class="text-end">
-            <AuthorizeView>
-                <NotAuthorized>
-                    <ul class="nav">
-                        <li class="nav-item">
-                            <NavLink class="nav-link px-2 text-white" href="/Account/Login" Match="NavLinkMatch.Prefix">Login</NavLink>
-                        </li>
-                        <li class="nav-item">
-                            <NavLink class="nav-link px-2 text-white" href="/Account/Register" Match="NavLinkMatch.Prefix">Sign-up</NavLink>
-                        </li>
-                    </ul>
-                </NotAuthorized>
-                <Authorized>
-                    <ul class="nav">
-                        <li class="nav-item">
-                            <NavLink class="nav-link px-2 text-white" href="/Account/logout" Match="NavLinkMatch.Prefix">Logout</NavLink>
-                        </li>
-                    </ul>
-                </Authorized>
-            </AuthorizeView>
+                <AuthorizeView>
+                    Hello wise guy: @context.User.Identity?.Name!
+                </AuthorizeView>
             </div>
 
-        <div class="text-end">
-            <AuthorizeView>
-                Hello wise guy: @context.User.Identity?.Name!
-            </AuthorizeView>
+            <div class="text-end">
+                <AuthorizeView>
+                    <NotAuthorized>
+                        <ul class="nav">
+                            <li class="nav-item">
+                                <NavLink class="nav-link px-2 text-white" href="/Account/Login" Match="NavLinkMatch.Prefix">Login</NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink class="nav-link px-2 text-white" href="/Account/Register" Match="NavLinkMatch.Prefix">Sign-up</NavLink>
+                            </li>
+                        </ul>
+                    </NotAuthorized>
+                    <Authorized>
+                        <ul class="nav">
+                            <li class="nav-item">
+                                <NavLink class="nav-link px-2 text-white" href="/Account/logout" Match="NavLinkMatch.Prefix">Logout</NavLink>
+                            </li>
+                        </ul>
+                    </Authorized>
+                </AuthorizeView>
+            </div>
         </div>
-    </div>
     </div>
 </header>

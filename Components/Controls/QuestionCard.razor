@@ -1,6 +1,10 @@
 ﻿@using WiseUpDude.Model
 @inject IJSRuntime JS
 
+<!-- Audio Elements -->
+<audio id="correct-sound" src="/sounds/correct.mp3" preload="auto"></audio>
+<audio id="incorrect-sound" src="/sounds/incorrect.mp3" preload="auto"></audio>
+
 @code {
     [Parameter] public QuizQuestion? Question { get; set; }
     [Parameter] public int QuestionIndex { get; set; }
@@ -34,9 +38,13 @@
 
             if (!MuteSound)
             {
-                await JS.InvokeVoidAsync("playSound", isCorrect ? "correct-sound" : "incorrect-sound");
-                await OnAnswerSubmitted.InvokeAsync(isCorrect);
+                // Play the appropriate sound with a small delay
+                var soundId = isCorrect ? "correct-sound" : "incorrect-sound";
+                await Task.Delay(100); // Add a 100ms delay
+                await JS.InvokeVoidAsync("eval", $"document.getElementById('{soundId}').pause(); document.getElementById('{soundId}').currentTime = 0; document.getElementById('{soundId}').play();");
             }
+
+            await OnAnswerSubmitted.InvokeAsync(isCorrect);
         }
 
         StateHasChanged();

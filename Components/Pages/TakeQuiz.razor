@@ -16,11 +16,16 @@
 
 @attribute [Authorize]
 
+<!-- Audio Element -->
+<audio id="victory-sound" src="/sounds/applause.mp3" preload="auto"></audio>
+
 <h3 class="mb-3">🧠 Take Quiz</h3>
 <p>Select an answer for each question to see if you're correct.</p>
 
+<!-- Score Tracker -->
 <ScoreTracker TotalQuestions="@totalQuestions" CorrectAnswers="@correctAnswers" />
 
+<!-- Final Message -->
 @if (showFinalMessage)
 {
     @if ((double)correctAnswers / totalAnswered >= 0.8)
@@ -37,6 +42,7 @@
     }
 }
 
+<!-- Quiz Controls -->
 <div class="d-flex align-items-center gap-4 mb-3">
     <button type="button"
             class="btn btn-outline-secondary btn-sm d-flex align-items-center"
@@ -53,6 +59,7 @@
     </button>
 </div>
 
+<!-- Quiz Content -->
 @if (QuizState.CurrentQuiz == null || QuizState.CurrentQuiz.Questions.Count == 0)
 {
     <div class="alert alert-warning">

@@ -44,8 +44,8 @@ var innerChatClientOpenAI = new OpenAI.Chat.ChatClient("gpt-4o-mini",
     builder.Configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("Missing OpenAI:ApiKey"))
     .AsChatClient();
 
-builder.Services.AddChatClient(innerChatClientAzure);             // Azure-based GPT-3.5
-//builder.Services.AddChatClient(innerChatClientGithub);              // Azure-based GPT-3.5
+//builder.Services.AddChatClient(innerChatClientAzure);             // Azure-based GPT-3.5
+builder.Services.AddChatClient(innerChatClientGithub);              // Azure-based GPT-3.5
 //builder.Services.AddChatClient(innerChatClientOpenAI);            // “gpt-4o-mini” from OpenAI
 
 #endregion
@@ -137,6 +137,8 @@ else
 app.UseHttpsRedirection();
 app.UseAntiforgery();
 
+app.UseStaticFiles();
+
 // Static assets & Razor Components
 app.MapStaticAssets();
 
@@ -145,6 +147,13 @@ app.MapRazorComponents<App>()
 
 // Identity UI endpoints
 app.MapAdditionalIdentityEndpoints();
+
+// Middleware to set the X-Content-Type-Options header on every response
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    await next();
+});
 
 #endregion
 

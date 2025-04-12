@@ -14,55 +14,6 @@
     <None Remove="WiseUpDude.Tests\**" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-grid.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-grid.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-grid.min.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-grid.min.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-grid.rtl.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-grid.rtl.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-grid.rtl.min.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-grid.rtl.min.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-reboot.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-reboot.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-reboot.min.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-reboot.min.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-reboot.rtl.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-reboot.rtl.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-reboot.rtl.min.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-reboot.rtl.min.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-utilities.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-utilities.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-utilities.min.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-utilities.min.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-utilities.rtl.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-utilities.rtl.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-utilities.rtl.min.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap-utilities.rtl.min.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap.min.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap.min.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap.rtl.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap.rtl.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap.rtl.min.css" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\css\bootstrap.rtl.min.css.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\js\bootstrap.bundle.js" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\js\bootstrap.bundle.js.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\js\bootstrap.bundle.min.js" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\js\bootstrap.bundle.min.js.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\js\bootstrap.esm.js" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\js\bootstrap.esm.js.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\js\bootstrap.esm.min.js" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\js\bootstrap.esm.min.js.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\js\bootstrap.js" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\js\bootstrap.js.map" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\js\bootstrap.min.js" />
-    <Content Remove="C:\Users\grego\.nuget\packages\bootstrap\5.3.3\contentFiles\any\any\wwwroot\js\bootstrap.min.js.map" />
-    <Content Remove="Components\Controls\QuestionCard2.razor" />
-    <Content Remove="Components\Controls\QuestionCard3.razor" />
-    <Content Remove="Components\Controls\QuestionCardGemini.razor" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.2.0" />
@@ -83,6 +34,27 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="nunit" Version="3.13.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\js\celebration.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\site.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\sound.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\sounds\applause.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\sounds\correct.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\sounds\incorrect.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

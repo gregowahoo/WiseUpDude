@@ -1,4 +1,5 @@
 ﻿@page "/takequiz"
+
 @rendermode InteractiveServer
 
 @using Microsoft.AspNetCore.Identity
@@ -16,8 +17,26 @@
 
 @attribute [Authorize]
 
-<!-- Audio Element -->
-<audio id="victory-sound" src="/sounds/applause.mp3" preload="auto"></audio>
+
+@* <button class="btn btn-primary" @onclick="PlaySoundSafely">Test Sound</button>
+
+@code {
+    private async Task PlaySoundSafely()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("playSound", "/sounds/correct.mp3");
+            await JS.InvokeVoidAsync("playSound", "/sounds/incorrect.mp3");
+            await JS.InvokeVoidAsync("playSound", "/sounds/applause.mp3");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error playing sound: {ex.Message}");
+            // Optionally log or display error info here
+        }
+    }
+}
+ *@
 
 <h3 class="mb-3">🧠 Take Quiz</h3>
 <p>Select an answer for each question to see if you're correct.</p>
@@ -30,15 +49,15 @@
 {
     @if ((double)correctAnswers / totalAnswered >= 0.8)
     {
-        <div class="alert alert-success mt-4 fs-5 text-center fw-bold">
-            🎉 You Wise’d Up! Final Score: @correctAnswers / @totalAnswered
-        </div>
+                <div class="alert alert-success mt-4 fs-5 text-center fw-bold">
+                    🎉 You Wise’d Up! Final Score: @correctAnswers / @totalAnswered
+                </div>
     }
     else
     {
-        <div class="alert alert-danger mt-4 fs-5 text-center fw-bold">
-            😬 You’ve got work to do, wise guy. Final Score: @correctAnswers / @totalAnswered
-        </div>
+                <div class="alert alert-danger mt-4 fs-5 text-center fw-bold">
+                    😬 You’ve got work to do, wise guy. Final Score: @correctAnswers / @totalAnswered
+                </div>
     }
 }
 
@@ -62,28 +81,28 @@
 <!-- Quiz Content -->
 @if (QuizState.CurrentQuiz == null || QuizState.CurrentQuiz.Questions.Count == 0)
 {
-    <div class="alert alert-warning">
-        No quiz questions found. Please go to Home and generate a quiz first.
-    </div>
+        <div class="alert alert-warning">
+            No quiz questions found. Please go to Home and generate a quiz first.
+        </div>
 }
 else
 {
     @for (int i = 0; i < QuizState.CurrentQuiz.Questions.Count; i++)
     {
         var question = QuizState.CurrentQuiz.Questions[i];
-        <QuestionCard
-            Question="question" 
-            QuestionIndex="i" 
-            AutoSubmit="autoSubmit"
-            MuteSound="muteSound"
-            OnAnswerSubmitted="HandleAnswerSubmitted" />
+                <QuestionCard
+                    Question="question" 
+                    QuestionIndex="i" 
+                    AutoSubmit="autoSubmit"
+                    MuteSound="muteSound"
+                    OnAnswerSubmitted="HandleAnswerSubmitted" />
     }
 
-    <button class="btn btn-success mt-4" @onclick="SaveQuizAsync">Save Quiz</button>
+        <button class="btn btn-success mt-4" @onclick="SaveQuizAsync">Save Quiz</button>
 
     @if (!string.IsNullOrWhiteSpace(saveMessage))
     {
-        <div class="alert alert-info mt-3">@saveMessage</div>
+                <div class="alert alert-info mt-3">@saveMessage</div>
     }
 }
 
@@ -134,8 +153,8 @@ else
 
             if (scorePercent >= 0.8)
             {
+                _ = JS.InvokeVoidAsync("playSound", "/sounds/applause.mp3");
                 _ = JS.InvokeVoidAsync("launchConfetti");
-                _ = JS.InvokeVoidAsync("playVictorySound");
             }
 
             showFinalMessage = true;
@@ -156,15 +175,15 @@ else
                     Name = $"Quiz_{DateTime.Now:yyyyMMdd_HHmmss}",
                     UserId = user.Id,
                     Questions = QuizState.CurrentQuiz.Questions
-                        .Select(q => new QuizQuestion
-                        {
-                            Question = q.Question,
-                            QuestionType = q.QuestionType,
-                            Options = q.Options,
-                            Answer = q.Answer,
-                            Explanation = q.Explanation,
-                            UserAnswer = q.UserAnswer
-                        }).ToList()
+                            .Select(q => new QuizQuestion
+                            {
+                                Question = q.Question,
+                                QuestionType = q.QuestionType,
+                                Options = q.Options,
+                                Answer = q.Answer,
+                                Explanation = q.Explanation,
+                                UserAnswer = q.UserAnswer
+                            }).ToList()
                 };
 
             await QuizRepository.AddAsync(newQuiz);

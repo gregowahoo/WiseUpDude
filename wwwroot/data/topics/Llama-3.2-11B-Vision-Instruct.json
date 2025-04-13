@@ -1,0 +1,130 @@
+[
+  {
+    "Topic": "Ancient Civilizations",
+    "Description": "Explore the mysteries of Egypt, Greece, Rome, and more. Test your knowledge of pyramids, gods, empires, and daily life in ancient times."
+  },
+  {
+    "Topic": "Outer Space",
+    "Description": "Blast off into the cosmos and learn about planets, stars, galaxies, and the search for life beyond Earth. From black holes to rocket science, explore it all!"
+  },
+  {
+    "Topic": "Famous Artists",
+    "Description": "Meet the masters: da Vinci, Monet, Van Gogh, Picasso, and more. Discover their styles, techniques, and life stories behind the brushstrokes."
+  },
+  {
+    "Topic": "Science Fiction",
+    "Description": "Enter a world of robots, aliens, and intergalactic adventures. From Star Wars to Star Trek, explore the sic-fi universe and guess the fandom!"
+  },
+  {
+    "Topic": "Historical Events",
+    "Description": "Walk through time and relive the Titanic sinking, the Wright brothers' flight, the fall of the Berlin Wall, and other pivotal moments in history."
+  },
+  {
+    "Topic": "Programming Languages",
+    "Description": "Code-aholics unite! Learn about JavaScript, Python, Java, C++, and more programming languages. Test your coding knowledge with logical challenges."
+  },
+  {
+    "Topic": "World Cuisines",
+    "Description": "Savor the flavors of international cuisine: Italian pasta, Chinese stir-fries, Indian curries, Mexican tacos, and more. Guess the dish and its country of origin."
+  },
+  {
+    "Topic": "Literary Classics",
+    "Description": "Step into the world of timeless literature: Dickens, Austen, Bronte, Tolkien, and more. Test your knowledge of characters, plots, and book titles."
+  },
+  {
+    "Topic": "Computer Hardware",
+    "Description": "Electrify your knowledge of CPUs, GPUs, RAM, SSDs, and more. Stay up-to-date with the latest hardware trends and guess the component's function."
+  },
+  {
+    "Topic": "Animal Kingdom",
+    "Description": "Let's get wild! Explore the Animal Kingdom: from lions to lions, giraffes to penguins, and more. Learn about habitats, behaviors, and adaptations."
+  },
+  {
+    "Topic": "Geography",
+    "Description": "Embark on a journey across the globe. Learn about countries, capitals, borders, and wonders of the world. Guess the location!"
+  },
+  {
+    "Topic": "Mathematics",
+    "Description": "Solve for fun! Unlock mathematical concepts: algebra, geometry, calculus, and more. Test your problem-solving skills with math challenges."
+  },
+  {
+    "Topic": "Music Genres",
+    "Description": "Rock out, jazz up, or rap along! Explore the vast world of music genres: classical, blues, jazz, pop, and more. Guess the genre and its key characteristics."
+  },
+  {
+    "Topic": "Ancient Mythology",
+    "Description": "Enter a world of gods, goddesses, and mythical creatures. Delve into Egyptian, Greek, Roman, and Norse mythology. Test your knowledge of heroes, monsters, and legends."
+  },
+  {
+    "Topic": "Environmental Science",
+    "Description": "Go green! Explore the natural world: climate, conservation, biology, ecology, and more. Learn about sustainable living and environmental issues."
+  },
+  {
+    "Topic": "Innovation and Technology",
+    "Description": "Future-proof your knowledge! Discover the latest advancements in AI, blockchain, IoT, and more. Predict the next big thing in innovation!"
+  },
+  {
+    "Topic": "History of Sports",
+    "Description": "Get game-ready! Explore the origins of sports: Olympic events, soccer, basketball, tennis, and more. Guess the sport and its key milestones."
+  },
+  {
+    "Topic": "Gardening and Botany",
+    "Description": "Unleash your inner green thumb! Learn about plant biology, horticulture, and garden design. Guess the botanical term or gardening technique."
+  },
+  {
+    "Topic": "Business and Economics",
+    "Description": "Invest in your knowledge! Understand concepts like supply and demand, inflation, and market trends. Guess the business term or economic indicator."
+  },
+  {
+    "Topic": "Art Movements",
+    "Description": "Visual drama! Explore the world of art movements: Impressionism, Cubism, Surrealism, and more. Guess the movement and its key characteristics."
+  },
+  {
+    "Topic": "Cryptography",
+    "Description": "Decode the code! Learn about encryption and decryption techniques. Test your knowledge of cryptographic algorithms and tools."
+  },
+  {
+    "Topic": "Cell Biology",
+    "Description": "Dive into the cellular world! Explore the structure and function of cells, DNA, and proteins. Guess the cellular process or biological term."
+  },
+  {
+    "Topic": "Atmospheric Science",
+    "Description": "Rise above the clouds! Learn about meteorology, aerodynamics, and the Earth's atmosphere. Predict the weather or atmospheric phenomenon!"
+  },
+  {
+    "Topic": "Actors and Actresses",
+    "Description": "Lights, camera, quiz time! Meet Hollywood's stars: actors, actresses, and directors. Guess the celebrity's movie or award."
+  },
+  {
+    "Topic": "Psychology and Sociology",
+    "Description": "Unravel the human mind! Explore behavioral psychology, social interactions, and cultural norms. Guess the psychological concept or sociological trend."
+  },
+  {
+    "Topic": "High-Tech Gadgets",
+    "Description": "Stay current! Learn about the latest smartwatches, smartphones, laptops, and other electronic devices. Guess the gadget's features or innovative tech!"
+  },
+  {
+    "Topic": "Rare Medical Conditions",
+    "Description": "Explore the unusual and see your medical knowledge shine! Guess the rare condition, its symptoms, and medical treatments."
+  },
+  {
+    "Topic": "Gaming Culture",
+    "Description": "Enter the gaming universe! Learn about video games, gaming history, and pop culture. Test your knowledge of games, characters, or game genres."
+  },
+  {
+    "Topic": "Famous Quotes and Sayings",
+    "Description": "Quote-tastic! Identify famous phrases, authors, and origins. From wisdom to wit, test your knowledge of memorable sayings."
+  },
+  {
+    "Topic": "Automotive Technology",
+    "Description": "Hit the road! Explore classic cars, electric vehicles, car designs, and automotive innovations. Guess the car brand, model, or manufacturing process."
+  },
+  {
+    "Topic": "Natural Disasters",
+    "Description": "Weather the storm! Learn about earthquakes, hurricanes, tsunamis, and other natural events. Predict the next disaster or occurances!"
+  },
+  {
+    "Topic": "Cryptids and Mythical Creatures",
+    "Description": "Straight out of legend! Explore mysterious creatures like Bigfoot, Loch Ness, or Chupacabra. Guess the cryptid, its origins, and its mythological context."
+  }
+]

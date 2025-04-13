@@ -38,12 +38,12 @@ namespace WiseUpDude.Services
             }
             catch (JsonException jex)
             {
-                Console.WriteLine($"Quiz JSON parse error: {jex.Message}");
+                Console.WriteLine($"Quiz_Orig JSON parse error: {jex.Message}");
                 return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Quiz generation failed: {ex.Message}");
+                Console.WriteLine($"Quiz_Orig generation failed: {ex.Message}");
                 return null;
             }
         }

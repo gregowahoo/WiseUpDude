@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using WiseUpDude.Data;
-using WiseUpDude.Model;
+using WiseUpDude.Data.Entities;
 using WiseUpDude.Data.Repositories;
 using Xunit;
 
@@ -89,7 +89,7 @@ namespace WiseUpDude.Tests
         {
             using var context = await CreateDbContextAsync();
             var repository = new QuizQuestionRepository(context);
-            var quizQuestion = new QuizQuestion
+            var quizQuestion = new QuizQuestion_Orig
             {
                 Id = 1,
                 Question = "Sample Question",
@@ -113,7 +113,7 @@ namespace WiseUpDude.Tests
         {
             using var context = await CreateDbContextAsync();
             var repository = new QuizQuestionRepository(context);
-            var quizQuestion = new QuizQuestion
+            var quizQuestion = new QuizQuestion_Orig
             {
                 Id = 1,
                 Question = "Sample Question",
@@ -141,7 +141,7 @@ namespace WiseUpDude.Tests
         {
             using var context = await CreateDbContextAsync();
             var repository = new QuizQuestionRepository(context);
-            var quizQuestion = new QuizQuestion
+            var quizQuestion = new QuizQuestion_Orig
             {
                 Id = 1,
                 Question = "Sample Question",

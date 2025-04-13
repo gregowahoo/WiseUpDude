@@ -14,6 +14,12 @@
     <None Remove="WiseUpDude.Tests\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Data\Repositories\QuizRepository_Orig.cs" />
+    <Compile Remove="Model\QuizQuestion_Orig.cs" />
+    <Compile Remove="Model\Quiz_Orig.cs" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.2.0" />

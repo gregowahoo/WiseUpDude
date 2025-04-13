@@ -30,14 +30,14 @@ namespace WiseUpDude.Tests
         public async Task AddAsync_ShouldAddQuiz()
         {
             using var context = await CreateDbContextAsync();
-            var repository = new QuizRepository(context);
-            var quiz = new Quiz
+            var repository = new QuizRepository_Orig(context);
+            var quiz = new Quiz_Orig
             {
                 Id = 1,
-                Name = "Sample Quiz",
-                Questions = new List<QuizQuestion>
+                Name = "Sample Quiz_Orig",
+                Questions = new List<QuizQuestion_Orig>
                 {
-                    new QuizQuestion
+                    new QuizQuestion_Orig
                     {
                         Id = 1,
                         Question = "Sample Question",
@@ -54,7 +54,7 @@ namespace WiseUpDude.Tests
             var result = await context.Quizzes.FindAsync(1);
 
             Assert.NotNull(result);
-            Assert.Equal("Sample Quiz", result.Name);
+            Assert.Equal("Sample Quiz_Orig", result.Name);
             await context.Database.EnsureDeletedAsync();
         }
 
@@ -62,14 +62,14 @@ namespace WiseUpDude.Tests
         public async Task GetAllAsync_ShouldReturnAllQuizzes()
         {
             using var context = await CreateDbContextAsync();
-            var repository = new QuizRepository(context);
-            var quiz1 = new Quiz
+            var repository = new QuizRepository_Orig(context);
+            var quiz1 = new Quiz_Orig
             {
                 Id = 1,
-                Name = "Sample Quiz 1",
-                Questions = new List<QuizQuestion>
+                Name = "Sample Quiz_Orig 1",
+                Questions = new List<QuizQuestion_Orig>
                 {
-                    new QuizQuestion
+                    new QuizQuestion_Orig
                     {
                         Id = 1,
                         Question = "Sample Question 1",
@@ -81,13 +81,13 @@ namespace WiseUpDude.Tests
                     }
                 }
             };
-            var quiz2 = new Quiz
+            var quiz2 = new Quiz_Orig
             {
                 Id = 2,
-                Name = "Sample Quiz 2",
-                Questions = new List<QuizQuestion>
+                Name = "Sample Quiz_Orig 2",
+                Questions = new List<QuizQuestion_Orig>
                 {
-                    new QuizQuestion
+                    new QuizQuestion_Orig
                     {
                         Id = 2,
                         Question = "Sample Question 2",
@@ -112,14 +112,14 @@ namespace WiseUpDude.Tests
         public async Task GetByIdAsync_ShouldReturnQuiz()
         {
             using var context = await CreateDbContextAsync();
-            var repository = new QuizRepository(context);
-            var quiz = new Quiz
+            var repository = new QuizRepository_Orig(context);
+            var quiz = new Quiz_Orig
             {
                 Id = 1,
-                Name = "Sample Quiz",
-                Questions = new List<QuizQuestion>
+                Name = "Sample Quiz_Orig",
+                Questions = new List<QuizQuestion_Orig>
                 {
-                    new QuizQuestion
+                    new QuizQuestion_Orig
                     {
                         Id = 1,
                         Question = "Sample Question",
@@ -136,7 +136,7 @@ namespace WiseUpDude.Tests
             var result = await repository.GetByIdAsync(1);
 
             Assert.NotNull(result);
-            Assert.Equal("Sample Quiz", result.Name);
+            Assert.Equal("Sample Quiz_Orig", result.Name);
             await context.Database.EnsureDeletedAsync();
         }
 
@@ -144,14 +144,14 @@ namespace WiseUpDude.Tests
         public async Task UpdateAsync_ShouldUpdateQuiz()
         {
             using var context = await CreateDbContextAsync();
-            var repository = new QuizRepository(context);
-            var quiz = new Quiz
+            var repository = new QuizRepository_Orig(context);
+            var quiz = new Quiz_Orig
             {
                 Id = 1,
-                Name = "Sample Quiz",
-                Questions = new List<QuizQuestion>
+                Name = "Sample Quiz_Orig",
+                Questions = new List<QuizQuestion_Orig>
                 {
-                    new QuizQuestion
+                    new QuizQuestion_Orig
                     {
                         Id = 1,
                         Question = "Sample Question",
@@ -166,13 +166,13 @@ namespace WiseUpDude.Tests
 
             await repository.AddAsync(quiz);
 
-            quiz.Name = "Updated Quiz";
+            quiz.Name = "Updated Quiz_Orig";
             await repository.UpdateAsync(quiz);
 
             var result = await context.Quizzes.FindAsync(1);
 
             Assert.NotNull(result);
-            Assert.Equal("Updated Quiz", result.Name);
+            Assert.Equal("Updated Quiz_Orig", result.Name);
             await context.Database.EnsureDeletedAsync();
         }
 
@@ -180,14 +180,14 @@ namespace WiseUpDude.Tests
         public async Task DeleteAsync_ShouldDeleteQuiz()
         {
             using var context = await CreateDbContextAsync();
-            var repository = new QuizRepository(context);
-            var quiz = new Quiz
+            var repository = new QuizRepository_Orig(context);
+            var quiz = new Quiz_Orig
             {
                 Id = 1,
-                Name = "Sample Quiz",
-                Questions = new List<QuizQuestion>
+                Name = "Sample Quiz_Orig",
+                Questions = new List<QuizQuestion_Orig>
                 {
-                    new QuizQuestion
+                    new QuizQuestion_Orig
                     {
                         Id = 1,
                         Question = "Sample Question",

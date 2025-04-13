@@ -98,7 +98,7 @@ else
                     OnAnswerSubmitted="HandleAnswerSubmitted" />
     }
 
-        <button class="btn btn-success mt-4" @onclick="SaveQuizAsync">Save Quiz</button>
+        @* <button class="btn btn-success mt-4" @onclick="SaveQuizAsync">Save Quiz</button> *@
 
     @if (!string.IsNullOrWhiteSpace(saveMessage))
     {
@@ -163,35 +163,35 @@ else
         StateHasChanged();
     }
 
-    private async Task SaveQuizAsync()
-    {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = await UserManager.GetUserAsync(authState.User);
+    // private async Task SaveQuizAsync()
+    // {
+    //     var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+    //     var user = await UserManager.GetUserAsync(authState.User);
 
-        if (user is not null && QuizState.CurrentQuiz is not null)
-        {
-            var newQuiz = new Quiz
-                {
-                    Name = $"Quiz_{DateTime.Now:yyyyMMdd_HHmmss}",
-                    UserId = user.Id,
-                    Questions = QuizState.CurrentQuiz.Questions
-                            .Select(q => new QuizQuestion
-                            {
-                                Question = q.Question,
-                                QuestionType = q.QuestionType,
-                                Options = q.Options,
-                                Answer = q.Answer,
-                                Explanation = q.Explanation,
-                                UserAnswer = q.UserAnswer
-                            }).ToList()
-                };
+    //     if (user is not null && QuizState.CurrentQuiz is not null)
+    //     {
+    //         var newQuiz = new Quiz
+    //             {
+    //                 Name = $"Quiz_{DateTime.Now:yyyyMMdd_HHmmss}",
+    //                 UserId = user.Id,
+    //                 Questions = QuizState.CurrentQuiz.Questions
+    //                         .Select(q => new QuizQuestion
+    //                         {
+    //                             Question = q.Question,
+    //                             QuestionType = q.QuestionType,
+    //                             Options = q.Options,
+    //                             Answer = q.Answer,
+    //                             Explanation = q.Explanation,
+    //                             UserAnswer = q.UserAnswer
+    //                         }).ToList()
+    //             };
 
-            await QuizRepository.AddAsync(newQuiz);
-            saveMessage = "Quiz saved successfully!";
-        }
-        else
-        {
-            saveMessage = "Failed to save quiz. Please make sure you're signed in and have a quiz loaded.";
-        }
-    }
+    //         await QuizRepository.AddAsync(newQuiz);
+    //         saveMessage = "Quiz saved successfully!";
+    //     }
+    //     else
+    //     {
+    //         saveMessage = "Failed to save quiz. Please make sure you're signed in and have a quiz loaded.";
+    //     }
+    // }
 }

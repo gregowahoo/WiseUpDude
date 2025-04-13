@@ -44,8 +44,8 @@ var innerChatClientOpenAI = new OpenAI.Chat.ChatClient("gpt-4o-mini",
     builder.Configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("Missing OpenAI:ApiKey"))
     .AsChatClient();
 
-//builder.Services.AddChatClient(innerChatClientAzure);             // Azure-based GPT-3.5
-builder.Services.AddChatClient(innerChatClientGithub);              // Azure-based GPT-3.5
+builder.Services.AddChatClient(innerChatClientAzure);             // Azure-based GPT-3.5
+//builder.Services.AddChatClient(innerChatClientGithub);              // Azure-based GPT-3.5
 //builder.Services.AddChatClient(innerChatClientOpenAI);            // “gpt-4o-mini” from OpenAI
 
 #endregion
@@ -68,6 +68,7 @@ builder.Services.AddScoped<ContentFetchingService>();
 builder.Services.AddScoped<QuizBuilderService>();
 builder.Services.AddScoped<QuizStateService>();
 builder.Services.AddScoped<IRepository<Quiz>, QuizRepository>();
+builder.Services.AddScoped<IRepository<QuizQuestion>, QuizQuestionRepository>();
 builder.Services.AddScoped<QuizTopicService>();
 builder.Services.AddScoped<QuizQuestionsFromTopic>();
 

@@ -41,7 +41,7 @@
     public List<string> UrlList { get; set; } = new List<string>();                     /// The list of predefined URLs shown in the dropdown.
 
     [Parameter]
-    public EventCallback<string> OnGenerateQuiz { get; set; }                           /// The callback invoked when the user clicks "Generate Quiz". The parent is responsible for actually generating the quiz.
+    public EventCallback<string> OnGenerateQuiz { get; set; }                           /// The callback invoked when the user clicks "Generate Quiz_Orig". The parent is responsible for actually generating the quiz.
 
     private async void OnDropdownChanged(ChangeEventArgs e)
     {

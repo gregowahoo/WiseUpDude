@@ -1,39 +1,31 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 
 namespace WiseUpDude.Model
 {
+    public class QuizQuestion
+    {
+        public int Id { get; set; }
+        public string? Question { get; set; }
+        public QuizQuestionType QuestionType { get; set; }
+        public List<string>? Options { get; set; } // POCO-friendly property
+        public string? Answer { get; set; }
+        public string? Explanation { get; set; }
+        public string? UserAnswer { get; set; }
+        public int QuizId { get; set; }
+
+        // Convert OptionsJson to List<string> and vice versa
+        public string OptionsJson
+        {
+            get => Options == null ? string.Empty : JsonSerializer.Serialize(Options);
+            set => Options = string.IsNullOrEmpty(value) ? new List<string>() : JsonSerializer.Deserialize<List<string>>(value);
+        }
+    }
+
     public enum QuizQuestionType
     {
         TrueFalse,
         MultipleChoice
     }
-
-    public class QuizQuestion
-    {
-        [Key]
-        public int Id { get; set; }
-
-        [Required]
-        public string? Question { get; set; }
-
-        [Required]
-        public QuizQuestionType QuestionType { get; set; }
-
-        public List<string>? Options { get; set; }
-
-        [Required]
-        public string? Answer { get; set; }         // The correct answer
-
-        public string? Explanation { get; set; }    // Explanation for the correct answer
-
-        public string? UserAnswer { get; set; }       // To store the answer provided by the user
-
-        [Required]
-        public int QuizId { get; set; }
-
-        public Quiz Quiz { get; set; }
-    }
-
 
     public class QuizResponse
     {

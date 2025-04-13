@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace WiseUpDude.Data
+namespace WiseUpDude.Data.Repositories
 {
     public interface IRepository<T> where T : class
     {

@@ -1,0 +1,126 @@
+[
+  {
+    "topic": "Artificial Intelligence",
+    "description": "The simulation of human intelligence processes by computer systems. This includes machine learning, natural language processing, and expert systems."
+  },
+  {
+    "topic": "Space Exploration",
+    "description": "The journey beyond Earth for scientific discovery and research. Includes topics on NASA, SpaceX, and the future of space travel."
+  },
+  {
+    "topic": "Virtual Reality",
+    "description": "An immersive digital experience, often using a headset, that simulates a user's physical presence in a virtual world."
+  },
+  {
+    "topic": "Robotics",
+    "description": "The design, construction, operation, and use of machines that can perform tasks automatically. Includes industrial and humanoid robotics."
+  },
+  {
+    "topic": "Gene Editing",
+    "description": "The process of modifying an organism's DNA. Includes topics on CRISPR-Cas9 and the ethical implications of altering the human genome."
+  },
+  {
+    "topic": "Blockchain Technology",
+    "description": "A decentralized digital ledger that records transactions across many computers. Includes topics on cryptocurrencies, smart contracts, and NFT."
+  },
+  {
+    "topic": " Renewable Energy",
+    "description": "Energy derived from natural resources that are naturally replenished, such as sunlight, wind, tides, and geothermal heat."
+  },
+  {
+    "topic": "3D Printing",
+    "description": "The process of making a physical object from a three-dimensional digital model, often layer by layer. Includes topics on additive manufacturing and rapid prototyping."
+  },
+  {
+    "topic": "Quantum Computing",
+    "description": "A form of computing that harnesses the phenomena of quantum mechanics to process information. Offers unprecedented speed and problem-solving capabilities."
+  },
+  {
+    "topic": "Self-Driving Cars",
+    "description": "Vehicles that can sense their environment and navigate without human input. Includes topics on LiDAR, radar, and autonomous driving levels."
+  },
+  {
+    "topic": "Immortality",
+    "description": "The concept of indefinite lifespan, achieved through technological means. Includes topics on cryonics, digital immortality, and life extension."
+  },
+  {
+    "topic": "Nanotechnology",
+    "description": "The manipulation of matter on an atomic and molecular scale. Includes topics on nano-robots, advanced materials, and the potential impact on healthcare."
+  },
+  {
+    "topic": "Video Game History",
+    "description": "The evolution of video games as an entertainment medium, from early arcade games to modern virtual reality experiences."
+  },
+  {
+    "topic": "Online Privacy",
+    "description": "The protection of personal data and information online. Includes topics on data breaches, encryption, and the right to be forgotten."
+  },
+  {
+    "topic": "Social Media Influence",
+    "description": "The impact of social media platforms on society, including their influence on politics, culture, and personal relationships."
+  },
+  {
+    "topic": "Cyber Warfare",
+    "descriptionMultiplier": "The use of computer technology to disrupt, damage, or gain access to an adversary's systems and networks."
+  },
+  {
+    "topic": "Drones",
+    "description": "Unmanned aerial vehicles used for a variety of purposes, from surveillance and delivery to search and rescue operations."
+  },
+  {
+    "topic": "The Internet of Things (IoT)",
+    "description": "The network of physical devices, vehicles, home appliances, and other items embedded with sensors and connectivity, enabling them to connect and exchange data."
+  },
+  {
+    "topic": "Electric Vehicles",
+    "description": "Automobiles that are propelled by one or more electric motors, powered by electrical energy stored in batteries or capacitors."
+  },
+  {
+    "topic": "Climate Change",
+    "description": "Long-term changes in global or regional climate patterns. Includes topics on the causes, effects, and potential solutions to climate change."
+  },
+  {
+    "topic": "Astrophysics",
+    "description": "The branch of astronomy that deals with the physics of the universe, including the properties of celestial objects and the behavior of matter, energy, space, and time."
+  },
+  {
+    "topic": "The Human Brain",
+    "description": "The complex organ that controls our thoughts, memories, and actions. Includes topics on neuroscience, brain mapping, and the mysteries of consciousness."
+  },
+  {
+    "topic": "Psychology",
+    "description": "The scientific study of human behavior and mental processes. Includes topics on cognitive psychology, social psychology, and abnormal psychology."
+  },
+  {
+    "topic": "Forensics",
+    "description": "The use of science and technology to investigate crimes and analyze physical evidence."
+  },
+  {
+    "topic": "Virology",
+    "description": "The study of viruses and their impact on living organisms. Includes topics on emerging viruses, antiviral treatments, and the history of virology."
+  },
+  {
+    "topic": "Ancient Civilizations",
+    "description": "Past societies and cultures that have shaped human history, such as Ancient Egypt, Mesopotamia, and the Indus Valley Civilization."
+  },
+  {
+    "topic": "Philosophy",
+    "description": "The study of fundamental questions about existence, knowledge, values, reason, mind, and language."
+  },
+  {
+    "topic": "Sociology",
+    "description": "The study of human social behavior, patterns of relationships, and social interaction."
+  },
+  {
+    "topic": "Economics",
+    "description": "The social science that studies the production, distribution, and consumption of goods and services, focusing on how individuals, businesses, governments, and nations make choices about allocating resources."
+  },
+  {
+    "topic": "Political Science",
+    "description": "The study of power and political systems, including political behavior, public policy, and international relations."
+  },
+  {
+    "topic": "Art History",
+    "description": "The study of the development and cultural significance of art movements and artists throughout history."
+  }
+]

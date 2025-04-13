@@ -23,7 +23,7 @@ namespace WiseUpDude.Data.Repositories
             {
                 Id = e.Id,
                 Question = e.Question,
-                QuestionType = e.QuestionType,
+                QuestionType = (Model.QuizQuestionType)e.QuestionType, // Explicit cast
                 Options = string.IsNullOrEmpty(e.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(e.OptionsJson),
                 Answer = e.Answer,
                 Explanation = e.Explanation,
@@ -42,7 +42,7 @@ namespace WiseUpDude.Data.Repositories
             {
                 Id = entity.Id,
                 Question = entity.Question,
-                QuestionType = entity.QuestionType,
+                QuestionType = (Model.QuizQuestionType)entity.QuestionType, // Explicit cast
                 Options = string.IsNullOrEmpty(entity.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(entity.OptionsJson),
                 Answer = entity.Answer,
                 Explanation = entity.Explanation,
@@ -56,7 +56,7 @@ namespace WiseUpDude.Data.Repositories
             var entity = new Data.Entities.QuizQuestion
             {
                 Question = model.Question,
-                QuestionType = model.QuestionType,
+                QuestionType = (Data.Entities.QuizQuestionType)model.QuestionType, // Explicit cast
                 OptionsJson = model.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(model.Options),
                 Answer = model.Answer,
                 Explanation = model.Explanation,
@@ -68,21 +68,61 @@ namespace WiseUpDude.Data.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(Model.QuizQuestion model)
+        //public async Task UpdateAsync_Prev(Model.QuizQuestion model)
+        //{
+        //    var entity = await _context.QuizQuestions.FirstOrDefaultAsync(q => q.Id == model.Id);
+        //    if (entity == null)
+        //        throw new KeyNotFoundException($"QuizQuestion with Id {model.Id} not found.");
+
+        //    entity.Question = model.Question;
+        //    entity.QuestionType = (Data.Entities.QuizQuestionType)model.QuestionType; // Explicit cast;
+        //    entity.OptionsJson = model.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(model.Options);
+        //    entity.Answer = model.Answer;
+        //    entity.Explanation = model.Explanation;
+        //    entity.UserAnswer = model.UserAnswer;
+        //    entity.QuizId = model.QuizId;
+
+        //    _context.Entry(entity).State = EntityState.Modified;
+        //    await _context.SaveChangesAsync();
+        //}
+
+        //public async Task UpdateAsync(WiseUpDude.Model.QuizQuestion model)
+        //{
+        //    var entity = await _context.QuizQuestions.FirstOrDefaultAsync(q => q.Id == model.Id);
+        //    if (entity == null)
+        //    {
+        //        throw new KeyNotFoundException($"QuizQuestion with Id {model.Id} not found.");
+        //    }
+
+        //    // Map the model to the entity
+        //    entity.Question = model.Question;
+        //    entity.QuestionType = (WiseUpDude.Data.Entities.QuizQuestionType)model.QuestionType; // Explicit cast
+        //    entity.OptionsJson = model.Options != null ? System.Text.Json.JsonSerializer.Serialize(model.Options) : null;
+        //    entity.Answer = model.Answer;
+        //    entity.Explanation = model.Explanation;
+        //    entity.QuizId = model.QuizId;
+
+        //    _context.Entry(entity).State = EntityState.Modified; // Mark entity as modified
+        //    await _context.SaveChangesAsync();
+        //}
+
+        public async Task UpdateAsync(WiseUpDude.Model.QuizQuestion model)
         {
             var entity = await _context.QuizQuestions.FirstOrDefaultAsync(q => q.Id == model.Id);
             if (entity == null)
+            {
                 throw new KeyNotFoundException($"QuizQuestion with Id {model.Id} not found.");
+            }
 
+            // Map the model to the entity
             entity.Question = model.Question;
-            entity.QuestionType = model.QuestionType;
-            entity.OptionsJson = model.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(model.Options);
+            entity.QuestionType = (WiseUpDude.Data.Entities.QuizQuestionType)model.QuestionType; // Explicit cast
+            entity.OptionsJson = model.Options != null ? System.Text.Json.JsonSerializer.Serialize(model.Options) : null; // Serialize options
             entity.Answer = model.Answer;
             entity.Explanation = model.Explanation;
-            entity.UserAnswer = model.UserAnswer;
             entity.QuizId = model.QuizId;
 
-            _context.Entry(entity).State = EntityState.Modified;
+            _context.Entry(entity).State = EntityState.Modified; // Mark entity as modified
             await _context.SaveChangesAsync();
         }
 

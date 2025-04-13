@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using WiseUpDude.Data;
-using WiseUpDude.Data.Entities;
 using WiseUpDude.Data.Repositories;
+using WiseUpDude.Model;
 using Xunit;
 
 namespace WiseUpDude.Tests
@@ -33,21 +35,18 @@ namespace WiseUpDude.Tests
             var repository = new QuizQuestionRepository(context);
             var quizQuestion = new QuizQuestion
             {
-                Id = 1,
                 Question = "Sample Question",
                 QuestionType = QuizQuestionType.MultipleChoice,
                 Options = new List<string> { "Option1", "Option2" },
                 Answer = "Option1",
-                Explanation = "Sample Explanation",
-                QuizId = 1
+                Explanation = "Sample Explanation"
             };
 
             await repository.AddAsync(quizQuestion);
-            var result = await context.QuizQuestions.FindAsync(1);
+            var result = await context.QuizQuestions.FirstOrDefaultAsync();
 
             Assert.NotNull(result);
             Assert.Equal("Sample Question", result.Question);
-            await context.Database.EnsureDeletedAsync();
         }
 
         [Fact]
@@ -55,33 +54,33 @@ namespace WiseUpDude.Tests
         {
             using var context = await CreateDbContextAsync();
             var repository = new QuizQuestionRepository(context);
-            var quizQuestion1 = new QuizQuestion
+            var quizQuestions = new List<QuizQuestion>
             {
-                Id = 1,
-                Question = "Sample Question 1",
-                QuestionType = QuizQuestionType.MultipleChoice,
-                Options = new List<string> { "Option1", "Option2" },
-                Answer = "Option1",
-                Explanation = "Sample Explanation 1",
-                QuizId = 1
-            };
-            var quizQuestion2 = new QuizQuestion
-            {
-                Id = 2,
-                Question = "Sample Question 2",
-                QuestionType = QuizQuestionType.TrueFalse,
-                Answer = "True",
-                Explanation = "Sample Explanation 2",
-                QuizId = 1
+                new QuizQuestion
+                {
+                    Question = "Question 1",
+                    QuestionType = QuizQuestionType.MultipleChoice,
+                    Options = new List<string> { "Option1", "Option2" },
+                    Answer = "Option1",
+                    Explanation = "Explanation 1"
+                },
+                new QuizQuestion
+                {
+                    Question = "Question 2",
+                    QuestionType = QuizQuestionType.TrueFalse,
+                    Answer = "True",
+                    Explanation = "Explanation 2"
+                }
             };
 
-            await repository.AddAsync(quizQuestion1);
-            await repository.AddAsync(quizQuestion2);
+            foreach (var quizQuestion in quizQuestions)
+            {
+                await repository.AddAsync(quizQuestion);
+            }
 
             var result = await repository.GetAllAsync();
 
             Assert.Equal(2, result.Count());
-            await context.Database.EnsureDeletedAsync();
         }
 
         [Fact]
@@ -89,9 +88,11 @@ namespace WiseUpDude.Tests
         {
             using var context = await CreateDbContextAsync();
             var repository = new QuizQuestionRepository(context);
-            var quizQuestion = new QuizQuestion_Orig
+
+            // Add a QuizQuestion with a specific ID
+            var quizQuestion = new QuizQuestion
             {
-                Id = 1,
+                Id = 1, // Assign a valid ID
                 Question = "Sample Question",
                 QuestionType = QuizQuestionType.MultipleChoice,
                 Options = new List<string> { "Option1", "Option2" },
@@ -101,10 +102,14 @@ namespace WiseUpDude.Tests
             };
 
             await repository.AddAsync(quizQuestion);
-            var result = await repository.GetByIdAsync(1);
 
+            // Attempt to retrieve the QuizQuestion by the assigned ID
+            var result = await repository.GetByIdAsync(quizQuestion.Id);
+
+            // Assert that the retrieved QuizQuestion is not null and has the correct data
             Assert.NotNull(result);
             Assert.Equal("Sample Question", result.Question);
+
             await context.Database.EnsureDeletedAsync();
         }
 
@@ -113,52 +118,59 @@ namespace WiseUpDude.Tests
         {
             using var context = await CreateDbContextAsync();
             var repository = new QuizQuestionRepository(context);
-            var quizQuestion = new QuizQuestion_Orig
+
+            // Add a QuizQuestion
+            var quizQuestion = new WiseUpDude.Model.QuizQuestion
             {
-                Id = 1,
-                Question = "Sample Question",
-                QuestionType = QuizQuestionType.MultipleChoice,
+                Question = "Old Question",
+                QuestionType = WiseUpDude.Model.QuizQuestionType.MultipleChoice,
                 Options = new List<string> { "Option1", "Option2" },
                 Answer = "Option1",
-                Explanation = "Sample Explanation",
+                Explanation = "Old Explanation",
                 QuizId = 1
             };
 
-            await repository.AddAsync(quizQuestion);
+            await repository.AddAsync(quizQuestion); // Add the QuizQuestion
 
+            // Retrieve the QuizQuestion by its ID to ensure it is saved
+            var addedQuestion = await context.QuizQuestions.FirstOrDefaultAsync(q => q.Question == "Old Question");
+            Assert.NotNull(addedQuestion);
+            Assert.NotEqual(0, addedQuestion.Id); // Ensure the ID is set
+
+            // Update the QuizQuestion
+            quizQuestion.Id = addedQuestion.Id; // Set the correct ID
             quizQuestion.Question = "Updated Question";
-            await repository.UpdateAsync(quizQuestion);
+            await repository.UpdateAsync(quizQuestion); // Update the QuizQuestion
 
-            var result = await context.QuizQuestions.FindAsync(1);
-
+            // Verify the update
+            var result = await context.QuizQuestions.FindAsync(quizQuestion.Id);
             Assert.NotNull(result);
             Assert.Equal("Updated Question", result.Question);
+
+            // Clean up the database
             await context.Database.EnsureDeletedAsync();
         }
 
         [Fact]
-        public async Task DeleteAsync_ShouldDeleteQuizQuestion()
+        public async Task DeleteAsync_ShouldRemoveQuizQuestion()
         {
             using var context = await CreateDbContextAsync();
             var repository = new QuizQuestionRepository(context);
-            var quizQuestion = new QuizQuestion_Orig
+            var quizQuestion = new QuizQuestion
             {
-                Id = 1,
-                Question = "Sample Question",
+                Question = "To Be Deleted",
                 QuestionType = QuizQuestionType.MultipleChoice,
                 Options = new List<string> { "Option1", "Option2" },
                 Answer = "Option1",
-                Explanation = "Sample Explanation",
-                QuizId = 1
+                Explanation = "Explanation"
             };
 
             await repository.AddAsync(quizQuestion);
-            await repository.DeleteAsync(1);
+            await repository.DeleteAsync(quizQuestion.Id);
 
-            var result = await context.QuizQuestions.FindAsync(1);
+            var result = await context.QuizQuestions.FindAsync(quizQuestion.Id);
 
             Assert.Null(result);
-            await context.Database.EnsureDeletedAsync();
         }
     }
 }

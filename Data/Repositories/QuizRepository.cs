@@ -51,20 +51,42 @@ namespace WiseUpDude.Data.Repositories
             };
         }
 
+        //public async Task AddAsync(Model.Quiz model)
+        //{
+        //    var entity = new Data.Entities.Quiz
+        //    {
+        //        Name = model.Name,
+        //        Questions = model.Questions.Select(q => new Data.Entities.QuizQuestion
+        //        {
+        //            Question = q.Question,
+        //            Answer = q.Answer
+        //        }).ToList()
+        //    };
+
+        //    _context.Quizzes.Add(entity);
+        //    await _context.SaveChangesAsync();
+        //}
+
         public async Task AddAsync(Model.Quiz model)
         {
-            var entity = new Data.Entities.Quiz
+            var entity = new Entities.Quiz
             {
                 Name = model.Name,
-                Questions = model.Questions.Select(q => new Data.Entities.QuizQuestion
+                Questions = model.Questions.Select(q => new Entities.QuizQuestion
                 {
                     Question = q.Question,
-                    Answer = q.Answer
+                    QuestionType = (Entities.QuizQuestionType)q.QuestionType,
+                    OptionsJson = q.Options != null ? System.Text.Json.JsonSerializer.Serialize(q.Options) : null,
+                    Answer = q.Answer,
+                    Explanation = q.Explanation
                 }).ToList()
             };
 
-            _context.Quizzes.Add(entity);
-            await _context.SaveChangesAsync();
+            await _context.Quizzes.AddAsync(entity); // Add entity to the DbContext
+            await _context.SaveChangesAsync();       // Save changes to the database
+
+            // Map the generated Id back to the model
+            model.Id = entity.Id;
         }
 
         public async Task UpdateAsync(Model.Quiz model)

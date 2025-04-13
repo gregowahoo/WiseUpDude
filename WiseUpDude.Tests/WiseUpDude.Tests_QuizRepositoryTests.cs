@@ -28,44 +28,6 @@ namespace WiseUpDude.Tests
             return context;
         }
 
-        //[Fact]
-        //public async Task AddAsync_ShouldAddQuiz()
-        //{
-        //    using var context = await CreateDbContextAsync();
-        //    var repository = new QuizRepository(context);
-
-        //    var quiz = new WiseUpDude.Model.Quiz
-        //    {
-        //        Name = "Sample Quiz",
-        //        UserId = 1, // Add a valid UserId
-        //        Questions = new List<WiseUpDude.Model.QuizQuestion>
-        //{
-        //    new WiseUpDude.Model.QuizQuestion
-        //    {
-        //        Question = "Sample Question",
-        //        QuestionType = WiseUpDude.Model.QuizQuestionType.MultipleChoice,
-        //        OptionsJson = "[\"Option1\", \"Option2\"]", // JSON string for OptionsJson
-        //        Answer = "Option1",
-        //        Explanation = "Sample Explanation"
-        //    }
-        //}
-        //    };
-
-        //    // Add the Quiz
-        //    await repository.AddAsync(quiz);
-
-        //    // Retrieve the Quiz from the database to verify
-        //    var result = await context.Quizzes.FirstOrDefaultAsync();
-        //    Assert.NotNull(result); // Ensure the Quiz exists
-        //    Assert.Equal("Sample Quiz", result.Name); // Verify the name
-
-        //    // Verify the Options field is serialized correctly
-        //    Assert.NotNull(result.Questions.First().OptionsJson);
-        //    var options = System.Text.Json.JsonSerializer.Deserialize<List<string>>(result.Questions.First().OptionsJson);
-        //    Assert.Contains("Option1", options);
-        //    Assert.Contains("Option2", options);
-        //}
-
         [Fact]
         public async Task AddAsync_ShouldAddQuiz()
         {
@@ -75,7 +37,7 @@ namespace WiseUpDude.Tests
             // Create a sample user
             var user = new ApplicationUser
             {
-                Id = "1", // Assign a valid User Id (or use a Guid if that's the type)
+                Id = "1", // Assign a valid User Id
                 UserName = "testuser"
             };
 
@@ -83,12 +45,13 @@ namespace WiseUpDude.Tests
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
+            // Create a sample quiz
             var quiz = new WiseUpDude.Model.Quiz
             {
                 Name = "Sample Quiz",
                 UserName = "testuser", // Assign a valid UserName
                 Questions = new List<WiseUpDude.Model.QuizQuestion>
-            {
+        {
             new WiseUpDude.Model.QuizQuestion
             {
                 Question = "Sample Question",
@@ -97,20 +60,25 @@ namespace WiseUpDude.Tests
                 Answer = "Option1",
                 Explanation = "Sample Explanation"
             }
-            }
-        };
+        }
+            };
 
             // Add the Quiz
             await repository.AddAsync(quiz);
 
             // Retrieve the Quiz from the database to verify
-            var result = await context.Quizzes.Include(q => q.Questions).Include(q => q.User).FirstOrDefaultAsync();
+            var result = await context.Quizzes
+                .Include(q => q.Questions)
+                .Include(q => q.User) // Include the User for verification
+                .FirstOrDefaultAsync();
+
+            // Assertions
             Assert.NotNull(result); // Ensure the Quiz exists
             Assert.Equal("Sample Quiz", result.Name); // Verify the name
-            Assert.Equal(user.UserName, result.User.UserName); // Verify the associated user
+            Assert.Equal("testuser", result.User.UserName); // Verify the associated user
+            Assert.NotNull(result.Questions.First().OptionsJson); // Verify the Options field is serialized correctly
 
-            // Verify the Options field is serialized correctly
-            Assert.NotNull(result.Questions.First().OptionsJson);
+            // Deserialize and verify the options
             var options = System.Text.Json.JsonSerializer.Deserialize<List<string>>(result.Questions.First().OptionsJson);
             Assert.Contains("Option1", options);
             Assert.Contains("Option2", options);
@@ -121,10 +89,22 @@ namespace WiseUpDude.Tests
         {
             using var context = await CreateDbContextAsync();
             var repository = new QuizRepository(context);
+
+            // Create a sample user
+            var user = new ApplicationUser
+            {
+                Id = "1", // Assign a valid User Id
+                UserName = "testuser"
+            };
+
+            // Add the user to the context
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+
             var quizzes = new List<Quiz>
             {
-                new Quiz { Name = "Quiz 1" },
-                new Quiz { Name = "Quiz 2" }
+                new Quiz { Name = "Quiz 1", UserName = "testuser", User = user  },
+                new Quiz { Name = "Quiz 2", UserName = "testuser", User = user  }
             };
 
             foreach (var quiz in quizzes)
@@ -142,7 +122,19 @@ namespace WiseUpDude.Tests
         {
             using var context = await CreateDbContextAsync();
             var repository = new QuizRepository(context);
-            var quiz = new Quiz { Name = "Sample Quiz" };
+
+            // Create a sample user
+            var user = new ApplicationUser
+            {
+                Id = "1", // Assign a valid User Id
+                UserName = "testuser"
+            };
+
+            // Add the user to the context
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+
+            var quiz = new Quiz { Name = "Sample Quiz", UserName = "testuser", User = user };
 
             await repository.AddAsync(quiz);
             var result = await repository.GetByIdAsync(quiz.Id);
@@ -156,7 +148,19 @@ namespace WiseUpDude.Tests
         {
             using var context = await CreateDbContextAsync();
             var repository = new QuizRepository(context);
-            var quiz = new Quiz { Name = "Old Name" };
+
+            // Create a sample user
+            var user = new ApplicationUser
+            {
+                Id = "1", // Assign a valid User Id
+                UserName = "testuser"
+            };
+
+            // Add the user to the context
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+
+            var quiz = new Quiz {Name = "Old Name", UserName = "testuser", User = user };
 
             await repository.AddAsync(quiz);
             quiz.Name = "Updated Name";
@@ -172,7 +176,19 @@ namespace WiseUpDude.Tests
         {
             using var context = await CreateDbContextAsync();
             var repository = new QuizRepository(context);
-            var quiz = new Quiz { Name = "To Be Deleted" };
+
+            // Create a sample user
+            var user = new ApplicationUser
+            {
+                Id = "1", // Assign a valid User Id
+                UserName = "testuser"
+            };
+
+            // Add the user to the context
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+
+            var quiz = new Quiz {Name = "To Be Deleted", UserName = "testuser", User = user };
 
             await repository.AddAsync(quiz);
             await repository.DeleteAsync(quiz.Id);

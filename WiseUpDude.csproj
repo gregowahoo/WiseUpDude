@@ -14,11 +14,17 @@
     <None Remove="WiseUpDude.Tests\**" />
   </ItemGroup>
 
-
+  <ItemGroup>
+    <Compile Remove="Data\Repositories\QuizRepository_Orig.cs" />
+    <Compile Remove="Model\QuizQuestion_Orig.cs" />
+    <Compile Remove="Model\Quiz_Orig.cs" />
+  </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.2.0" />
     <PackageReference Include="Azure.AI.OpenAI" Version="2.2.0-beta.4" />
     <PackageReference Include="bootstrap" Version="5.3.3" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.3" />

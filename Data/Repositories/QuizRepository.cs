@@ -51,72 +51,34 @@ namespace WiseUpDude.Data.Repositories
             };
         }
 
-        //public async Task AddAsync(Model.Quiz model)
-        //{
-        //    var entity = new Data.Entities.Quiz
-        //    {
-        //        Name = model.Name,
-        //        Questions = model.Questions.Select(q => new Data.Entities.QuizQuestion
-        //        {
-        //            Question = q.Question,
-        //            Answer = q.Answer
-        //        }).ToList()
-        //    };
-
-        //    _context.Quizzes.Add(entity);
-        //    await _context.SaveChangesAsync();
-        //}
-
-        //public async Task AddAsync(Model.Quiz model)
-        //{
-        //    var entity = new Entities.Quiz
-        //    {
-        //        Name = model.Name,
-        //        Questions = model.Questions.Select(q => new Entities.QuizQuestion
-        //        {
-        //            Question = q.Question,
-        //            QuestionType = (Entities.QuizQuestionType)q.QuestionType,
-        //            OptionsJson = q.Options != null ? System.Text.Json.JsonSerializer.Serialize(q.Options) : null,
-        //            Answer = q.Answer,
-        //            Explanation = q.Explanation
-        //        }).ToList()
-        //    };
-
-        //    await _context.Quizzes.AddAsync(entity); // Add entity to the DbContext
-        //    await _context.SaveChangesAsync();       // Save changes to the database
-
-        //    // Map the generated Id back to the model
-        //    model.Id = entity.Id;
-        //    //model.UserName = entity.User?.UserName ?? string.Empty; // Use null-coalescing operator to handle null values
-        //}
-
-        public async Task AddAsync(Model.Quiz model)
+        public async Task AddAsync(Model.Quiz quiz)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == model.UserName);
-            if (user == null)
-            {
-                throw new InvalidOperationException("User not found.");
-            }
+            //var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == quiz.UserName);
+            //if (user == null)
+            //{
+            //    throw new InvalidOperationException("User not found.");
+            //}
 
             var entity = new Entities.Quiz
             {
-                Name = model.Name,
-                Questions = model.Questions.Select(q => new Entities.QuizQuestion
+                Name = quiz.Name,
+                Questions = quiz.Questions.Select(q => new Entities.QuizQuestion
                 {
                     Question = q.Question,
                     QuestionType = (Entities.QuizQuestionType)q.QuestionType,
                     OptionsJson = q.Options != null ? System.Text.Json.JsonSerializer.Serialize(q.Options) : null,
                     Answer = q.Answer,
-                    Explanation = q.Explanation
+                    Explanation = q.Explanation,
+                    UserAnswer = q.UserAnswer
                 }).ToList(),
-                User = user // Assign the user
+                User = quiz.User 
             };
 
             await _context.Quizzes.AddAsync(entity);
             await _context.SaveChangesAsync();
 
-            model.Id = entity.Id;
-            model.User = user; // Map back the user if needed
+            quiz.Id = entity.Id;
+            //quiz.User = user; // Map back the user if needed
         }
 
         public async Task UpdateAsync(Model.Quiz model)

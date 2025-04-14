@@ -160,7 +160,7 @@ namespace WiseUpDude.Tests
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
-            var quiz = new Quiz {Name = "Old Name", UserName = "testuser", User = user };
+            var quiz = new Quiz { Name = "Old Name", UserName = "testuser", User = user };
 
             await repository.AddAsync(quiz);
             quiz.Name = "Updated Name";
@@ -188,7 +188,7 @@ namespace WiseUpDude.Tests
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
-            var quiz = new Quiz {Name = "To Be Deleted", UserName = "testuser", User = user };
+            var quiz = new Quiz { Name = "To Be Deleted", UserName = "testuser", User = user };
 
             await repository.AddAsync(quiz);
             await repository.DeleteAsync(quiz.Id);

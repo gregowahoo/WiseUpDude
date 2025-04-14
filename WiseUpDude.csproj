@@ -14,12 +14,6 @@
     <None Remove="WiseUpDude.Tests\**" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="Data\Repositories\QuizRepository_Orig.cs" />
-    <Compile Remove="Model\QuizQuestion_Orig.cs" />
-    <Compile Remove="Model\Quiz_Orig.cs" />
-  </ItemGroup>
-
 
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.2.0" />
@@ -36,6 +30,9 @@
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.3.0-preview.1.25161.3" />
     <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.0-preview.2.25163.2" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="SmartReader" Version="0.10.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.3" />
     <PackageReference Include="xunit" Version="2.4.1" />

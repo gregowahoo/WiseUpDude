@@ -12,8 +12,18 @@ using WiseUpDude.Model;
 using WiseUpDude.Services;
 using WiseUpDude.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.Google;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+builder.Host.UseSerilog((context, services, configuration) =>
+    configuration.WriteTo.Console()
+                 .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day));
+
+// Add logging region
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 #region Configuration
 

@@ -1,6 +1,7 @@
-﻿using System.Text.Json;
-using Microsoft.Extensions.AI;
+﻿using Microsoft.Extensions.AI;
+using System.Text.Json;
 using WiseUpDude.Model;
+using WiseUpDude.Services.Utilities;
 
 namespace WiseUpDude.Services
 {
@@ -23,17 +24,25 @@ namespace WiseUpDude.Services
                 "Adjust the question complexity and vocabulary based on this scale.",
                 "Try to create at least 20 questions.",
                 "Include both multiple-choice and true/false questions.",
-                "Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\".",
+                "Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\", \"QuestionType\".",
+                "The \"QuestionType\" should be either \"TrueFalse\" or \"MultipleChoice\" depending on the type of question.",
                 "Return only valid JSON in the format:",
-                "{ \"Questions\": [ { ... }, ... ] }.",
+                "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ] }.",
                 "Return only the raw JSON without any code block formatting or prefixes like 'json'."
             });
 
             try
             {
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    Converters = { new QuizQuestionTypeConverter() }
+                };
+
                 var result = await _chatClient.GetResponseAsync(prompt);
                 var json = result.Text;
-                var quiz = JsonSerializer.Deserialize<QuizResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var quiz = JsonSerializer.Deserialize<QuizResponse>(json, options);
+
                 return quiz;
             }
             catch (JsonException jex)

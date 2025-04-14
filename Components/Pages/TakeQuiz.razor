@@ -18,7 +18,7 @@
 @attribute [Authorize]
 
 
-@* <button class="btn btn-primary" @onclick="PlaySoundSafely">Test Sound</button>
+<button class="btn btn-primary" @onclick="PlaySoundSafely">Test Sound</button>
 
 @code {
     private async Task PlaySoundSafely()
@@ -36,7 +36,7 @@
         }
     }
 }
- *@
+
 
 <h3 class="mb-3">🧠 Take Quiz</h3>
 <p>Select an answer for each question to see if you're correct.</p>
@@ -49,15 +49,15 @@
 {
     @if ((double)correctAnswers / totalAnswered >= 0.8)
     {
-                <div class="alert alert-success mt-4 fs-5 text-center fw-bold">
-                    🎉 You Wise’d Up! Final Score: @correctAnswers / @totalAnswered
-                </div>
+        <div class="alert alert-success mt-4 fs-5 text-center fw-bold">
+            🎉 You Wise’d Up! Final Score: @correctAnswers / @totalAnswered
+        </div>
     }
     else
     {
-                <div class="alert alert-danger mt-4 fs-5 text-center fw-bold">
-                    😬 You’ve got work to do, wise guy. Final Score: @correctAnswers / @totalAnswered
-                </div>
+        <div class="alert alert-danger mt-4 fs-5 text-center fw-bold">
+            😬 You’ve got work to do, wise guy. Final Score: @correctAnswers / @totalAnswered
+        </div>
     }
 }
 
@@ -81,28 +81,27 @@
 <!-- Quiz Content -->
 @if (QuizState.CurrentQuiz == null || QuizState.CurrentQuiz.Questions.Count == 0)
 {
-        <div class="alert alert-warning">
-            No quiz questions found. Please go to Home and generate a quiz first.
-        </div>
+    <div class="alert alert-warning">
+        No quiz questions found. Please go to Home and generate a quiz first.
+    </div>
 }
 else
 {
     @for (int i = 0; i < QuizState.CurrentQuiz.Questions.Count; i++)
     {
         var question = QuizState.CurrentQuiz.Questions[i];
-                <QuestionCard
-                    Question="question" 
-                    QuestionIndex="i" 
-                    AutoSubmit="autoSubmit"
-                    MuteSound="muteSound"
-                    OnAnswerSubmitted="HandleAnswerSubmitted" />
+        <QuestionCard Question="question"
+                      QuestionIndex="i"
+                      AutoSubmit="autoSubmit"
+                      MuteSound="muteSound"
+                      OnAnswerSubmitted="HandleAnswerSubmitted" />
     }
 
-        @* <button class="btn btn-success mt-4" @onclick="SaveQuizAsync">Save Quiz</button> *@
+    <button class="btn btn-success mt-4" @onclick="SaveQuizAsync">Save Quiz</button>
 
     @if (!string.IsNullOrWhiteSpace(saveMessage))
     {
-                <div class="alert alert-info mt-3">@saveMessage</div>
+        <div class="alert alert-info mt-3">@saveMessage</div>
     }
 }
 
@@ -163,35 +162,35 @@ else
         StateHasChanged();
     }
 
-    // private async Task SaveQuizAsync()
-    // {
-    //     var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-    //     var user = await UserManager.GetUserAsync(authState.User);
+    private async Task SaveQuizAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(authState.User);
 
-    //     if (user is not null && QuizState.CurrentQuiz is not null)
-    //     {
-    //         var newQuiz = new Quiz
-    //             {
-    //                 Name = $"Quiz_{DateTime.Now:yyyyMMdd_HHmmss}",
-    //                 UserId = user.Id,
-    //                 Questions = QuizState.CurrentQuiz.Questions
-    //                         .Select(q => new QuizQuestion
-    //                         {
-    //                             Question = q.Question,
-    //                             QuestionType = q.QuestionType,
-    //                             Options = q.Options,
-    //                             Answer = q.Answer,
-    //                             Explanation = q.Explanation,
-    //                             UserAnswer = q.UserAnswer
-    //                         }).ToList()
-    //             };
+        if (user is not null && QuizState.CurrentQuiz is not null)
+        {
+            var newQuiz = new Quiz
+                {
+                    Name = $"Quiz_{DateTime.Now:yyyyMMdd_HHmmss}",
+                    User = user,
+                    Questions = QuizState.CurrentQuiz.Questions
+                            .Select(q => new QuizQuestion
+                            {
+                                Question = q.Question,
+                                QuestionType = q.QuestionType,
+                                Options = q.Options,
+                                Answer = q.Answer,
+                                Explanation = q.Explanation,
+                                UserAnswer = q.UserAnswer
+                            }).ToList()
+                };
 
-    //         await QuizRepository.AddAsync(newQuiz);
-    //         saveMessage = "Quiz saved successfully!";
-    //     }
-    //     else
-    //     {
-    //         saveMessage = "Failed to save quiz. Please make sure you're signed in and have a quiz loaded.";
-    //     }
-    // }
+            await QuizRepository.AddAsync(newQuiz);
+            saveMessage = "Quiz saved successfully!";
+        }
+        else
+        {
+            saveMessage = "Failed to save quiz. Please make sure you're signed in and have a quiz loaded.";
+        }
+    }
 }

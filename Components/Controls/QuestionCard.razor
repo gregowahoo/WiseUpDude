@@ -1,6 +1,7 @@
 ﻿@using WiseUpDude.Model
 
 @inject IJSRuntime JS
+@inject ILogger<QuestionCard> Logger
 
 @code {
     [Parameter] public QuizQuestion? Question { get; set; }
@@ -16,6 +17,8 @@
     {
         userAnswer = answer;
         submitted = false;
+
+        Logger.LogInformation("Answer selected for question {QuestionIndex}: {Answer}", QuestionIndex, answer);
 
         if (AutoSubmit)
         {
@@ -33,14 +36,21 @@
 
             bool isCorrect = userAnswer == Question.Answer;
 
+            Logger.LogInformation("Answer checked for question {QuestionIndex}. UserAnswer: {UserAnswer}, CorrectAnswer: {CorrectAnswer}, IsCorrect: {IsCorrect}",
+                QuestionIndex, userAnswer, Question.Answer, isCorrect);
+
             if (!MuteSound)
             {
-                // Debug log
-                Console.WriteLine($"Playing sound: {(isCorrect ? "correct.mp3" : "incorrect.mp3")}");
-
-                // Play the appropriate sound
-                var soundFile = isCorrect ? "/sounds/correct.mp3" : "/sounds/incorrect.mp3";
-                await JS.InvokeVoidAsync("playSound", soundFile);
+                try
+                {
+                    var soundFile = isCorrect ? "/sounds/correct.mp3" : "/sounds/incorrect.mp3";
+                    Logger.LogDebug("Playing sound: {SoundFile}", soundFile);
+                    await JS.InvokeVoidAsync("playSound", soundFile);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Error playing sound for question {QuestionIndex}", QuestionIndex);
+                }
             }
 
             await OnAnswerSubmitted.InvokeAsync(isCorrect);
@@ -57,14 +67,24 @@
     private string GetOptionClass(string option)
     {
         if (!submitted)
+        {
+            Logger.LogDebug("Option class requested for question {QuestionIndex} before submission. Option: {Option}", QuestionIndex, option);
             return "btn btn-outline-dark me-2 mb-2 rounded-pill";
+        }
 
         if (option == Question?.Answer)
+        {
+            Logger.LogDebug("Option class requested for question {QuestionIndex}. Option: {Option} is correct.", QuestionIndex, option);
             return "btn btn-correct me-2 mb-2 rounded-pill"; // ✅ Correct
+        }
 
         if (option == userAnswer)
+        {
+            Logger.LogDebug("Option class requested for question {QuestionIndex}. Option: {Option} is incorrect.", QuestionIndex, option);
             return "btn btn-incorrect me-2 mb-2 rounded-pill"; // ❌ Incorrect
+        }
 
+        Logger.LogDebug("Option class requested for question {QuestionIndex}. Option: {Option} is neutral.", QuestionIndex, option);
         return "btn btn-outline-secondary me-2 mb-2 rounded-pill";
     }
 }

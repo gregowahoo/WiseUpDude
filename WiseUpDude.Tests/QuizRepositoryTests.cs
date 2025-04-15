@@ -50,17 +50,24 @@ namespace WiseUpDude.Tests
             {
                 Name = "Sample Quiz",
                 UserName = "testuser", // Assign a valid UserName
+                User = user, // Assign the user
                 Questions = new List<WiseUpDude.Model.QuizQuestion>
-        {
-            new WiseUpDude.Model.QuizQuestion
-            {
-                Question = "Sample Question",
-                QuestionType = WiseUpDude.Model.QuizQuestionType.MultipleChoice,
-                OptionsJson = "[\"Option1\", \"Option2\"]", // JSON string for OptionsJson
-                Answer = "Option1",
-                Explanation = "Sample Explanation"
-            }
-        }
+                {
+                    new WiseUpDude.Model.QuizQuestion
+                    {
+                        Question = "Sample Question",
+                        QuestionType = WiseUpDude.Model.QuizQuestionType.MultipleChoice,
+                        OptionsJson = "[\"Option1\", \"Option2\"]", // JSON string for OptionsJson
+                        Answer = "Option1",
+                        Explanation = "Sample Explanation"
+                    }
+                },
+                QuizSource = new WiseUpDude.Model.QuizSource // Add QuizSource
+                {
+                    Type = "Topic",
+                    Topic = "Math",
+                    Description = "A quiz about basic math."
+                }
             };
 
             // Add the Quiz
@@ -70,6 +77,7 @@ namespace WiseUpDude.Tests
             var result = await context.Quizzes
                 .Include(q => q.Questions)
                 .Include(q => q.User) // Include the User for verification
+                .Include(q => q.QuizSource) // Include the QuizSource for verification
                 .FirstOrDefaultAsync();
 
             // Assertions
@@ -82,6 +90,12 @@ namespace WiseUpDude.Tests
             var options = System.Text.Json.JsonSerializer.Deserialize<List<string>>(result.Questions.First().OptionsJson);
             Assert.Contains("Option1", options);
             Assert.Contains("Option2", options);
+
+            // Verify the QuizSource
+            Assert.NotNull(result.QuizSource); // Ensure the QuizSource exists
+            Assert.Equal("Topic", result.QuizSource.Type); // Verify the QuizSource type
+            Assert.Equal("Math", result.QuizSource.Topic); // Verify the QuizSource topic
+            Assert.Equal("A quiz about basic math.", result.QuizSource.Description); // Verify the QuizSource description
         }
 
         [Fact]
@@ -103,8 +117,30 @@ namespace WiseUpDude.Tests
 
             var quizzes = new List<Quiz>
             {
-                new Quiz { Name = "Quiz 1", UserName = "testuser", User = user  },
-                new Quiz { Name = "Quiz 2", UserName = "testuser", User = user  }
+                new Quiz
+                {
+                    Name = "Quiz 1",
+                    UserName = "testuser",
+                    User = user,
+                    QuizSource = new QuizSource
+                    {
+                        Type = "Topic",
+                        Topic = "Science",
+                        Description = "A quiz about science."
+                    }
+                },
+                new Quiz
+                {
+                    Name = "Quiz 2",
+                    UserName = "testuser",
+                    User = user,
+                    QuizSource = new QuizSource
+                    {
+                        Type = "Topic",
+                        Topic = "History",
+                        Description = "A quiz about history."
+                    }
+                }
             };
 
             foreach (var quiz in quizzes)
@@ -115,6 +151,8 @@ namespace WiseUpDude.Tests
             var result = await repository.GetAllAsync();
 
             Assert.Equal(2, result.Count());
+            Assert.Contains(result, q => q.Name == "Quiz 1" && q.QuizSource.Topic == "Science");
+            Assert.Contains(result, q => q.Name == "Quiz 2" && q.QuizSource.Topic == "History");
         }
 
         [Fact]
@@ -134,13 +172,25 @@ namespace WiseUpDude.Tests
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
-            var quiz = new Quiz { Name = "Sample Quiz", UserName = "testuser", User = user };
+            var quiz = new Quiz
+            {
+                Name = "Sample Quiz",
+                UserName = "testuser",
+                User = user,
+                QuizSource = new QuizSource
+                {
+                    Type = "Topic",
+                    Topic = "Math",
+                    Description = "A quiz about basic math."
+                }
+            };
 
             await repository.AddAsync(quiz);
             var result = await repository.GetByIdAsync(quiz.Id);
 
             Assert.NotNull(result);
             Assert.Equal("Sample Quiz", result.Name);
+            Assert.Equal("Math", result.QuizSource.Topic);
         }
 
         [Fact]
@@ -160,15 +210,32 @@ namespace WiseUpDude.Tests
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
-            var quiz = new Quiz { Name = "Old Name", UserName = "testuser", User = user };
+            var quiz = new Quiz
+            {
+                Name = "Old Name",
+                UserName = "testuser",
+                User = user,
+                QuizSource = new QuizSource
+                {
+                    Type = "Topic",
+                    Topic = "Math",
+                    Description = "A quiz about basic math."
+                }
+            };
 
             await repository.AddAsync(quiz);
+
+            // Update the quiz
             quiz.Name = "Updated Name";
+            quiz.QuizSource.Topic = "Updated Topic";
             await repository.UpdateAsync(quiz);
 
-            var result = await context.Quizzes.FindAsync(quiz.Id);
+            var result = await context.Quizzes
+                .Include(q => q.QuizSource)
+                .FirstOrDefaultAsync(q => q.Id == quiz.Id);
 
             Assert.Equal("Updated Name", result.Name);
+            Assert.Equal("Updated Topic", result.QuizSource.Topic);
         }
 
         [Fact]
@@ -188,14 +255,27 @@ namespace WiseUpDude.Tests
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
-            var quiz = new Quiz { Name = "To Be Deleted", UserName = "testuser", User = user };
+            var quiz = new Quiz
+            {
+                Name = "To Be Deleted",
+                UserName = "testuser",
+                User = user,
+                QuizSource = new QuizSource
+                {
+                    Type = "Topic",
+                    Topic = "Math",
+                    Description = "A quiz about basic math."
+                }
+            };
 
             await repository.AddAsync(quiz);
             await repository.DeleteAsync(quiz.Id);
 
             var result = await context.Quizzes.FindAsync(quiz.Id);
+            var quizSource = await context.QuizSources.FindAsync(quiz.QuizSource.Id);
 
             Assert.Null(result);
+            Assert.Null(quizSource);
         }
     }
 }

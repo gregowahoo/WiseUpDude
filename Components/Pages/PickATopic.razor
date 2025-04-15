@@ -31,7 +31,7 @@
         <div class="col-md-8">
             <label for="topicInput" class="form-label fw-semibold">What do you want to learn today?</label>
             <InputText id="topicInput" @bind-Value="UserTopic" class="form-control form-control-lg mb3"
-                       placeholder="e.g. Space exploration, AI, World War II, Mi English no hasta bueno." />
+            placeholder="e.g. Space exploration, AI, World War II, Mi English no hasta bueno." />
             <br />
             <div class="d-flex flex-wrap gap-2 mb-3">
                 @if (SuggestedTopics?.Any() == true)
@@ -39,8 +39,8 @@
                     @foreach (var topicItem in SuggestedTopics)
                     {
                         <HoverPopover TargetText="@topicItem.Topic"
-                                      Description="@topicItem.Description"
-                                      OnClick="@(() => UserTopic = topicItem.Topic)" />
+                        Description="@topicItem.Description"
+                        OnClick="@(() => UserTopic = topicItem.Topic)" />
                     }
                 }
                 else if (!string.IsNullOrEmpty(ErrorMessage))
@@ -58,12 +58,12 @@
                 @foreach (var level in DifficultyLevels)
                 {
                     <input type="radio"
-                           class="btn-check"
-                           name="difficulty"
-                           id="@level"
-                           value="@level"
-                           @onchange="() => SelectedDifficulty = level"
-                           checked="@(SelectedDifficulty == level)" />
+                    class="btn-check"
+                    name="difficulty"
+                    id="@level"
+                    value="@level"
+                    @onchange="() => SelectedDifficulty = level"
+                    checked="@(SelectedDifficulty == level)" />
                     <label class="btn btn-outline-primary" for="@level">@level</label>
                 }
             </div>
@@ -120,24 +120,29 @@
     {
         IsGenerating = true;
 
+        // Determine the topic to use
         var topicToUse = string.IsNullOrWhiteSpace(UserTopic)
             ? SuggestedTopics?.FirstOrDefault()?.Topic ?? "General Knowledge"
             : UserTopic;
 
+        // Find the description for the selected topic
+        var topicDescription = SuggestedTopics?.FirstOrDefault(t => t.Topic == topicToUse)?.Description
+            ?? "No description available.";
+
         var criteria = new QuizRequestCriteria
-            {
-                Topic = topicToUse,
-                Difficulty = SelectedDifficulty
-            };
+        {
+            Topic = topicToUse,
+            Difficulty = SelectedDifficulty
+        };
 
         var quiz = await QuizQuestionsFromTopic.GenerateQuizAsync(criteria);
-
-        // var encodedTopic = Uri.EscapeDataString(topicToUse);
-        // var encodedDifficulty = Uri.EscapeDataString(SelectedDifficulty);
 
         if (quiz != null && quiz.Questions?.Any() == true)
         {
             QuizState.CurrentQuiz = quiz;
+            QuizState.QuizSource.Topic = topicToUse;
+            QuizState.QuizSource.Description = topicDescription; // Set the description
+
             NavigationManager.NavigateTo("/TakeQuiz");
         }
         else

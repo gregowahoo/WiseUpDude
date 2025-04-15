@@ -172,5 +172,24 @@ namespace WiseUpDude.Tests
 
             Assert.Null(result);
         }
+
+        [Fact]
+        public async Task AddAsync_ShouldFailWithoutValidQuizId()
+        {
+            using var context = await CreateDbContextAsync();
+            var repository = new QuizQuestionRepository(context);
+
+            var quizQuestion = new QuizQuestion
+            {
+                Question = "Sample Question",
+                QuestionType = QuizQuestionType.MultipleChoice,
+                Options = new List<string> { "Option1", "Option2" },
+                Answer = "Option1",
+                Explanation = "Sample Explanation",
+                QuizId = 999 // Non-existent QuizId
+            };
+
+            await Assert.ThrowsAsync<DbUpdateException>(async () => await repository.AddAsync(quizQuestion));
+        }
     }
 }

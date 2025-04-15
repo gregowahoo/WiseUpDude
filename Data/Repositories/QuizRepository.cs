@@ -18,23 +18,43 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task<IEnumerable<Model.Quiz>> GetAllAsync()
         {
-            var entities = await _context.Quizzes.Include(q => q.Questions).ToListAsync();
+            var entities = await _context.Quizzes
+                .Include(q => q.Questions)
+                .Include(q => q.User) // Include the User to access UserName
+                .Include(q => q.QuizSource) // Include the QuizSource to map it
+                .ToListAsync();
+
             return entities.Select(e => new Model.Quiz
             {
                 Id = e.Id,
                 Name = e.Name,
+                UserName = e.User?.UserName ?? "Unknown User", // Handle possible null reference
+                User = e.User ?? new ApplicationUser { UserName = "Unknown User" }, // Provide a default User object
                 Questions = e.Questions.Select(q => new Model.QuizQuestion
                 {
                     Id = q.Id,
                     Question = q.Question,
                     Answer = q.Answer
-                }).ToList()
+                }).ToList(),
+                QuizSource = new Model.QuizSource // Map the QuizSource entity
+                {
+                    Id = e.QuizSource?.Id ?? 0, // Handle possible null reference
+                    Type = e.QuizSource?.Type ?? "Unknown Type",
+                    Topic = e.QuizSource?.Topic ?? "Unknown Topic",
+                    Prompt = e.QuizSource?.Prompt,
+                    Description = e.QuizSource?.Description ?? "No description available."
+                }
             });
         }
 
         public async Task<Model.Quiz> GetByIdAsync(int id)
         {
-            var entity = await _context.Quizzes.Include(q => q.Questions).FirstOrDefaultAsync(q => q.Id == id);
+            var entity = await _context.Quizzes
+                .Include(q => q.Questions)
+                .Include(q => q.User) // Include the User to access UserName
+                .Include(q => q.QuizSource) // Include the QuizSource to map it
+                .FirstOrDefaultAsync(q => q.Id == id);
+
             if (entity == null)
                 throw new KeyNotFoundException($"Quiz with Id {id} not found.");
 
@@ -42,23 +62,41 @@ namespace WiseUpDude.Data.Repositories
             {
                 Id = entity.Id,
                 Name = entity.Name,
+                UserName = entity.User?.UserName ?? "Unknown User", // Handle possible null reference
+                User = entity.User ?? new ApplicationUser { UserName = "Unknown User" }, // Provide a default User object
                 Questions = entity.Questions.Select(q => new Model.QuizQuestion
                 {
                     Id = q.Id,
                     Question = q.Question,
                     Answer = q.Answer
-                }).ToList()
+                }).ToList(),
+                QuizSource = new Model.QuizSource // Map the QuizSource entity
+                {
+                    Id = entity.QuizSource?.Id ?? 0, // Handle possible null reference
+                    Type = entity.QuizSource?.Type ?? "Unknown Type",
+                    Topic = entity.QuizSource?.Topic ?? "Unknown Topic",
+                    Prompt = entity.QuizSource?.Prompt,
+                    Description = entity.QuizSource?.Description ?? "No description available."
+                }
             };
         }
 
         public async Task AddAsync(Model.Quiz quiz)
         {
-            //var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == quiz.UserName);
-            //if (user == null)
-            //{
-            //    throw new InvalidOperationException("User not found.");
-            //}
+            // Create a new QuizSource entity
+            var quizSource = new Entities.QuizSource
+            {
+                Type = quiz.QuizSource?.Type ?? "Unknown Type",
+                Topic = quiz.QuizSource?.Topic,
+                Prompt = quiz.QuizSource?.Prompt,
+                Description = quiz.QuizSource?.Description
+            };
 
+            // Add the QuizSource to the database
+            _context.QuizSources.Add(quizSource);
+            await _context.SaveChangesAsync();
+
+            // Create a new Quiz entity
             var entity = new Entities.Quiz
             {
                 Name = quiz.Name,
@@ -71,15 +109,17 @@ namespace WiseUpDude.Data.Repositories
                     Explanation = q.Explanation,
                     UserAnswer = q.UserAnswer
                 }).ToList(),
-                User = quiz.User 
+                QuizSourceId = quizSource.Id, // Link the QuizSource
+                UserId = quiz.User.Id // Use the User.Id property
             };
 
-            await _context.Quizzes.AddAsync(entity);
+            // Add the Quiz to the database
+            _context.Quizzes.Add(entity);
             await _context.SaveChangesAsync();
 
             quiz.Id = entity.Id;
-            //quiz.User = user; // Map back the user if needed
         }
+
 
         public async Task UpdateAsync(Model.Quiz model)
         {
@@ -101,10 +141,23 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task DeleteAsync(int id)
         {
-            var entity = await _context.Quizzes.FindAsync(id);
-            if (entity != null)
+            // Find the quiz by its ID
+            var quiz = await _context.Quizzes
+                .Include(q => q.QuizSource) // Include the associated QuizSource
+                .FirstOrDefaultAsync(q => q.Id == id);
+
+            if (quiz != null)
             {
-                _context.Quizzes.Remove(entity);
+                // Remove the associated QuizSource
+                if (quiz.QuizSource != null)
+                {
+                    _context.QuizSources.Remove(quiz.QuizSource);
+                }
+
+                // Remove the quiz
+                _context.Quizzes.Remove(quiz);
+
+                // Save changes to the database
                 await _context.SaveChangesAsync();
             }
         }

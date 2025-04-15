@@ -26,9 +26,4 @@ namespace WiseUpDude.Model
         TrueFalse,
         MultipleChoice
     }
-
-    public class QuizResponse
-    {
-        public List<QuizQuestion> Questions { get; set; } = new();
-    }
 }

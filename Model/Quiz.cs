@@ -1,14 +1,25 @@
 using WiseUpDude.Data;
+using WiseUpDude.Data.Entities;
 
 namespace WiseUpDude.Model
 {
     public class Quiz
     {
         public int Id { get; set; }
-        public string Name { get; set; }
+
+        // Use the required modifier to ensure this property is initialized
+        public required string Name { get; set; }
+
         public List<QuizQuestion> Questions { get; set; } = new List<QuizQuestion>();
-        public string UserName { get; set; }
-        public ApplicationUser User { get; set; } // New property
+
+        // Use the required modifier to ensure this property is initialized
+        public required string UserName { get; set; }
+
+        // Use the required modifier to ensure this property is initialized
+        public required ApplicationUser User { get; set; }
+
+        // Use the required modifier to ensure this property is initialized
+        public required QuizSource QuizSource { get; set; }
     }
 
 }

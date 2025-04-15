@@ -68,6 +68,12 @@ namespace WiseUpDude.Tests
                         Explanation = "The capital of France is Paris.",
                         UserAnswer = "Paris"                       // Add UserAnswer
                     }
+                },
+                QuizSource = new WiseUpDude.Model.QuizSource // Add QuizSource
+                {
+                    Type = "Topic",
+                    Topic = "Math",
+                    Description = "A quiz about basic math."
                 }
             };
 
@@ -78,6 +84,7 @@ namespace WiseUpDude.Tests
             var result = await context.Quizzes
                 .Include(q => q.Questions)
                 .Include(q => q.User) // Include the User for verification
+                .Include(q => q.QuizSource) // Include the QuizSource for verification
                 .FirstOrDefaultAsync(q => q.Name == "Sample Quiz");
 
             // Assertions
@@ -89,6 +96,12 @@ namespace WiseUpDude.Tests
             // Verify the UserAnswer for each question
             Assert.Equal("4", result.Questions.First().UserAnswer); // Verify UserAnswer for the first question
             Assert.Equal("Paris", result.Questions.Last().UserAnswer); // Verify UserAnswer for the second question
+
+            // Verify the QuizSource
+            Assert.NotNull(result.QuizSource); // Ensure the QuizSource exists
+            Assert.Equal("Topic", result.QuizSource.Type); // Verify the QuizSource type
+            Assert.Equal("Math", result.QuizSource.Topic); // Verify the QuizSource topic
+            Assert.Equal("A quiz about basic math.", result.QuizSource.Description); // Verify the QuizSource description
         }
 
         [Fact]
@@ -105,12 +118,14 @@ namespace WiseUpDude.Tests
             var quizToDelete = await context.Quizzes
                 .Include(q => q.Questions)
                 .Include(q => q.User) // Include the User for verification
+                .Include(q => q.QuizSource) // Include the QuizSource for verification
                 .FirstOrDefaultAsync(q => q.Name == "Sample Quiz" && q.UserId == user.Id);
 
             Assert.NotNull(quizToDelete); // Ensure the quiz exists and is owned by the user
 
-            // Store the quiz ID for later verification
+            // Store the quiz ID and QuizSource ID for later verification
             var quizId = quizToDelete.Id;
+            var quizSourceId = quizToDelete.QuizSourceId;
 
             // Verify the UserAnswer for each question before deletion
             Assert.Equal("4", quizToDelete.Questions.First().UserAnswer); // Verify UserAnswer for the first question
@@ -132,6 +147,10 @@ namespace WiseUpDude.Tests
                 .ToListAsync();
 
             Assert.Empty(remainingQuestions); // Ensure no questions remain for the deleted quiz
+
+            // Verify the QuizSource is also removed
+            var deletedQuizSource = await context.QuizSources.FirstOrDefaultAsync(qs => qs.Id == quizSourceId);
+            Assert.Null(deletedQuizSource); // Ensure the QuizSource no longer exists
 
             // Verify the user still exists
             var existingUser = await context.Users.FirstOrDefaultAsync(u => u.UserName == "greg.ohlsen@gmail.com");

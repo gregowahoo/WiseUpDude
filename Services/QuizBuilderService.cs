@@ -21,7 +21,15 @@ namespace WiseUpDude.Services
 
         public async Task<QuizResponse> GenerateQuizAsync(string content)
         {
-            var finalQuizResponse = new QuizResponse();
+            var finalQuizResponse = new QuizResponse
+            {
+                QuizSource = new QuizSource
+                {
+                    Type = "Generated",
+                    Topic = "AI-Generated Quiz",
+                    Description = "This quiz was generated based on the provided content."
+                }
+            };
             var allQuestions = new List<QuizQuestion>();
 
             try
@@ -70,12 +78,24 @@ namespace WiseUpDude.Services
                     }
                 }
 
-                return new QuizResponse { Questions = allQuestions };
+                // Add questions to the final response
+                finalQuizResponse.Questions = allQuestions;
+
+                return finalQuizResponse;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"An error occurred: {ex.Message}");
-                return new QuizResponse { Questions = allQuestions };
+                return new QuizResponse
+                {
+                    Questions = allQuestions,
+                    QuizSource = new QuizSource
+                    {
+                        Type = "Error",
+                        Topic = "Error",
+                        Description = "An error occurred while generating the quiz."
+                    }
+                };
             }
         }
 
@@ -91,12 +111,28 @@ namespace WiseUpDude.Services
                     Converters = { new QuizQuestionTypeConverter() }
                 };
                 var quizResponse = JsonSerializer.Deserialize<QuizResponse>(json, options);
-                return quizResponse ?? new QuizResponse();
+                return quizResponse ?? new QuizResponse
+                {
+                    QuizSource = new QuizSource
+                    {
+                        Type = "File",
+                        Topic = "Loaded Quiz",
+                        Description = "This quiz was loaded from a file."
+                    }
+                };
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"An error occurred while reading the file: {ex.Message}");
-                return new QuizResponse();
+                return new QuizResponse
+                {
+                    QuizSource = new QuizSource
+                    {
+                        Type = "Error",
+                        Topic = "Error",
+                        Description = "An error occurred while loading the quiz from the file."
+                    }
+                };
             }
         }
 

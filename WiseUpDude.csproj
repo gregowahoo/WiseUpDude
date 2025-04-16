@@ -31,10 +31,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.4">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.AI" Version="9.3.0-preview.1.25161.3" />
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.3.0-preview.1.25161.3" />
     <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.0-preview.2.25163.2" />
@@ -46,6 +42,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="nunit" Version="3.13.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.3" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -67,6 +64,11 @@
     <Content Update="wwwroot\sounds\incorrect.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- compile all .cs in Migrations folder -->
+    <Compile Include="Migrations\**\*.cs" />
   </ItemGroup>
 
 </Project>

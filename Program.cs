@@ -139,6 +139,13 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 
 var app = builder.Build();
 
+// 2) auto‑apply any pending migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
+
 #region Middleware
 
 if (app.Environment.IsDevelopment())

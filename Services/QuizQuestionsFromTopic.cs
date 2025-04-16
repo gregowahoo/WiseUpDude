@@ -26,8 +26,10 @@ namespace WiseUpDude.Services
                 "Include both multiple-choice and true/false questions.",
                 "Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\", \"QuestionType\".",
                 "The \"QuestionType\" should be either \"TrueFalse\" or \"MultipleChoice\" depending on the type of question.",
+                "Additionally, include a \"QuizSource\" object with the following properties:",
+                "{ \"Type\": \"Topic\", \"Topic\": \"<topic>\", \"Description\": \"<description>\" }.",
                 "Return only valid JSON in the format:",
-                "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ] }.",
+                "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"QuizSource\": { \"Type\": \"...\", \"Topic\": \"...\", \"Description\": \"...\" } }.",
                 "Return only the raw JSON without any code block formatting or prefixes like 'json'."
             });
 
@@ -41,7 +43,15 @@ namespace WiseUpDude.Services
 
                 var result = await _chatClient.GetResponseAsync(prompt);
                 var json = result.Text;
-                var quiz = JsonSerializer.Deserialize<QuizResponse>(json, options);
+                var quiz = JsonSerializer.Deserialize<QuizResponse>(json, options) ?? new QuizResponse
+                {
+                    QuizSource = new QuizSource
+                    {
+                        Type = "DefaultType",
+                        Topic = "DefaultTopic",
+                        Description = "DefaultDescription"
+                    }
+                };
 
                 return quiz;
             }

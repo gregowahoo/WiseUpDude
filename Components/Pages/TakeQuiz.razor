@@ -1,5 +1,4 @@
 ﻿@page "/takequiz"
-
 @rendermode InteractiveServer
 
 @using Microsoft.AspNetCore.Identity
@@ -17,8 +16,8 @@
 
 @attribute [Authorize]
 
-
-<button class="btn btn-primary" @onclick="PlaySoundSafely">Test Sound</button>
+<!-- Test Sound Button -->
+<button class="btn btn-primary mb-3" @onclick="PlaySoundSafely">Test Sound</button>
 
 @code {
     private async Task PlaySoundSafely()
@@ -37,73 +36,79 @@
     }
 }
 
-
-<h3 class="mb-3">🧠 Take Quiz</h3>
-<p>Select an answer for each question to see if you're correct.</p>
-
-<!-- Score Tracker -->
-<ScoreTracker TotalQuestions="@totalQuestions" CorrectAnswers="@correctAnswers" />
-
-<!-- Final Message -->
-@if (showFinalMessage)
-{
-    @if ((double)correctAnswers / totalAnswered >= 0.8)
-    {
-        <div class="alert alert-success mt-4 fs-5 text-center fw-bold">
-            🎉 You Wise’d Up! Final Score: @correctAnswers / @totalAnswered
+<!-- Quiz Card Layout -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="mb-0">🧠 Take Quiz</h3>
+            <p class="mb-0">Select an answer for each question to see if you're correct.</p>
         </div>
-    }
-    else
-    {
-        <div class="alert alert-danger mt-4 fs-5 text-center fw-bold">
-            😬 You’ve got work to do, wise guy. Final Score: @correctAnswers / @totalAnswered
-        </div>
-    }
-}
-
-<!-- Quiz Controls -->
-<div class="d-flex align-items-center gap-4 mb-3">
-    <button type="button"
-            class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-            @onclick="ToggleAutoSubmit">
-        <i class="bi @(autoSubmit ? "bi-lightning-fill" : "bi-lightning") me-1"></i>
-        @(autoSubmit ? "Auto-Submit On" : "Auto-Submit Off")
-    </button>
-
-    <button type="button"
-            class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-            @onclick="ToggleMute">
-        <i class="bi @(muteSound ? "bi-volume-mute-fill" : "bi-volume-up-fill") me-1"></i>
-        @(muteSound ? "Muted" : "Sound On")
-    </button>
-</div>
-
-<!-- Quiz Content -->
-@if (QuizState.CurrentQuiz == null || QuizState.CurrentQuiz.Questions.Count == 0)
-{
-    <div class="alert alert-warning">
-        No quiz questions found. Please go to Home and generate a quiz first.
+        <button class="btn btn-success" @onclick="SaveQuizAsync">Save Quiz</button>
     </div>
-}
-else
-{
-    @for (int i = 0; i < QuizState.CurrentQuiz.Questions.Count; i++)
-    {
-        var question = QuizState.CurrentQuiz.Questions[i];
-        <QuestionCard Question="question"
-                      QuestionIndex="i"
-                      AutoSubmit="autoSubmit"
-                      MuteSound="muteSound"
-                      OnAnswerSubmitted="HandleAnswerSubmitted" />
-    }
+    <div class="card-body">
+        <!-- Score Tracker -->
+        <ScoreTracker TotalQuestions="@totalQuestions" CorrectAnswers="@correctAnswers" />
 
-    <button class="btn btn-success mt-4" @onclick="SaveQuizAsync">Save Quiz</button>
+        <!-- Final Message -->
+        @if (showFinalMessage)
+        {
+            @if ((double)correctAnswers / totalAnswered >= 0.8)
+            {
+                <div class="alert alert-success mt-4 fs-5 text-center fw-bold">
+                    🎉 You Wise’d Up! Final Score: @correctAnswers / @totalAnswered
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-danger mt-4 fs-5 text-center fw-bold">
+                    😬 You’ve got work to do, wise guy. Final Score: @correctAnswers / @totalAnswered
+                </div>
+            }
+        }
 
-    @if (!string.IsNullOrWhiteSpace(saveMessage))
-    {
-        <div class="alert alert-info mt-3">@saveMessage</div>
-    }
-}
+        <!-- Quiz Controls -->
+        <div class="d-flex align-items-center gap-4 mb-3">
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                    @onclick="ToggleAutoSubmit">
+                <i class="bi @(autoSubmit ? "bi-lightning-fill" : "bi-lightning") me-1"></i>
+                @(autoSubmit ? "Auto-Submit On" : "Auto-Submit Off")
+            </button>
+
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                    @onclick="ToggleMute">
+                <i class="bi @(muteSound ? "bi-volume-mute-fill" : "bi-volume-up-fill") me-1"></i>
+                @(muteSound ? "Muted" : "Sound On")
+            </button>
+        </div>
+
+        <!-- Quiz Content -->
+        @if (QuizState.CurrentQuiz == null || QuizState.CurrentQuiz.Questions.Count == 0)
+        {
+            <div class="alert alert-warning">
+                No quiz questions found. Please go to Home and generate a quiz first.
+            </div>
+        }
+        else
+        {
+            @for (int i = 0; i < QuizState.CurrentQuiz.Questions.Count; i++)
+            {
+                var question = QuizState.CurrentQuiz.Questions[i];
+                <QuestionCard Question="question"
+                              QuestionIndex="i"
+                              AutoSubmit="autoSubmit"
+                              MuteSound="muteSound"
+                              OnAnswerSubmitted="HandleAnswerSubmitted" />
+            }
+
+            @if (!string.IsNullOrWhiteSpace(saveMessage))
+            {
+                <div class="alert alert-info mt-3">@saveMessage</div>
+            }
+        }
+    </div>
+</div>
 
 @code {
     private bool autoSubmit = true;
@@ -114,7 +119,6 @@ else
     private int correctAnswers;
 
     private bool showFinalMessage = false;
-
     private bool muteSound = false;
 
     private void ToggleAutoSubmit()
@@ -162,15 +166,14 @@ else
         StateHasChanged();
     }
 
-    @code {
-        private async Task SaveQuizAsync()
-        {
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = await UserManager.GetUserAsync(authState.User);
+    private async Task SaveQuizAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(authState.User);
 
-            if (user is not null && QuizState.CurrentQuiz is not null)
-            {
-                var newQuiz = new Quiz
+        if (user is not null && QuizState.CurrentQuiz is not null)
+        {
+            var newQuiz = new Quiz
                 {
                     Name = $"Quiz_{DateTime.Now:yyyyMMdd_HHmmss}",
                     User = user,
@@ -193,14 +196,12 @@ else
                     }
                 };
 
-                await QuizRepository.AddAsync(newQuiz);
-                saveMessage = "Quiz saved successfully!";
-            }
-            else
-            {
-                saveMessage = "Failed to save quiz. Please make sure you're signed in and have a quiz loaded.";
-            }
+            await QuizRepository.AddAsync(newQuiz);
+            saveMessage = "Quiz saved successfully!";
+        }
+        else
+        {
+            saveMessage = "Failed to save quiz. Please make sure you're signed in and have a quiz loaded.";
         }
     }
-
 }

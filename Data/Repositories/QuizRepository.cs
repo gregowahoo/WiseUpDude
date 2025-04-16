@@ -123,10 +123,15 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task UpdateAsync(Model.Quiz model)
         {
-            var entity = await _context.Quizzes.Include(q => q.Questions).FirstOrDefaultAsync(q => q.Id == model.Id);
+            var entity = await _context.Quizzes
+                .Include(q => q.Questions)
+                .Include(q => q.QuizSource) // Include QuizSource for updating
+                .FirstOrDefaultAsync(q => q.Id == model.Id);
+
             if (entity == null)
                 throw new KeyNotFoundException($"Quiz with Id {model.Id} not found.");
 
+            // Update Quiz properties
             entity.Name = model.Name;
             entity.Questions = model.Questions.Select(q => new Data.Entities.QuizQuestion
             {
@@ -134,6 +139,17 @@ namespace WiseUpDude.Data.Repositories
                 Question = q.Question,
                 Answer = q.Answer
             }).ToList();
+
+            // Update QuizSource properties
+            if (entity.QuizSource != null && model.QuizSource != null)
+            {
+                entity.QuizSource.Type = model.QuizSource.Type;
+                entity.QuizSource.Topic = model.QuizSource.Topic;
+                entity.QuizSource.Prompt = model.QuizSource.Prompt;
+                entity.QuizSource.Description = model.QuizSource.Description;
+
+                _context.Entry(entity.QuizSource).State = EntityState.Modified;
+            }
 
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();

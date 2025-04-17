@@ -1,4 +1,11 @@
 {
+  "QuizSource": {
+    "Id": 1,
+    "Type": "File",
+    "Topic": "General Knowledge",
+    "Prompt": null,
+    "Description": "A general knowledge quiz loaded from a file."
+  },
   "Questions": [
     {
       "Question": "The Earth is flat.",

@@ -305,7 +305,7 @@ namespace WiseUpDude.Migrations
                     b.Property<string>("Prompt")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Topic")
+                    b.Property<string>("Name")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 

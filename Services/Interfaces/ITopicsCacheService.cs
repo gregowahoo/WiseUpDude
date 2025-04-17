@@ -8,8 +8,8 @@
     public interface ITopicsCacheService<T>
     {
         bool HasItems();
-        List<TopicItem> GetItems();
-        void SetItems(List<TopicItem> items);
+        List<Topic> GetItems();
+        void SetItems(List<Topic> items);
     }
 
 }

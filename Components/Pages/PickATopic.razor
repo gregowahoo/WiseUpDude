@@ -10,7 +10,7 @@
 @inject QuizTopicService QuizTopicService
 @inject IJSRuntime JSRuntime
 
-@inject ITopicsCacheService<TopicItem> TopicsCacheService
+@inject ITopicsCacheService<Topic> TopicsCacheService
 @inject QuizQuestionsFromTopic QuizQuestionsFromTopic
 
 @rendermode InteractiveServer
@@ -38,9 +38,9 @@
                 {
                     @foreach (var topicItem in SuggestedTopics)
                     {
-                        <HoverPopover TargetText="@topicItem.Topic"
+                        <HoverPopover TargetText="@topicItem.Name"
                         Description="@topicItem.Description"
-                        OnClick="@(() => UserTopic = topicItem.Topic)" />
+                        OnClick="@(() => UserTopic = topicItem.Name)" />
                     }
                 }
                 else if (!string.IsNullOrEmpty(ErrorMessage))
@@ -79,9 +79,9 @@
 
 @code {
     private string? UserTopic { get; set; }
-    private string SelectedDifficulty { get; set; } = "Medium";
+    private string SelectedDifficulty = "Medium";
 
-    private List<TopicItem>? SuggestedTopics;
+    private List<Topic>? SuggestedTopics;
     private string? ErrorMessage;
 
     private readonly string[] DifficultyLevels = new[] { "Easy", "Medium", "Hard" };
@@ -122,11 +122,11 @@
 
         // Determine the topic to use
         var topicToUse = string.IsNullOrWhiteSpace(UserTopic)
-            ? SuggestedTopics?.FirstOrDefault()?.Topic ?? "General Knowledge"
+            ? SuggestedTopics?.FirstOrDefault()?.Name?? "General Knowledge"
             : UserTopic;
 
         // Find the description for the selected topic
-        var topicDescription = SuggestedTopics?.FirstOrDefault(t => t.Topic == topicToUse)?.Description
+        var topicDescription = SuggestedTopics?.FirstOrDefault(t => t.Name == topicToUse)?.Description
             ?? "No description available.";
 
         var criteria = new QuizRequestCriteria

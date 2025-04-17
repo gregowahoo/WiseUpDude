@@ -40,18 +40,27 @@ namespace WiseUpDude.Services
 
                 foreach (var chunk in chunks)
                 {
-                    string prompt = isFirstChunk
+                    var prompt = isFirstChunk
                         ? $"Generate a quiz based on the following content:\n\n{chunk}\n\n" +
-                          "Include both true/false questions and multiple-choice questions. " +
-                          "For each question, output the following fields in JSON: " +
-                          "'Question', 'Options', 'Answer', 'Explanation'. " +
-                          "Return only valid JSON with root object 'Questions' as an array." +
+                          "The difficulty level should be: Medium (moderate understanding)." +
+                          "Use the following difficulty scale: Easy (basic knowledge), Medium (moderate understanding), Hard (advanced understanding)." +
+                          "Adjust the question complexity and vocabulary based on this scale." +
+                          "Include both multiple-choice and true/false questions." +
+                          "Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\", \"QuestionType\"." +
+                          "The \"QuestionType\" should be either \"TrueFalse\" or \"MultipleChoice\" depending on the type of question." +
+                          "Additionally, include a \"QuizSource\" object with the following properties:" +
+                          "{ \"Type\": \"Content\", \"Name\": \"<topic>\", \"Description\": \"<description of the content>\" }." +
+                          "Return only valid JSON in the format:" +
+                          "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"QuizSource\": { \"Type\": \"...\", \"Name\": \"...\", \"Description\": \"...\" } }." +
                           "Return only the raw JSON without any code block formatting or prefixes like 'json'."
                         : $"Continue generating quiz questions based on the following content:\n\n{chunk}\n\n" +
-                          "Maintain the style, format, and JSON structure from the previous questions. " +
-                          "For each question, output the following fields in JSON: " +
-                          "'Question', 'Options', 'Answer', 'Explanation'. " +
-                          "Return only valid JSON with root object 'Questions' as an array." +
+                          "Maintain the style, format, and JSON structure from the previous questions." +
+                          "Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\", \"QuestionType\"." +
+                          "The \"QuestionType\" should be either \"TrueFalse\" or \"MultipleChoice\" depending on the type of question." +
+                          "Additionally, include a \"QuizSource\" object with the following properties:" +
+                          "{ \"Type\": \"Content\", \"Name\": \"<topic>\", \"Description\": \"<description of the content>\" }." +
+                          "Return only valid JSON in the format:" +
+                          "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"QuizSource\": { \"Type\": \"...\", \"Name\": \"...\", \"Description\": \"...\" } }." +
                           "Return only the raw JSON without any code block formatting or prefixes like 'json'.";
 
                     isFirstChunk = false;
@@ -61,10 +70,16 @@ namespace WiseUpDude.Services
 
                     try
                     {
+                        var options = new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true,
+                            Converters = { new QuizQuestionTypeConverter() }
+                        };
+
                         // Validate JSON string
                         using (JsonDocument doc = JsonDocument.Parse(quizJson))
                         {
-                            var chunkQuizResponse = JsonSerializer.Deserialize<QuizResponse>(quizJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                            var chunkQuizResponse = JsonSerializer.Deserialize<QuizResponse>(quizJson, options);
                             if (chunkQuizResponse?.Questions != null)
                             {
                                 allQuestions.AddRange(chunkQuizResponse.Questions);

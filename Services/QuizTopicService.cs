@@ -13,12 +13,12 @@ namespace WiseUpDude.Services
             _chatClient = chatClient;
         }
 
-        public async Task<(List<TopicItem>? Topics, string? ErrorMessage)> GetRelevantQuizTopicsAsync()
+        public async Task<(List<Topic>? Topics, string? ErrorMessage)> GetRelevantQuizTopicsAsync()
         {
             try
             {
                 var prompt = "Return a JSON array of 40 objects, each with 'topic' and 'description'. " +
-                             "Format: [{\"topic\":\"...\",\"description\":\"...\"}, ...]. No intro or closing. " +
+                             "Format: [{\"name\":\"...\",\"description\":\"...\"}, ...]. No intro or closing. " +
                              "Return only the raw JSON without any code block formatting or prefixes like 'json'.";
 
                 var result = await _chatClient.GetResponseAsync(
@@ -32,7 +32,7 @@ namespace WiseUpDude.Services
                 try
                 {
                     string jsonArray = ExtractJsonArray(content);
-                    var topics = JsonSerializer.Deserialize<List<TopicItem>>(jsonArray);
+                    var topics = JsonSerializer.Deserialize<List<Topic>>(jsonArray);
                     return topics != null
                         ? (topics, null)
                         : (null, "Failed to parse topic data from model response.");

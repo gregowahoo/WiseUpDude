@@ -11,7 +11,7 @@
     public class TopicsCacheService<T> : ITopicsCacheService<T>
     {
         // Simple in-memory storage
-        private List<TopicItem> _cachedItems = new List<TopicItem>();
+        private List<Topic> _cachedItems = new List<Topic>();
 
         // When we stored the cache
         private DateTime? _cacheTime;
@@ -31,7 +31,7 @@
             return _cachedItems.Any();
         }
 
-        public List<TopicItem> GetItems()
+        public List<Topic> GetItems()
         {
             // If they're expired, clear them out
             if (IsExpired())
@@ -43,9 +43,9 @@
             return _cachedItems;
         }
 
-        public void SetItems(List<TopicItem> items)
+        public void SetItems(List<Topic> items)
         {
-            _cachedItems = items ?? new List<TopicItem>();
+            _cachedItems = items ?? new List<Topic>();
             _cacheTime = DateTime.Now; // record when we set these items
         }
 

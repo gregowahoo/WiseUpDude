@@ -12,8 +12,8 @@ using WiseUpDude.Data;
 namespace WiseUpDude.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250413222011_UpdateQuizEntity_redo")]
-    partial class UpdateQuizEntity_redo
+    [Migration("20250417092904_SomeUpdateNoIdea")]
+    partial class SomeUpdateNoIdea
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -236,11 +236,16 @@ namespace WiseUpDude.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int>("QuizSourceId")
+                        .HasColumnType("int");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("QuizSourceId");
 
                     b.HasIndex("UserId");
 
@@ -283,6 +288,35 @@ namespace WiseUpDude.Migrations
                     b.HasIndex("QuizId");
 
                     b.ToTable("QuizQuestions");
+                });
+
+            modelBuilder.Entity("WiseUpDude.Data.Entities.QuizSource", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Prompt")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Topic")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("QuizSources");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -338,11 +372,19 @@ namespace WiseUpDude.Migrations
 
             modelBuilder.Entity("WiseUpDude.Data.Entities.Quiz", b =>
                 {
+                    b.HasOne("WiseUpDude.Data.Entities.QuizSource", "QuizSource")
+                        .WithMany()
+                        .HasForeignKey("QuizSourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("WiseUpDude.Data.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("QuizSource");
 
                     b.Navigation("User");
                 });

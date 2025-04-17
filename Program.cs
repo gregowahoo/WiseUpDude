@@ -71,7 +71,7 @@ builder.Services.AddApplicationInsightsTelemetry(options =>
 builder.Services.AddMemoryCache();
 
 // Register TopicsCacheService as a singleton
-builder.Services.AddSingleton<ITopicsCacheService<TopicItem>, TopicsCacheService<TopicItem>>();
+builder.Services.AddSingleton<ITopicsCacheService<Topic>, TopicsCacheService<Topic>>();
 
 // Razor Components with Interactivity
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();

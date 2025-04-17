@@ -27,9 +27,9 @@ namespace WiseUpDude.Services
                 "Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\", \"QuestionType\".",
                 "The \"QuestionType\" should be either \"TrueFalse\" or \"MultipleChoice\" depending on the type of question.",
                 "Additionally, include a \"QuizSource\" object with the following properties:",
-                "{ \"Type\": \"Topic\", \"Topic\": \"<topic>\", \"Description\": \"<description>\" }.",
+                "{ \"Type\": \"Name\", \"Name\": \"<topic>\", \"Description\": \"<description>\" }.",
                 "Return only valid JSON in the format:",
-                "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"QuizSource\": { \"Type\": \"...\", \"Topic\": \"...\", \"Description\": \"...\" } }.",
+                "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"QuizSource\": { \"Type\": \"...\", \"Name\": \"...\", \"Description\": \"...\" } }.",
                 "Return only the raw JSON without any code block formatting or prefixes like 'json'."
             });
 

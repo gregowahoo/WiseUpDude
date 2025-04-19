@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseUpDude", "WiseUpDude.cs
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseUpDude.Tests", "WiseUpDude.Tests\WiseUpDude.Tests.csproj", "{F17CCFDE-6BC2-4A95-A1E4-A42E3D604E7A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseUpDude.Data", "..\WiseUpDude.Data\WiseUpDude.Data.csproj", "{70005A1B-98F1-1CA9-FBF9-3BACF5F77DD0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,10 @@ Global
 		{F17CCFDE-6BC2-4A95-A1E4-A42E3D604E7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F17CCFDE-6BC2-4A95-A1E4-A42E3D604E7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F17CCFDE-6BC2-4A95-A1E4-A42E3D604E7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70005A1B-98F1-1CA9-FBF9-3BACF5F77DD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70005A1B-98F1-1CA9-FBF9-3BACF5F77DD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70005A1B-98F1-1CA9-FBF9-3BACF5F77DD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70005A1B-98F1-1CA9-FBF9-3BACF5F77DD0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

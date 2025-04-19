@@ -13,12 +13,6 @@
     <EmbeddedResource Remove="WiseUpDude.Tests\**" />
     <None Remove="WiseUpDude.Tests\**" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Data\Repositories\QuizRepository_Orig.cs" />
-    <Compile Remove="Model\QuizQuestion_Orig.cs" />
-    <Compile Remove="Model\Quiz_Orig.cs" />
-  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.2.0" />
@@ -30,7 +24,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.3" />
 
     <PackageReference Include="Microsoft.Extensions.AI" Version="9.3.0-preview.1.25161.3" />
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.3.0-preview.1.25161.3" />
@@ -71,6 +64,10 @@
   <ItemGroup>
     <!-- compile all .cs in Migrations folder -->
     <Compile Include="Migrations\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WiseUpDude.Data\WiseUpDude.Data.csproj" />
   </ItemGroup>
 
 </Project>

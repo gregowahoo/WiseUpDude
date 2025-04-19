@@ -8,7 +8,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseUpDude.Tests", "WiseUpD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseUpDude.Data", "..\WiseUpDude.Data\WiseUpDude.Data.csproj", "{70005A1B-98F1-1CA9-FBF9-3BACF5F77DD0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RescourceCreatorFunction", "..\WiseUpDude.Functions\RescourceCreatorFunction\RescourceCreatorFunction.csproj", "{1C03D29E-2D73-93CF-F87B-73671BC794F7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceCreatorFunction", "..\WiseUpDude.Functions\ResourceCreatorFunction\ResourceCreatorFunction.csproj", "{BBA725E7-223D-3E5A-3879-8E5AD85D19A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,10 +28,10 @@ Global
 		{70005A1B-98F1-1CA9-FBF9-3BACF5F77DD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70005A1B-98F1-1CA9-FBF9-3BACF5F77DD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70005A1B-98F1-1CA9-FBF9-3BACF5F77DD0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1C03D29E-2D73-93CF-F87B-73671BC794F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1C03D29E-2D73-93CF-F87B-73671BC794F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1C03D29E-2D73-93CF-F87B-73671BC794F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1C03D29E-2D73-93CF-F87B-73671BC794F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBA725E7-223D-3E5A-3879-8E5AD85D19A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBA725E7-223D-3E5A-3879-8E5AD85D19A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBA725E7-223D-3E5A-3879-8E5AD85D19A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBA725E7-223D-3E5A-3879-8E5AD85D19A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -3,6 +3,7 @@
     // ITopicsCacheService.cs
 
     using System.Collections.Generic;
+    //using WiseUpDude.Data.Entities;
     using WiseUpDude.Model;
 
     public interface ITopicsCacheService<T>

@@ -4,6 +4,9 @@ namespace WiseUpDude.Model
 {
     public class Topic
     {
+        [JsonPropertyName("id")]
+        public int Id { get; set; } // Added Id property
+
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
 
@@ -11,6 +14,6 @@ namespace WiseUpDude.Model
         public string Description { get; set; } = string.Empty;
 
         [JsonPropertyName("llm")]
-        public string Llm{ get; set; } = string.Empty;
+        public string Llm { get; set; } = string.Empty;
     }
 }

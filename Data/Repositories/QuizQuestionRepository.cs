@@ -68,44 +68,6 @@ namespace WiseUpDude.Data.Repositories
             await _context.SaveChangesAsync();
         }
 
-        //public async Task UpdateAsync_Prev(Model.QuizQuestion model)
-        //{
-        //    var entity = await _context.QuizQuestions.FirstOrDefaultAsync(q => q.Id == model.Id);
-        //    if (entity == null)
-        //        throw new KeyNotFoundException($"QuizQuestion with Id {model.Id} not found.");
-
-        //    entity.Question = model.Question;
-        //    entity.QuestionType = (Data.Entities.QuizQuestionType)model.QuestionType; // Explicit cast;
-        //    entity.OptionsJson = model.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(model.Options);
-        //    entity.Answer = model.Answer;
-        //    entity.Explanation = model.Explanation;
-        //    entity.UserAnswer = model.UserAnswer;
-        //    entity.QuizId = model.QuizId;
-
-        //    _context.Entry(entity).State = EntityState.Modified;
-        //    await _context.SaveChangesAsync();
-        //}
-
-        //public async Task UpdateAsync(WiseUpDude.Model.QuizQuestion model)
-        //{
-        //    var entity = await _context.QuizQuestions.FirstOrDefaultAsync(q => q.Id == model.Id);
-        //    if (entity == null)
-        //    {
-        //        throw new KeyNotFoundException($"QuizQuestion with Id {model.Id} not found.");
-        //    }
-
-        //    // Map the model to the entity
-        //    entity.Question = model.Question;
-        //    entity.QuestionType = (WiseUpDude.Data.Entities.QuizQuestionType)model.QuestionType; // Explicit cast
-        //    entity.OptionsJson = model.Options != null ? System.Text.Json.JsonSerializer.Serialize(model.Options) : null;
-        //    entity.Answer = model.Answer;
-        //    entity.Explanation = model.Explanation;
-        //    entity.QuizId = model.QuizId;
-
-        //    _context.Entry(entity).State = EntityState.Modified; // Mark entity as modified
-        //    await _context.SaveChangesAsync();
-        //}
-
         public async Task UpdateAsync(WiseUpDude.Model.QuizQuestion model)
         {
             var entity = await _context.QuizQuestions.FirstOrDefaultAsync(q => q.Id == model.Id);

@@ -64,14 +64,14 @@ builder.Services.AddApplicationInsightsTelemetry(options =>
 });
 
 builder.Services.AddMemoryCache();
-builder.Services.AddSingleton<ITopicsCacheService<Topic>, TopicsCacheService<Topic>>();
+builder.Services.AddSingleton<ITopicsCacheService<WiseUpDude.Model.Topic>, TopicsCacheService<WiseUpDude.Model.Topic>>();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<ContentFetchingService>();
 builder.Services.AddScoped<QuizBuilderService>();
 builder.Services.AddScoped<QuizStateService>();
-builder.Services.AddScoped<IRepository<Quiz>, QuizRepository>();
-builder.Services.AddScoped<IRepository<QuizQuestion>, QuizQuestionRepository>();
+builder.Services.AddScoped<IRepository<WiseUpDude.Model.Quiz>, QuizRepository>();
+builder.Services.AddScoped<IRepository<WiseUpDude.Model.QuizQuestion>, QuizQuestionRepository>();
 builder.Services.AddScoped<QuizTopicService>();
 builder.Services.AddScoped<QuizQuestionsFromTopic>();
 builder.Services.AddScoped<IdentityUserAccessor>();

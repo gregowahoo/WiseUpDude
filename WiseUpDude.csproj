@@ -68,6 +68,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WiseUpDude.Data\WiseUpDude.Data.csproj" />
+    <ProjectReference Include="..\WiseUpDude.Services\WiseUpDude.Services.csproj" />
   </ItemGroup>
 
 </Project>

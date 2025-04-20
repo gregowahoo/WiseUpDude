@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseUpDude.Data", "..\WiseU
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceCreatorFunction", "..\WiseUpDude.Functions\ResourceCreatorFunction\ResourceCreatorFunction.csproj", "{BBA725E7-223D-3E5A-3879-8E5AD85D19A8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseUpDude.Services", "..\WiseUpDude.Services\WiseUpDude.Services.csproj", "{C2F1AED7-FF5B-4706-827E-7FFE1AC646D1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{BBA725E7-223D-3E5A-3879-8E5AD85D19A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BBA725E7-223D-3E5A-3879-8E5AD85D19A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BBA725E7-223D-3E5A-3879-8E5AD85D19A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2F1AED7-FF5B-4706-827E-7FFE1AC646D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2F1AED7-FF5B-4706-827E-7FFE1AC646D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2F1AED7-FF5B-4706-827E-7FFE1AC646D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2F1AED7-FF5B-4706-827E-7FFE1AC646D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

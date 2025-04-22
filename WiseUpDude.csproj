@@ -5,12 +5,25 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-WiseUpDude-0a874bd5-fa04-456b-a588-7cb5c30b0b2b</UserSecretsId>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="WiseUpDude.Data\**" />
+    <Compile Remove="WiseUpDude.Functions\**" />
+    <Compile Remove="WiseUpDude.Services\**" />
     <Compile Remove="WiseUpDude.Tests\**" />
+    <Content Remove="WiseUpDude.Data\**" />
+    <Content Remove="WiseUpDude.Functions\**" />
+    <Content Remove="WiseUpDude.Services\**" />
     <Content Remove="WiseUpDude.Tests\**" />
+    <EmbeddedResource Remove="WiseUpDude.Data\**" />
+    <EmbeddedResource Remove="WiseUpDude.Functions\**" />
+    <EmbeddedResource Remove="WiseUpDude.Services\**" />
     <EmbeddedResource Remove="WiseUpDude.Tests\**" />
+    <None Remove="WiseUpDude.Data\**" />
+    <None Remove="WiseUpDude.Functions\**" />
+    <None Remove="WiseUpDude.Services\**" />
     <None Remove="WiseUpDude.Tests\**" />
   </ItemGroup>
   
@@ -67,8 +80,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WiseUpDude.Data\WiseUpDude.Data.csproj" />
-    <ProjectReference Include="..\WiseUpDude.Services\WiseUpDude.Services.csproj" />
+    <ProjectReference Include="WiseUpDude.Data\WiseUpDude.Data.csproj" />
+    <ProjectReference Include="WiseUpDude.Services\WiseUpDude.Services.csproj" />
   </ItemGroup>
 
 </Project>

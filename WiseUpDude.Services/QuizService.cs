@@ -31,14 +31,10 @@ namespace WiseUpDude.Services
                     Question = q.Question,
                     Answer = q.Answer
                 }).ToList(),
-                QuizSource = new Model.QuizSource // Map the QuizSource entity
-                {
-                    Id = e.QuizSource?.Id ?? 0, // Handle possible null reference
-                    Type = e.QuizSource?.Type ?? "Unknown Type",
-                    Topic = e.QuizSource?.Topic ?? "Unknown Topic",
-                    Prompt = e.QuizSource?.Prompt,
-                    Description = e.QuizSource?.Description ?? "No description available."
-                }
+                Type = e.Type,
+                Topic = e.Topic,
+                Prompt = e.Prompt,
+                Description = e.Description
             }).ToList();
         }
     }

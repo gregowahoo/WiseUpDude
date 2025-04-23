@@ -18,8 +18,13 @@ namespace WiseUpDude.Model
         // Use the required modifier to ensure this property is initialized
         public required ApplicationUser User { get; set; }
 
-        // Use the required modifier to ensure this property is initialized
-        public required QuizSource QuizSource { get; set; }
+        public string Type { get; set; } = string.Empty; // "Topic" or "Prompt"
+
+        public string? Topic { get; set; } // Nullable for prompts
+
+        public string? Prompt { get; set; } // Nullable for topics
+
+        public string? Description { get; set; } // Optional
     }
 
 }

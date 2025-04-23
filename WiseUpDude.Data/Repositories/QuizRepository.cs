@@ -22,7 +22,6 @@ namespace WiseUpDude.Data.Repositories
             var entities = await _context.Quizzes
                 .Include(q => q.Questions)
                 .Include(q => q.User) // Include the User to access UserName
-                .Include(q => q.QuizSource) // Include the QuizSource to map it
                 .ToListAsync();
 
             return entities.Select(e => new Model.Quiz
@@ -37,14 +36,10 @@ namespace WiseUpDude.Data.Repositories
                     Question = q.Question,
                     Answer = q.Answer
                 }).ToList(),
-                QuizSource = new Model.QuizSource // Map the QuizSource entity
-                {
-                    Id = e.QuizSource?.Id ?? 0, // Handle possible null reference
-                    Type = e.QuizSource?.Type ?? "Unknown Type",
-                    Topic = e.QuizSource?.Topic ?? "Unknown Topic",
-                    Prompt = e.QuizSource?.Prompt,
-                    Description = e.QuizSource?.Description ?? "No description available."
-                }
+                Type = e.Type,
+                Topic = e.Topic,
+                Prompt = e.Prompt,
+                Description = e.Description
             });
         }
 
@@ -53,7 +48,6 @@ namespace WiseUpDude.Data.Repositories
             var entity = await _context.Quizzes
                 .Include(q => q.Questions)
                 .Include(q => q.User) // Include the User to access UserName
-                .Include(q => q.QuizSource) // Include the QuizSource to map it
                 .FirstOrDefaultAsync(q => q.Id == id);
 
             if (entity == null)
@@ -71,32 +65,15 @@ namespace WiseUpDude.Data.Repositories
                     Question = q.Question,
                     Answer = q.Answer
                 }).ToList(),
-                QuizSource = new Model.QuizSource // Map the QuizSource entity
-                {
-                    Id = entity.QuizSource?.Id ?? 0, // Handle possible null reference
-                    Type = entity.QuizSource?.Type ?? "Unknown Type",
-                    Topic = entity.QuizSource?.Topic ?? "Unknown Topic",
-                    Prompt = entity.QuizSource?.Prompt,
-                    Description = entity.QuizSource?.Description ?? "No description available."
-                }
+                Type = entity.Type,
+                Topic = entity.Topic,
+                Prompt = entity.Prompt,
+                Description = entity.Description
             };
         }
 
         public async Task AddAsync(Model.Quiz quiz)
         {
-            // Create a new QuizSource entity
-            var quizSource = new Entities.QuizSource
-            {
-                Type = quiz.QuizSource?.Type ?? "Unknown Type",
-                Topic = quiz.QuizSource?.Topic,
-                Prompt = quiz.QuizSource?.Prompt,
-                Description = quiz.QuizSource?.Description
-            };
-
-            // Add the QuizSource to the database
-            _context.QuizSources.Add(quizSource);
-            await _context.SaveChangesAsync();
-
             // Create a new Quiz entity
             var entity = new Entities.Quiz
             {
@@ -110,8 +87,11 @@ namespace WiseUpDude.Data.Repositories
                     Explanation = q.Explanation,
                     UserAnswer = q.UserAnswer
                 }).ToList(),
-                QuizSourceId = quizSource.Id, // Link the QuizSource
-                UserId = quiz.User.Id // Use the User.Id property
+                UserId = quiz.User.Id, // Use the User.Id property
+                Type = quiz.Type,
+                Topic = quiz.Topic,
+                Prompt = quiz.Prompt,
+                Description = quiz.Description
             };
 
             // Add the Quiz to the database
@@ -121,12 +101,48 @@ namespace WiseUpDude.Data.Repositories
             quiz.Id = entity.Id;
         }
 
+        public async Task AddQuizAsync(QuizResponse quizResponse, string userName = "greg.ohlsen@gmail.com")
+        {
+            // Ensure the Name is not null or empty, and default to "Quiz_YYYYMMDD_HHMMSS" if necessary
+            var quizName = string.IsNullOrWhiteSpace(quizResponse.QuizSource.Topic)
+                ? $"Quiz_{DateTime.UtcNow:yyyyMMdd_HHmmss}"
+                : quizResponse.QuizSource.Topic;
+
+            // Look up the UserId using the UserName
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == userName);
+            if (user == null)
+            {
+                throw new InvalidOperationException($"User with UserName '{userName}' not found.");
+            }
+
+            var userId = user.Id;
+
+            var quiz = new Entities.Quiz
+            {
+                Name = quizName,
+                Questions = quizResponse.Questions.Select(q => new Entities.QuizQuestion
+                {
+                    Question = q.Question,
+                    QuestionType = (Entities.QuizQuestionType)q.QuestionType,
+                    OptionsJson = System.Text.Json.JsonSerializer.Serialize(q.Options),
+                    Answer = q.Answer,
+                    Explanation = q.Explanation
+                }).ToList(),
+                UserId = userId,
+                Type = quizResponse.QuizSource.Type,
+                Topic = quizResponse.QuizSource.Topic,
+                Prompt = quizResponse.QuizSource.Prompt,
+                Description = quizResponse.QuizSource.Description
+            };
+
+            await _context.Quizzes.AddAsync(quiz);
+            await _context.SaveChangesAsync();
+        }
 
         public async Task UpdateAsync(Model.Quiz model)
         {
             var entity = await _context.Quizzes
                 .Include(q => q.Questions)
-                .Include(q => q.QuizSource) // Include QuizSource for updating
                 .FirstOrDefaultAsync(q => q.Id == model.Id);
 
             if (entity == null)
@@ -140,17 +156,10 @@ namespace WiseUpDude.Data.Repositories
                 Question = q.Question,
                 Answer = q.Answer
             }).ToList();
-
-            // Update QuizSource properties
-            if (entity.QuizSource != null && model.QuizSource != null)
-            {
-                entity.QuizSource.Type = model.QuizSource.Type;
-                entity.QuizSource.Topic = model.QuizSource.Topic;
-                entity.QuizSource.Prompt = model.QuizSource.Prompt;
-                entity.QuizSource.Description = model.QuizSource.Description;
-
-                _context.Entry(entity.QuizSource).State = EntityState.Modified;
-            }
+            entity.Type = model.Type;
+            entity.Topic = model.Topic;
+            entity.Prompt = model.Prompt;
+            entity.Description = model.Description;
 
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
@@ -160,17 +169,10 @@ namespace WiseUpDude.Data.Repositories
         {
             // Find the quiz by its ID
             var quiz = await _context.Quizzes
-                .Include(q => q.QuizSource) // Include the associated QuizSource
                 .FirstOrDefaultAsync(q => q.Id == id);
 
             if (quiz != null)
             {
-                // Remove the associated QuizSource
-                if (quiz.QuizSource != null)
-                {
-                    _context.QuizSources.Remove(quiz.QuizSource);
-                }
-
                 // Remove the quiz
                 _context.Quizzes.Remove(quiz);
 
@@ -180,4 +182,3 @@ namespace WiseUpDude.Data.Repositories
         }
     }
 }
-

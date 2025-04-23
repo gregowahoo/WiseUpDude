@@ -15,17 +15,24 @@ namespace WiseUpDude.Data.Entities
 
         public List<QuizQuestion> Questions { get; set; }
 
+        [Required]
         public string UserId { get; set; }
 
         [ForeignKey("UserId")]
-        public ApplicationUser User { get; set; }
+        public ApplicationUser User { get; set; } // Navigation property for the user
 
-        // New property to link to the QuizSource entity
         [Required]
-        public int QuizSourceId { get; set; }
+        [MaxLength(50)]
+        public string Type { get; set; } // "Topic" or "Prompt"
 
-        [ForeignKey("QuizSourceId")]
-        public QuizSource QuizSource { get; set; }
+        [MaxLength(100)]
+        public string? Topic { get; set; } // Nullable for prompts
+
+        public string? Prompt { get; set; } // Nullable for topics
+
+        [MaxLength(500)]
+        public string? Description { get; set; } // Optional
     }
-  }
-  
+}
+
+

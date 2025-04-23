@@ -61,5 +61,7 @@ logger.LogInformation($"DefaultConnection: {builder.Configuration.GetConnectionS
 builder.Services.AddScoped<QuizTopicService>(); // Register QuizTopicService
 builder.Services.AddScoped<TopicRepository>();  // Register TopicRepository
 builder.Services.AddScoped<TopicCreationRunRepository>();  // Register TopicRepository
+builder.Services.AddScoped<QuizQuestionsFromTopic>(); // Register QuizQuestionsFromTopic
+builder.Services.AddScoped<QuizRepository>(); // Register QuizRepository
 
 builder.Build().Run();

@@ -112,5 +112,19 @@ namespace WiseUpDude.Data.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<IEnumerable<Model.Topic>> GetTopicsWithoutQuestionsAsync()
+        {
+            var topicsWithoutQuestions = await _context.Topics
+                .Where(topic => !_context.QuizQuestions.Any(q => q.Quiz.Topic == topic.Name))
+                .ToListAsync();
+
+            return topicsWithoutQuestions.Select(topic => new Model.Topic
+            {
+                Id = topic.Id,
+                Name = topic.Name,
+                Description = topic.Description
+            });
+        }
     }
 }

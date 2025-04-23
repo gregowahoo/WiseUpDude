@@ -33,6 +33,9 @@ namespace WiseUpDude.Services
                 "Return only the raw JSON without any code block formatting or prefixes like 'json'."
             });
 
+            // Add logging for debugging
+            Console.WriteLine($"Generating quiz for topic: {criteria.Topic} with difficulty: {criteria.Difficulty}");
+
             try
             {
                 var options = new JsonSerializerOptions
@@ -41,7 +44,8 @@ namespace WiseUpDude.Services
                     Converters = { new QuizQuestionTypeConverter() }
                 };
 
-                var result = await _chatClient.GetResponseAsync(prompt);
+                var result = await _chatClient.GetResponseAsync(prompt);                
+                Console.WriteLine($"Raw AI API Response: {result.Text}");           // Log the raw response for debugging
                 var json = result.Text;
                 var quiz = JsonSerializer.Deserialize<QuizResponse>(json, options) ?? new QuizResponse
                 {

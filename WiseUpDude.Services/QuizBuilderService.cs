@@ -23,12 +23,9 @@ namespace WiseUpDude.Services
         {
             var finalQuizResponse = new QuizResponse
             {
-                QuizSource = new QuizSource
-                {
-                    Type = "Generated",
-                    Topic = "AI-Generated Quiz",
-                    Description = "This quiz was generated based on the provided content."
-                }
+                Type = "Generated",
+                Topic = "AI-Generated Quiz",
+                Description = "This quiz was generated based on the provided content."
             };
             var allQuestions = new List<QuizQuestion>();
 
@@ -48,19 +45,15 @@ namespace WiseUpDude.Services
                           "Include both multiple-choice and true/false questions." +
                           "Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\", \"QuestionType\"." +
                           "The \"QuestionType\" should be either \"TrueFalse\" or \"MultipleChoice\" depending on the type of question." +
-                          "Additionally, include a \"QuizSource\" object with the following properties:" +
-                          "{ \"Type\": \"Content\", \"Name\": \"<topic>\", \"Description\": \"<description of the content>\" }." +
                           "Return only valid JSON in the format:" +
-                          "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"QuizSource\": { \"Type\": \"...\", \"Name\": \"...\", \"Description\": \"...\" } }." +
+                          "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"Type\": \"...\", \"Topic\": \"...\", \"Description\": \"...\" }." +
                           "Return only the raw JSON without any code block formatting or prefixes like 'json'."
                         : $"Continue generating quiz questions based on the following content:\n\n{chunk}\n\n" +
                           "Maintain the style, format, and JSON structure from the previous questions." +
                           "Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\", \"QuestionType\"." +
                           "The \"QuestionType\" should be either \"TrueFalse\" or \"MultipleChoice\" depending on the type of question." +
-                          "Additionally, include a \"QuizSource\" object with the following properties:" +
-                          "{ \"Type\": \"Content\", \"Name\": \"<topic>\", \"Description\": \"<description of the content>\" }." +
                           "Return only valid JSON in the format:" +
-                          "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"QuizSource\": { \"Type\": \"...\", \"Name\": \"...\", \"Description\": \"...\" } }." +
+                          "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"Type\": \"...\", \"Topic\": \"...\", \"Description\": \"...\" }." +
                           "Return only the raw JSON without any code block formatting or prefixes like 'json'.";
 
                     isFirstChunk = false;
@@ -104,12 +97,9 @@ namespace WiseUpDude.Services
                 return new QuizResponse
                 {
                     Questions = allQuestions,
-                    QuizSource = new QuizSource
-                    {
-                        Type = "Error",
-                        Topic = "Error",
-                        Description = "An error occurred while generating the quiz."
-                    }
+                    Type = "Error",
+                    Topic = "Error",
+                    Description = "An error occurred while generating the quiz."
                 };
             }
         }
@@ -128,12 +118,9 @@ namespace WiseUpDude.Services
                 var quizResponse = JsonSerializer.Deserialize<QuizResponse>(json, options);
                 return quizResponse ?? new QuizResponse
                 {
-                    QuizSource = new QuizSource
-                    {
-                        Type = "File",
-                        Topic = "Loaded Quiz",
-                        Description = "This quiz was loaded from a file."
-                    }
+                    Type = "File",
+                    Topic = "Loaded Quiz",
+                    Description = "This quiz was loaded from a file."
                 };
             }
             catch (Exception ex)
@@ -141,12 +128,9 @@ namespace WiseUpDude.Services
                 Console.WriteLine($"An error occurred while reading the file: {ex.Message}");
                 return new QuizResponse
                 {
-                    QuizSource = new QuizSource
-                    {
-                        Type = "Error",
-                        Topic = "Error",
-                        Description = "An error occurred while loading the quiz from the file."
-                    }
+                    Type = "Error",
+                    Topic = "Error",
+                    Description = "An error occurred while loading the quiz from the file."
                 };
             }
         }

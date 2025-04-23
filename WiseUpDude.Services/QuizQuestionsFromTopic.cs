@@ -26,10 +26,8 @@ namespace WiseUpDude.Services
                 "Include both multiple-choice and true/false questions.",
                 "Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\", \"QuestionType\".",
                 "The \"QuestionType\" should be either \"TrueFalse\" or \"MultipleChoice\" depending on the type of question.",
-                "Additionally, include a \"QuizSource\" object with the following properties:",
-                "{ \"Type\": \"Name\", \"Name\": \"<topic>\", \"Description\": \"<description>\" }.",
                 "Return only valid JSON in the format:",
-                "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"QuizSource\": { \"Type\": \"...\", \"Name\": \"...\", \"Description\": \"...\" } }.",
+                "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"Type\": \"...\", \"Topic\": \"...\", \"Description\": \"...\" }.",
                 "Return only the raw JSON without any code block formatting or prefixes like 'json'."
             });
 
@@ -49,24 +47,21 @@ namespace WiseUpDude.Services
                 var json = result.Text;
                 var quiz = JsonSerializer.Deserialize<QuizResponse>(json, options) ?? new QuizResponse
                 {
-                    QuizSource = new QuizSource
-                    {
-                        Type = "DefaultType",
-                        Topic = "DefaultTopic",
-                        Description = "DefaultDescription"
-                    }
+                    Type = "DefaultType",
+                    Topic = "DefaultTopic",
+                    Description = "DefaultDescription"
                 };
 
                 return quiz;
             }
             catch (JsonException jex)
             {
-                Console.WriteLine($"Quiz_Orig JSON parse error: {jex.Message}");
+                Console.WriteLine($"Quiz JSON parse error: {jex.Message}");
                 return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Quiz_Orig generation failed: {ex.Message}");
+                Console.WriteLine($"Quiz generation failed: {ex.Message}");
                 return null;
             }
         }

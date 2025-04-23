@@ -190,9 +190,9 @@
                         }).ToList(),
 
                 // Directly set properties that were formerly in QuizSource
-                    Type = "Topic", // Assuming the quiz is based on a topic
-                    Topic = QuizState.QuizSource?.Topic ?? "Unknown Topic",
-                    Description = QuizState.QuizSource?.Description ?? $"Quiz generated on {DateTime.Now:yyyy-MM-dd HH:mm:ss}"
+                    Type = QuizState.CurrentQuiz.Type ?? "Topic", // Assuming the quiz is based on a topic
+                    Topic = QuizState.CurrentQuiz.Topic ?? "Unknown Topic",
+                    Description = QuizState.CurrentQuiz.Description ?? $"Quiz generated on {DateTime.Now:yyyy-MM-dd HH:mm:ss}"
                 };
 
             await QuizRepository.AddAsync(newQuiz);

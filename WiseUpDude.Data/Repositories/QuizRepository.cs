@@ -104,9 +104,9 @@ namespace WiseUpDude.Data.Repositories
         public async Task AddQuizAsync(QuizResponse quizResponse, string userName = "greg.ohlsen@gmail.com")
         {
             // Ensure the Name is not null or empty, and default to "Quiz_YYYYMMDD_HHMMSS" if necessary
-            var quizName = string.IsNullOrWhiteSpace(quizResponse.QuizSource.Topic)
+            var quizName = string.IsNullOrWhiteSpace(quizResponse.Topic)
                 ? $"Quiz_{DateTime.UtcNow:yyyyMMdd_HHmmss}"
-                : quizResponse.QuizSource.Topic;
+                : quizResponse.Topic;
 
             // Look up the UserId using the UserName
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == userName);
@@ -129,10 +129,10 @@ namespace WiseUpDude.Data.Repositories
                     Explanation = q.Explanation
                 }).ToList(),
                 UserId = userId,
-                Type = quizResponse.QuizSource.Type,
-                Topic = quizResponse.QuizSource.Topic,
-                Prompt = quizResponse.QuizSource.Prompt,
-                Description = quizResponse.QuizSource.Description
+                Type = quizResponse.Type,
+                Topic = quizResponse.Topic,
+                Prompt = quizResponse.Prompt,
+                Description = quizResponse.Description
             };
 
             await _context.Quizzes.AddAsync(quiz);

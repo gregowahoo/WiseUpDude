@@ -55,10 +55,10 @@ namespace ResourceCreatorFunction
 
                     if (quizResponse != null)
                     {
-                        // Ensure the topic is set in the QuizSource
-                        quizResponse.QuizSource.Topic = topic.Name;
+                        // Set the topic directly in QuizResponse
+                        quizResponse.Topic = topic.Name;
 
-                        // Persist the quiz, questions, and quiz source
+                        // Persist the quiz and questions
                         await _quizRepository.AddQuizAsync(quizResponse);
                         _logger.LogInformation($"Quiz successfully created for topic: {topic.Name}");
                     }

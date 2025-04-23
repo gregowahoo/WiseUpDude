@@ -122,7 +122,7 @@
 
         // Determine the topic to use
         var topicToUse = string.IsNullOrWhiteSpace(UserTopic)
-            ? SuggestedTopics?.FirstOrDefault()?.Name?? "General Knowledge"
+            ? SuggestedTopics?.FirstOrDefault()?.Name ?? "General Knowledge"
             : UserTopic;
 
         // Find the description for the selected topic
@@ -140,8 +140,8 @@
         if (quiz != null && quiz.Questions?.Any() == true)
         {
             QuizState.CurrentQuiz = quiz;
-            QuizState.QuizSource.Topic = topicToUse;
-            QuizState.QuizSource.Description = topicDescription; // Set the description
+            QuizState.CurrentQuiz.Topic = topicToUse;
+            QuizState.CurrentQuiz.Description = topicDescription; // Set the description
 
             NavigationManager.NavigateTo("/TakeQuiz");
         }

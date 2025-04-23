@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+// Ensure this repository is used only for function-generated quiz questions.
+// No changes needed here unless specific logic is required to differentiate usage.
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;

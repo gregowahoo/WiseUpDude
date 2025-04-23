@@ -9,9 +9,9 @@ namespace WiseUpDude.Services
 {
     public class QuizService
     {
-        private readonly IRepository<Data.Entities.Quiz> _quizRepository;
+        private readonly IUserRepository<Data.Entities.Quiz> _quizRepository;
 
-        public QuizService(IRepository<Data.Entities.Quiz> quizRepository)
+        public QuizService(IUserRepository<Data.Entities.Quiz> quizRepository)
         {
             _quizRepository = quizRepository;
         }

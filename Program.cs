@@ -70,8 +70,12 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<ContentFetchingService>();
 builder.Services.AddScoped<QuizBuilderService>();
 builder.Services.AddScoped<QuizStateService>();
+
 builder.Services.AddScoped<IRepository<WiseUpDude.Model.Quiz>, QuizRepository>();
 builder.Services.AddScoped<IRepository<WiseUpDude.Model.QuizQuestion>, QuizQuestionRepository>();
+builder.Services.AddScoped<IUserRepository<WiseUpDude.Model.Quiz>, UserQuizRepository>();
+builder.Services.AddScoped<IUserRepository<WiseUpDude.Model.QuizQuestion>, UserQuizQuestionRepository>();
+
 builder.Services.AddScoped<QuizTopicService>();
 builder.Services.AddScoped<QuizQuestionsFromTopic>();
 builder.Services.AddScoped<IdentityUserAccessor>();
@@ -79,6 +83,7 @@ builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
 #endregion
 
 #region Authentication

@@ -7,7 +7,7 @@ using WiseUpDude.Model;
 
 namespace WiseUpDude.Data.Repositories
 {
-    public class TopicRepository : IRepository<Model.Topic>
+    public class TopicRepository : IUserRepository<Model.Topic>
     {
         private readonly ApplicationDbContext _context;
 

@@ -15,7 +15,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Topic> Topics { get; set; }
     public DbSet<TopicCreationRun> TopicCreationRuns { get; set; }
 
-    // Add UserQuiz and UserQuizQuestion
     public DbSet<UserQuiz> UserQuizzes { get; set; }
     public DbSet<UserQuizQuestion> UserQuizQuestions { get; set; }
 

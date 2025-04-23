@@ -17,14 +17,16 @@ namespace ResourceCreatorFunction
         private readonly TopicRepository _topicRepository;
         private readonly TopicCreationRunRepository _topicCreationRunRepository;
         private readonly string _llmName;
+        private readonly QuizQuestionRepository _quizQuestionRepository;
 
-        public TopicsCreator(ILoggerFactory loggerFactory, QuizTopicService quizTopicService, TopicRepository topicRepository, TopicCreationRunRepository topicCreationRunRepository, string llmName)
+        public TopicsCreator(ILoggerFactory loggerFactory, QuizTopicService quizTopicService, TopicRepository topicRepository, TopicCreationRunRepository topicCreationRunRepository, string llmName, QuizQuestionRepository quizQuestionRepository)
         {
             _logger = loggerFactory.CreateLogger<TopicsCreator>();
             _quizTopicService = quizTopicService;
             _topicRepository = topicRepository;
             _topicCreationRunRepository = topicCreationRunRepository;
             _llmName = llmName;
+            _quizQuestionRepository = quizQuestionRepository;
         }
 
         [Function("TopicsCreator")]

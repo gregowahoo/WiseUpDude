@@ -28,9 +28,11 @@ namespace ResourceCreatorFunction
         }
 
         [Function("TopicsCreator")]
-        public async Task Run([TimerTrigger("0 */1 * * * *")] TimerInfo myTimer)
-        //For production, when you want the function to run every morning at 5 AM, you can use the following cron expression:
-        //[TimerTrigger("0 0 5 * * *")]
+        //[TimerTrigger("0 */1 * * * *")]   // Runs every minute
+        //[TimerTrigger("0 0 * * * *")]     // Runs at the start of every hour
+        //[TimerTrigger("0 0 5 * * *")]     //For production, when you want the function to run every morning at 5 AM, you can use the following cron expression:
+        public async Task Run([TimerTrigger("0 0 * * * *")] TimerInfo myTimer)
+        //public async Task Run([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer)
         {
             _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
 

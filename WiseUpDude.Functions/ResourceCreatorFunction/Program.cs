@@ -48,7 +48,7 @@ builder.Services.AddChatClient(innerChatClientAzure); // Azure-based GPT-3.5
 //builder.Services.AddChatClient(innerChatClientOpenAI); // “gpt-4o-mini” from OpenAI
 
 // Register the LLM name as a configuration or service
-builder.Services.AddSingleton(llmName => "gpt-4o"); // Replace with the actual LLM name being used
+builder.Services.AddSingleton(llmName => "gpt-35-turbo"); // Replace with the actual LLM name being used
 
 // Add DbContext with SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

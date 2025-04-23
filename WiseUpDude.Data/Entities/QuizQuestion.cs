@@ -28,7 +28,7 @@ namespace WiseUpDude.Data.Entities
         public int QuizId { get; set; } // Foreign key to Quiz_Orig
 
         [ForeignKey("QuizId")]
-        public Quiz Quiz { get; set; } // Navigation property to Quiz_Orig
+        public required Quiz Quiz { get; set; } // Navigation property to Quiz_Orig
     }
 
     public enum QuizQuestionType

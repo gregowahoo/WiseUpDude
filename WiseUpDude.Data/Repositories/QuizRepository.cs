@@ -78,24 +78,32 @@ namespace WiseUpDude.Data.Repositories
             var entity = new Entities.Quiz
             {
                 Name = quiz.Name,
-                Questions = quiz.Questions.Select(q => new Entities.QuizQuestion
-                {
-                    Question = q.Question,
-                    QuestionType = (Entities.QuizQuestionType)q.QuestionType,
-                    OptionsJson = q.Options != null ? System.Text.Json.JsonSerializer.Serialize(q.Options) : null,
-                    Answer = q.Answer,
-                    Explanation = q.Explanation,
-                    UserAnswer = q.UserAnswer
-                }).ToList(),
-                UserId = quiz.User.Id, // Use the User.Id property
+                UserId = quiz.User.Id,
                 Type = quiz.Type,
                 Topic = quiz.Topic,
                 Prompt = quiz.Prompt,
                 Description = quiz.Description
             };
 
-            // Add the Quiz to the database
+            // Add the Quiz to the database first to generate its ID
             _context.Quizzes.Add(entity);
+            await _context.SaveChangesAsync();
+
+            // Add Questions with the Quiz reference
+            entity.Questions = quiz.Questions.Select(q => new Entities.QuizQuestion
+            {
+                Question = q.Question,
+                QuestionType = (Entities.QuizQuestionType)q.QuestionType,
+                OptionsJson = q.Options != null ? System.Text.Json.JsonSerializer.Serialize(q.Options) : null,
+                Answer = q.Answer,
+                Explanation = q.Explanation,
+                UserAnswer = q.UserAnswer,
+                QuizId = entity.Id, // Set the QuizId
+                Quiz = entity // Set the required Quiz property
+            }).ToList();
+
+            // Update the Quiz entity with its questions
+            _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
             quiz.Id = entity.Id;
@@ -103,39 +111,44 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task AddQuizAsync(QuizResponse quizResponse, string userName = "greg.ohlsen@gmail.com")
         {
-            // Ensure the Name is not null or empty, and default to "Quiz_YYYYMMDD_HHMMSS" if necessary
             var quizName = string.IsNullOrWhiteSpace(quizResponse.Topic)
                 ? $"Quiz_{DateTime.UtcNow:yyyyMMdd_HHmmss}"
                 : quizResponse.Topic;
 
-            // Look up the UserId using the UserName
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == userName);
             if (user == null)
             {
                 throw new InvalidOperationException($"User with UserName '{userName}' not found.");
             }
 
-            var userId = user.Id;
-
             var quiz = new Entities.Quiz
             {
                 Name = quizName,
-                Questions = quizResponse.Questions.Select(q => new Entities.QuizQuestion
-                {
-                    Question = q.Question,
-                    QuestionType = (Entities.QuizQuestionType)q.QuestionType,
-                    OptionsJson = System.Text.Json.JsonSerializer.Serialize(q.Options),
-                    Answer = q.Answer,
-                    Explanation = q.Explanation
-                }).ToList(),
-                UserId = userId,
+                UserId = user.Id,
                 Type = quizResponse.Type,
                 Topic = quizResponse.Topic,
                 Prompt = quizResponse.Prompt,
                 Description = quizResponse.Description
             };
 
-            await _context.Quizzes.AddAsync(quiz);
+            // Add the Quiz to the database first to generate its ID
+            _context.Quizzes.Add(quiz);
+            await _context.SaveChangesAsync();
+
+            // Add Questions with the Quiz reference
+            quiz.Questions = quizResponse.Questions.Select(q => new Entities.QuizQuestion
+            {
+                Question = q.Question,
+                QuestionType = (Entities.QuizQuestionType)q.QuestionType,
+                OptionsJson = System.Text.Json.JsonSerializer.Serialize(q.Options),
+                Answer = q.Answer,
+                Explanation = q.Explanation,
+                QuizId = quiz.Id, // Set the QuizId
+                Quiz = quiz // Set the required Quiz property
+            }).ToList();
+
+            // Update the Quiz entity with its questions
+            _context.Entry(quiz).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
 
@@ -148,18 +161,21 @@ namespace WiseUpDude.Data.Repositories
             if (entity == null)
                 throw new KeyNotFoundException($"Quiz with Id {model.Id} not found.");
 
-            // Update Quiz properties
             entity.Name = model.Name;
-            entity.Questions = model.Questions.Select(q => new Entities.QuizQuestion
-            {
-                Id = q.Id,
-                Question = q.Question,
-                Answer = q.Answer
-            }).ToList();
             entity.Type = model.Type;
             entity.Topic = model.Topic;
             entity.Prompt = model.Prompt;
             entity.Description = model.Description;
+
+            // Update Questions with the Quiz reference
+            entity.Questions = model.Questions.Select(q => new Entities.QuizQuestion
+            {
+                Id = q.Id,
+                Question = q.Question,
+                Answer = q.Answer,
+                QuizId = entity.Id, // Set the QuizId
+                Quiz = entity // Set the required Quiz property
+            }).ToList();
 
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();

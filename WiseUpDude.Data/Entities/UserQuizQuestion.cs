@@ -12,7 +12,7 @@ namespace WiseUpDude.Data.Entities
         public string? Question { get; set; }
 
         [Required]
-        public QuizQuestionType QuestionType { get; set; }
+        public UserQuizQuestionType QuestionType { get; set; }
 
         public string? OptionsJson { get; set; }
 
@@ -27,6 +27,13 @@ namespace WiseUpDude.Data.Entities
         public int QuizId { get; set; }
 
         [ForeignKey("QuizId")]
-        public UserQuiz Quiz { get; set; }
+        public required UserQuiz Quiz { get; set; }
     }
+
+    public enum UserQuizQuestionType
+    {
+        TrueFalse,
+        MultipleChoice
+    }
+
 }

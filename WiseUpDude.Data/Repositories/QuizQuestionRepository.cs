@@ -53,6 +53,13 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task AddAsync(Model.QuizQuestion model)
         {
+            // Fetch the associated Quiz entity to set the required Quiz property
+            var quizEntity = await _context.Quizzes.FirstOrDefaultAsync(q => q.Id == model.QuizId);
+            if (quizEntity == null)
+            {
+                throw new KeyNotFoundException($"Quiz with Id {model.QuizId} not found.");
+            }
+
             var entity = new Entities.QuizQuestion
             {
                 Question = model.Question,
@@ -61,7 +68,8 @@ namespace WiseUpDude.Data.Repositories
                 Answer = model.Answer,
                 Explanation = model.Explanation,
                 UserAnswer = model.UserAnswer,
-                QuizId = model.QuizId
+                QuizId = model.QuizId,
+                Quiz = quizEntity // Set the required Quiz property
             };
 
             _context.QuizQuestions.Add(entity);
@@ -82,6 +90,7 @@ namespace WiseUpDude.Data.Repositories
             entity.OptionsJson = model.Options != null ? System.Text.Json.JsonSerializer.Serialize(model.Options) : null; // Serialize options
             entity.Answer = model.Answer;
             entity.Explanation = model.Explanation;
+            entity.UserAnswer = model.UserAnswer; // Ensure UserAnswer is updated
             entity.QuizId = model.QuizId;
 
             _context.Entry(entity).State = EntityState.Modified; // Mark entity as modified

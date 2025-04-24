@@ -40,7 +40,8 @@ namespace WiseUpDude.Data.Repositories
                     Answer = q.Answer,
                     Explanation = q.Explanation,
                     QuestionType = (WiseUpDude.Model.QuizQuestionType)q.QuestionType,
-                    Options = string.IsNullOrEmpty(q.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson)
+                    Options = string.IsNullOrEmpty(q.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson),
+                    UserAnswer = q.UserAnswer // Include UserAnswer
                 }).ToList(),
                 Type = uq.Type,
                 Topic = uq.Topic,
@@ -76,7 +77,8 @@ namespace WiseUpDude.Data.Repositories
                     Answer = q.Answer,
                     Explanation = q.Explanation,
                     QuestionType = (WiseUpDude.Model.QuizQuestionType)q.QuestionType,
-                    Options = string.IsNullOrEmpty(q.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson)
+                    Options = string.IsNullOrEmpty(q.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson),
+                    UserAnswer = q.UserAnswer // Include UserAnswer
                 }).ToList(),
                 Type = userQuiz.Type,
                 Topic = userQuiz.Topic,
@@ -141,6 +143,7 @@ namespace WiseUpDude.Data.Repositories
                 Explanation = q.Explanation,
                 QuestionType = (UserQuizQuestionType)q.QuestionType,
                 OptionsJson = q.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(q.Options),
+                UserAnswer = q.UserAnswer, // Include UserAnswer
                 Quiz = userQuiz // Set the Quiz property
             }));
 

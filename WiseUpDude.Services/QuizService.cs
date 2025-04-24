@@ -29,12 +29,17 @@ namespace WiseUpDude.Services
                 {
                     Id = q.Id,
                     Question = q.Question,
-                    Answer = q.Answer
+                    Answer = q.Answer,
+                    Explanation = q.Explanation,
+                    QuestionType = (Model.QuizQuestionType)q.QuestionType,
+                    Options = string.IsNullOrEmpty(q.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson),
+                    Difficulty = q.Difficulty // Include question-level difficulty
                 }).ToList(),
                 Type = e.Type,
                 Topic = e.Topic,
                 Prompt = e.Prompt,
-                Description = e.Description
+                Description = e.Description,
+                Difficulty = e.Difficulty // Include quiz-level difficulty
             }).ToList();
         }
     }

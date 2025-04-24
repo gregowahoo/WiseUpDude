@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using AngleSharp.Css.Dom;
 using Microsoft.Extensions.AI;
 using WiseUpDude.Model;
 //using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -19,9 +20,9 @@ namespace WiseUpDude.Services
             _chatClient = chatClient;
         }
 
-        public async Task<QuizResponse> GenerateQuizAsync(string content)
+        public async Task<QuizResponse> GenerateQuizAsync(string content, int maxQuestions)
         {
-            var finalQuizResponse = new QuizResponse
+            var quizResponse = new QuizResponse
             {
                 Type = "Generated",
                 Topic = "AI-Generated Quiz",
@@ -39,21 +40,26 @@ namespace WiseUpDude.Services
                 {
                     var prompt = isFirstChunk
                         ? $"Generate a quiz based on the following content:\n\n{chunk}\n\n" +
-                          "The difficulty level should be: Medium (moderate understanding)." +
-                          "Use the following difficulty scale: Easy (basic knowledge), Medium (moderate understanding), Hard (advanced understanding)." +
-                          "Adjust the question complexity and vocabulary based on this scale." +
-                          "Include both multiple-choice and true/false questions." +
-                          "Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\", \"QuestionType\"." +
+                          "The difficulty level should be assigned to each question based on its complexity. Use the following scale: Easy (basic knowledge), Medium (moderate understanding), Hard (advanced understanding)." +
+                          "Include a balanced mix of multiple-choice and true/false questions. Aim for approximately 50% multiple-choice and 50% true/false questions." +
+                          "For true/false questions, the options must always be: [\"True\", \"False\"]." +
+                          "Ensure that the 'Answer' and 'Explanation' fields are logically consistent. The 'Explanation' must justify the 'Answer'." +
+                          "Generate no more than 25 questions in total." +
+                          "Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\", \"QuestionType\", \"Difficulty\"." + // Added Difficulty field
                           "The \"QuestionType\" should be either \"TrueFalse\" or \"MultipleChoice\" depending on the type of question." +
                           "Return only valid JSON in the format:" +
-                          "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"Type\": \"...\", \"Topic\": \"...\", \"Description\": \"...\" }." +
+                          "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\", \"Difficulty\": \"...\" }, ... ], \"Type\": \"...\", \"Topic\": \"...\", \"Description\": \"...\" }." +
                           "Return only the raw JSON without any code block formatting or prefixes like 'json'."
                         : $"Continue generating quiz questions based on the following content:\n\n{chunk}\n\n" +
                           "Maintain the style, format, and JSON structure from the previous questions." +
-                          "Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\", \"QuestionType\"." +
+                          "The difficulty level should be assigned to each question based on its complexity. Use the following scale: Easy (basic knowledge), Medium (moderate understanding), Hard (advanced understanding)." +
+                          "Include a balanced mix of multiple-choice and true/false questions. Aim for approximately 50% multiple-choice and 50% true/false questions." +
+                          "For true/false questions, the options must always be: [\"True\", \"False\"]." +
+                          "Ensure that the 'Answer' and 'Explanation' fields are logically consistent. The 'Explanation' must justify the 'Answer'." +
+                          "Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\", \"QuestionType\", \"Difficulty\"." + // Added Difficulty field
                           "The \"QuestionType\" should be either \"TrueFalse\" or \"MultipleChoice\" depending on the type of question." +
                           "Return only valid JSON in the format:" +
-                          "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"Type\": \"...\", \"Topic\": \"...\", \"Description\": \"...\" }." +
+                          "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\", \"Difficulty\": \"...\" }, ... ], \"Type\": \"...\", \"Topic\": \"...\", \"Description\": \"...\" }." +
                           "Return only the raw JSON without any code block formatting or prefixes like 'json'.";
 
                     isFirstChunk = false;
@@ -76,6 +82,13 @@ namespace WiseUpDude.Services
                             if (chunkQuizResponse?.Questions != null)
                             {
                                 allQuestions.AddRange(chunkQuizResponse.Questions);
+                                
+                                if (allQuestions.Count >= maxQuestions)     // Check if the total number of questions exceeds the maxQuestions limit
+                                {
+                                    quizResponse.Questions = allQuestions.Take(maxQuestions).ToList(); // Limit to maxQuestions
+                                    quizResponse.Difficulty = "Mixed";
+                                    return quizResponse;
+                                }
                             }
                         }
                     }
@@ -87,9 +100,9 @@ namespace WiseUpDude.Services
                 }
 
                 // Add questions to the final response
-                finalQuizResponse.Questions = allQuestions;
+                quizResponse.Questions = allQuestions;
 
-                return finalQuizResponse;
+                return quizResponse;
             }
             catch (Exception ex)
             {

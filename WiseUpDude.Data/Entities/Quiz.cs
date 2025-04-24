@@ -13,25 +13,30 @@ namespace WiseUpDude.Data.Entities
         [StringLength(100)]
         public string Name { get; set; }
 
-        public List<QuizQuestion> Questions { get; set; }
+        public List<QuizQuestion> Questions { get; set; } = new();
 
         [Required]
         public string UserId { get; set; }
 
         [ForeignKey("UserId")]
-        public ApplicationUser User { get; set; } // Navigation property for the user
+        public ApplicationUser User { get; set; }
 
         [Required]
         [MaxLength(50)]
         public string Type { get; set; } // "Topic" or "Prompt"
 
         [MaxLength(100)]
-        public string? Topic { get; set; } // Nullable for prompts
+        public string? Topic { get; set; }
 
-        public string? Prompt { get; set; } // Nullable for topics
+        public string? Prompt { get; set; }
 
         [MaxLength(500)]
-        public string? Description { get; set; } // Optional
+        public string? Description { get; set; }
+
+        // Add Difficulty property here
+        [Required]
+        [MaxLength(50)]
+        public string Difficulty { get; set; } = string.Empty;
     }
 }
 

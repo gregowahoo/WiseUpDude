@@ -25,6 +25,8 @@ namespace WiseUpDude.Model
         public string? Prompt { get; set; } // Nullable for topics
 
         public string? Description { get; set; } // Optional
+
+        public required string Difficulty { get; set; }
     }
 
 }

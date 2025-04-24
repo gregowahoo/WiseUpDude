@@ -19,6 +19,7 @@ namespace WiseUpDude.Model
             get => Options == null ? string.Empty : JsonSerializer.Serialize(Options);
             set => Options = string.IsNullOrEmpty(value) ? new List<string>() : JsonSerializer.Deserialize<List<string>>(value);
         }
+        public string Difficulty { get; set; } = string.Empty;
     }
 
     public enum QuizQuestionType

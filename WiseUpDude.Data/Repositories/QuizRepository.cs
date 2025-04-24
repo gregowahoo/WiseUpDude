@@ -36,12 +36,14 @@ namespace WiseUpDude.Data.Repositories
                 {
                     Id = q.Id,
                     Question = q.Question,
-                    Answer = q.Answer
+                    Answer = q.Answer,
+                    Difficulty = q.Difficulty // Include question-level difficulty
                 }).ToList(),
                 Type = e.Type,
                 Topic = e.Topic,
                 Prompt = e.Prompt,
-                Description = e.Description
+                Description = e.Description,
+                Difficulty = e.Difficulty // Include quiz-level difficulty
             });
         }
 
@@ -65,12 +67,14 @@ namespace WiseUpDude.Data.Repositories
                 {
                     Id = q.Id,
                     Question = q.Question,
-                    Answer = q.Answer
+                    Answer = q.Answer,
+                    Difficulty = q.Difficulty // Include question-level difficulty
                 }).ToList(),
                 Type = entity.Type,
                 Topic = entity.Topic,
                 Prompt = entity.Prompt,
-                Description = entity.Description
+                Description = entity.Description,
+                Difficulty = entity.Difficulty // Include quiz-level difficulty
             };
         }
 
@@ -84,7 +88,8 @@ namespace WiseUpDude.Data.Repositories
                 Type = quiz.Type,
                 Topic = quiz.Topic,
                 Prompt = quiz.Prompt,
-                Description = quiz.Description
+                Description = quiz.Description,
+                Difficulty = quiz.Difficulty // Save quiz-level difficulty
             };
 
             // Add the Quiz to the database first to generate its ID
@@ -101,7 +106,8 @@ namespace WiseUpDude.Data.Repositories
                 Explanation = q.Explanation,
                 UserAnswer = q.UserAnswer,
                 QuizId = entity.Id, // Set the QuizId
-                Quiz = entity // Set the required Quiz property
+                Quiz = entity, // Set the required Quiz property
+                Difficulty = q.Difficulty // Save question-level difficulty
             }).ToList();
 
             // Update the Quiz entity with its questions
@@ -130,7 +136,8 @@ namespace WiseUpDude.Data.Repositories
                 Type = quizResponse.Type,
                 Topic = quizResponse.Topic,
                 Prompt = quizResponse.Prompt,
-                Description = quizResponse.Description
+                Description = quizResponse.Description,
+                Difficulty = quizResponse.Difficulty // Save quiz-level difficulty
             };
 
             // Add the Quiz to the database first to generate its ID
@@ -146,7 +153,8 @@ namespace WiseUpDude.Data.Repositories
                 Answer = q.Answer,
                 Explanation = q.Explanation,
                 QuizId = quiz.Id, // Set the QuizId
-                Quiz = quiz // Set the required Quiz property
+                Quiz = quiz, // Set the required Quiz property
+                Difficulty = q.Difficulty // Save question-level difficulty
             }).ToList();
 
             // Update the Quiz entity with its questions
@@ -168,6 +176,7 @@ namespace WiseUpDude.Data.Repositories
             entity.Topic = model.Topic;
             entity.Prompt = model.Prompt;
             entity.Description = model.Description;
+            entity.Difficulty = model.Difficulty; // Update quiz-level difficulty
 
             // Update Questions with the Quiz reference
             entity.Questions = model.Questions.Select(q => new Entities.QuizQuestion
@@ -176,7 +185,8 @@ namespace WiseUpDude.Data.Repositories
                 Question = q.Question,
                 Answer = q.Answer,
                 QuizId = entity.Id, // Set the QuizId
-                Quiz = entity // Set the required Quiz property
+                Quiz = entity, // Set the required Quiz property
+                Difficulty = q.Difficulty // Update question-level difficulty
             }).ToList();
 
             _context.Entry(entity).State = EntityState.Modified;

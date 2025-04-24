@@ -140,6 +140,7 @@
         if (quiz != null && quiz.Questions?.Any() == true)
         {
             QuizState.CurrentQuiz = quiz;
+            QuizState.CurrentQuiz.Type = "Topic";
             QuizState.CurrentQuiz.Topic = topicToUse;
             QuizState.CurrentQuiz.Description = topicDescription; // Set the description
 

@@ -32,5 +32,9 @@ namespace WiseUpDude.Data.Entities
 
         [MaxLength(500)]
         public string? Description { get; set; }
+
+        [Required]
+        [MaxLength(50)]
+        public string Difficulty { get; set; } = string.Empty;
     }
 }

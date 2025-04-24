@@ -111,7 +111,7 @@
         }
 
         // 2) Pass the validated text content to QuizBuilderService.
-        quizResponse = await QuizBuilderService.GenerateQuizAsync(fetchResult.Content);
+        quizResponse = await QuizBuilderService.GenerateQuizAsync(fetchResult.Content, 25);
 
         // 3) Navigate or show an error based on the quiz response.
         if (quizResponse.Questions != null && quizResponse.Questions.Count > 0)

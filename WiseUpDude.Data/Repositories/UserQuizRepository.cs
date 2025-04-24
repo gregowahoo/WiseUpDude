@@ -41,12 +41,14 @@ namespace WiseUpDude.Data.Repositories
                     Explanation = q.Explanation,
                     QuestionType = (WiseUpDude.Model.QuizQuestionType)q.QuestionType,
                     Options = string.IsNullOrEmpty(q.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson),
-                    UserAnswer = q.UserAnswer // Include UserAnswer
+                    UserAnswer = q.UserAnswer,
+                    Difficulty = q.Difficulty // Include question-level difficulty
                 }).ToList(),
                 Type = uq.Type,
                 Topic = uq.Topic,
                 Prompt = uq.Prompt,
-                Description = uq.Description
+                Description = uq.Description,
+                Difficulty = uq.Difficulty // Include quiz-level difficulty
             });
         }
 
@@ -78,12 +80,14 @@ namespace WiseUpDude.Data.Repositories
                     Explanation = q.Explanation,
                     QuestionType = (WiseUpDude.Model.QuizQuestionType)q.QuestionType,
                     Options = string.IsNullOrEmpty(q.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson),
-                    UserAnswer = q.UserAnswer // Include UserAnswer
+                    UserAnswer = q.UserAnswer,
+                    Difficulty = q.Difficulty // Include question-level difficulty
                 }).ToList(),
                 Type = userQuiz.Type,
                 Topic = userQuiz.Topic,
                 Prompt = userQuiz.Prompt,
-                Description = userQuiz.Description
+                Description = userQuiz.Description,
+                Difficulty = userQuiz.Difficulty // Include quiz-level difficulty
             };
         }
 
@@ -97,6 +101,7 @@ namespace WiseUpDude.Data.Repositories
                 Topic = quiz.Topic,
                 Prompt = quiz.Prompt,
                 Description = quiz.Description,
+                Difficulty = quiz.Difficulty, // Save quiz-level difficulty
                 Questions = quiz.Questions.Select(q => new UserQuizQuestion
                 {
                     Question = q.Question,
@@ -105,6 +110,7 @@ namespace WiseUpDude.Data.Repositories
                     QuestionType = (UserQuizQuestionType)q.QuestionType,
                     OptionsJson = q.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(q.Options),
                     UserAnswer = q.UserAnswer,
+                    Difficulty = q.Difficulty, // Save question-level difficulty
                     Quiz = null // Will be set before saving
                 }).ToList()
             };
@@ -133,6 +139,7 @@ namespace WiseUpDude.Data.Repositories
             userQuiz.Topic = quiz.Topic;
             userQuiz.Prompt = quiz.Prompt;
             userQuiz.Description = quiz.Description;
+            userQuiz.Difficulty = quiz.Difficulty; // Update quiz-level difficulty
 
             // Update questions
             userQuiz.Questions.Clear();
@@ -143,7 +150,8 @@ namespace WiseUpDude.Data.Repositories
                 Explanation = q.Explanation,
                 QuestionType = (UserQuizQuestionType)q.QuestionType,
                 OptionsJson = q.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(q.Options),
-                UserAnswer = q.UserAnswer, // Include UserAnswer
+                UserAnswer = q.UserAnswer,
+                Difficulty = q.Difficulty, // Update question-level difficulty
                 Quiz = userQuiz // Set the Quiz property
             }));
 

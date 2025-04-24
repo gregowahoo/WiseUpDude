@@ -8,27 +8,24 @@ namespace WiseUpDude.Data.Entities
     {
         [Key]
         public int Id { get; set; }
-
         [Required]
         public string? Question { get; set; }
-
         [Required]
         public QuizQuestionType QuestionType { get; set; }
-
-        public string? OptionsJson { get; set; } // Store options as JSON in the database
-
+        public string? OptionsJson { get; set; }
         [Required]
-        public string? Answer { get; set; } // The correct answer
-
-        public string? Explanation { get; set; } // Explanation for the correct answer
-
-        public string? UserAnswer { get; set; } // To store the answer provided by the user
-
+        public string? Answer { get; set; }
+        public string? Explanation { get; set; }
+        public string? UserAnswer { get; set; }
         [Required]
-        public int QuizId { get; set; } // Foreign key to Quiz_Orig
-
+        public int QuizId { get; set; }
         [ForeignKey("QuizId")]
-        public required Quiz Quiz { get; set; } // Navigation property to Quiz_Orig
+        public required Quiz Quiz { get; set; }
+
+        // New property for difficulty
+        [Required]
+        [MaxLength(50)]
+        public string Difficulty { get; set; } = string.Empty;
     }
 
     public enum QuizQuestionType

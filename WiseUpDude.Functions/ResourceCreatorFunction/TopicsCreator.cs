@@ -17,23 +17,27 @@ namespace ResourceCreatorFunction
         private readonly TopicRepository _topicRepository;
         private readonly TopicCreationRunRepository _topicCreationRunRepository;
         private readonly string _llmName;
-        private readonly QuizQuestionRepository _quizQuestionRepository;
+        //private readonly QuizQuestionRepository _quizQuestionRepository;
 
-        public TopicsCreator(ILoggerFactory loggerFactory, QuizTopicService quizTopicService, TopicRepository topicRepository, TopicCreationRunRepository topicCreationRunRepository, string llmName, QuizQuestionRepository quizQuestionRepository)
+        public TopicsCreator(
+            ILogger<TopicsCreator> logger,
+            QuizTopicService quizTopicService,
+            TopicRepository topicRepository,
+            TopicCreationRunRepository topicCreationRunRepository,
+            string llmName)
         {
-            _logger = loggerFactory.CreateLogger<TopicsCreator>();
+            _logger = logger;
             _quizTopicService = quizTopicService;
             _topicRepository = topicRepository;
             _topicCreationRunRepository = topicCreationRunRepository;
             _llmName = llmName;
-            _quizQuestionRepository = quizQuestionRepository;
         }
 
         [Function("TopicsCreator")]
         //[TimerTrigger("0 */1 * * * *")]   // Runs every minute
         //[TimerTrigger("0 0 * * * *")]     // Runs at the start of every hour
         //[TimerTrigger("0 0 5 * * *")]     //For production, when you want the function to run every morning at 5 AM, you can use the following cron expression:
-        public async Task Run([TimerTrigger("0 0 * * * *")] TimerInfo myTimer)
+        public async Task Run([TimerTrigger("%TopicGeneratorSchedule%")] TimerInfo myTimer)
         //public async Task Run([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer)
         {
             _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");

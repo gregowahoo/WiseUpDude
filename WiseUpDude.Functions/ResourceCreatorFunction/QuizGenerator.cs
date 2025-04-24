@@ -17,12 +17,12 @@ namespace ResourceCreatorFunction
         private readonly QuizQuestionsFromTopic _quizQuestionsFromTopic;
 
         public QuizGenerator(
-            ILoggerFactory loggerFactory,
+            ILogger<QuizGenerator> logger,
             TopicRepository topicRepository,
             QuizRepository quizRepository,
             QuizQuestionsFromTopic quizQuestionsFromTopic)
         {
-            _logger = loggerFactory.CreateLogger<QuizGenerator>();
+            _logger = logger;
             _topicRepository = topicRepository;
             _quizRepository = quizRepository;
             _quizQuestionsFromTopic = quizQuestionsFromTopic;
@@ -49,16 +49,23 @@ namespace ResourceCreatorFunction
                     var criteria = new QuizRequestCriteria
                     {
                         Topic = topic.Name,
-                        Difficulty = "Medium"
+                        Difficulty = "Medium" // Set quiz-level difficulty
                     };
+
                     var quizResponse = await _quizQuestionsFromTopic.GenerateQuizAsync(criteria);
 
                     if (quizResponse != null)
                     {
-                        // Set the topic directly in QuizResponse
+                        quizResponse.Type = "Topic";
                         quizResponse.Topic = topic.Name;
+                        quizResponse.Difficulty = criteria.Difficulty; // Set quiz-level difficulty
+                        quizResponse.Description = topic.Description;
 
-                        // Persist the quiz and questions
+                        foreach (var question in quizResponse.Questions)
+                        {
+                            question.Difficulty = criteria.Difficulty; // Set question-level difficulty
+                        }
+
                         await _quizRepository.AddQuizAsync(quizResponse);
                         _logger.LogInformation($"Quiz successfully created for topic: {topic.Name}");
                     }

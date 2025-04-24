@@ -28,6 +28,10 @@ namespace WiseUpDude.Data.Entities
 
         [ForeignKey("QuizId")]
         public required UserQuiz Quiz { get; set; }
+
+        [Required]
+        [MaxLength(50)]
+        public string Difficulty { get; set; } = string.Empty;
     }
 
     public enum UserQuizQuestionType

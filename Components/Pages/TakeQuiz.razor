@@ -37,11 +37,16 @@
 }
 
 <!-- Quiz Card Layout -->
+<!-- Quiz Card Layout -->
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <div>
             <h3 class="mb-0">🧠 Take Quiz</h3>
             <p class="mb-0">Select an answer for each question to see if you're correct.</p>
+            @if (!string.IsNullOrWhiteSpace(QuizState.CurrentQuiz?.Difficulty))
+            {
+                <p class="text-muted mb-0">Quiz Difficulty: <strong>@QuizState.CurrentQuiz.Difficulty</strong></p>
+            }
         </div>
         <button class="btn btn-success" @onclick="SaveQuizAsync">Save Quiz</button>
     </div>
@@ -95,11 +100,14 @@
             @for (int i = 0; i < QuizState.CurrentQuiz.Questions.Count; i++)
             {
                 var question = QuizState.CurrentQuiz.Questions[i];
-                <QuestionCard Question="question"
-                              QuestionIndex="i"
-                              AutoSubmit="autoSubmit"
-                              MuteSound="muteSound"
-                              OnAnswerSubmitted="HandleAnswerSubmitted" />
+                <div class="mb-4">
+                    <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p> <!-- Display question-level difficulty -->
+                    <QuestionCard Question="question"
+                                  QuestionIndex="i"
+                                  AutoSubmit="autoSubmit"
+                                  MuteSound="muteSound"
+                                  OnAnswerSubmitted="HandleAnswerSubmitted" />
+                </div>
             }
 
             @if (!string.IsNullOrWhiteSpace(saveMessage))
@@ -109,6 +117,7 @@
         }
     </div>
 </div>
+
 
 @code {
     private bool autoSubmit = true;
@@ -174,26 +183,29 @@
         if (user is not null && QuizState.CurrentQuiz is not null)
         {
             var newQuiz = new Quiz
-                {
-                    Name = $"Quiz_{DateTime.Now:yyyyMMdd_HHmmss}",
-                    User = user,
-                    UserName = user.UserName, // Set the required UserName property
-                    Questions = QuizState.CurrentQuiz.Questions
-                        .Select(q => new QuizQuestion
-                        {
-                            Question = q.Question,
-                            QuestionType = q.QuestionType,
-                            Options = q.Options,
-                            Answer = q.Answer,
-                            Explanation = q.Explanation,
-                            UserAnswer = q.UserAnswer
-                        }).ToList(),
+            {
+                Name = $"Quiz_{DateTime.Now:yyyyMMdd_HHmmss}",
+                User = user,
+                UserName = user.UserName, // Set the required UserName property
+                Questions = QuizState.CurrentQuiz.Questions
+                    .Select(q => new QuizQuestion
+                    {
+                        Question = q.Question,
+                        QuestionType = q.QuestionType,
+                        Options = q.Options,
+                        Answer = q.Answer,
+                        Explanation = q.Explanation,
+                        UserAnswer = q.UserAnswer,
+                        Difficulty = q.Difficulty // Save question-level difficulty
+                    }).ToList(),
 
                 // Directly set properties that were formerly in QuizSource
-                    Type = QuizState.CurrentQuiz.Type ?? "Topic", // Assuming the quiz is based on a topic
-                    Topic = QuizState.CurrentQuiz.Topic ?? "Unknown Topic",
-                    Description = QuizState.CurrentQuiz.Description ?? $"Quiz generated on {DateTime.Now:yyyy-MM-dd HH:mm:ss}"
-                };
+                Type = QuizState.CurrentQuiz.Type ?? "Unknown", 
+                Topic = QuizState.CurrentQuiz.Topic ?? "Unknown",
+                Prompt = QuizState.CurrentQuiz.Prompt ?? "Unknown",
+                Description = QuizState.CurrentQuiz.Description ?? $"Quiz generated on {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
+                Difficulty = QuizState.CurrentQuiz.Difficulty // Save quiz-level difficulty
+            };
 
             await QuizRepository.AddAsync(newQuiz);
             saveMessage = "Quiz saved successfully!";

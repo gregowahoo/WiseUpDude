@@ -115,9 +115,8 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task<IEnumerable<Model.Topic>> GetTopicsWithoutQuestionsAsync()
         {
-            // Updated to use TopicId instead of Topic.Name
             var topicsWithoutQuestions = await _context.Topics
-                .Where(topic => !_context.QuizQuestions.Any(q => q.Quiz.TopicId == topic.Id))
+                .Where(topic => !topic.Quizzes.Any()) // Check if the topic has no associated quizzes
                 .ToListAsync();
 
             return topicsWithoutQuestions.Select(topic => new Model.Topic

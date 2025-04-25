@@ -21,8 +21,8 @@ var configuration = builder.Configuration;
 #region MyRegion
 Console.WriteLine($"AI:Key: {configuration["AI:Key"]}");
 
-var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
-logger.LogInformation($"AI:Key: {configuration["AI:Key"]}");
+//var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
+//logger.LogInformation($"AI:Key: {configuration["AI:Key"]}");
 #endregion
 
 
@@ -55,7 +55,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 Console.WriteLine($"DefaultConnection: {builder.Configuration.GetConnectionString("DefaultConnection")}");
-logger.LogInformation($"DefaultConnection: {builder.Configuration.GetConnectionString("DefaultConnection")}");
 
 // Register Services
 builder.Services.AddScoped<QuizTopicService>(); // Register QuizTopicService

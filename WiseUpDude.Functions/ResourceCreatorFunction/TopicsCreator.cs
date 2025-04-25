@@ -26,7 +26,7 @@ namespace ResourceCreatorFunction
             TopicCreationRunRepository topicCreationRunRepository,
             string llmName)
         {
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _quizTopicService = quizTopicService;
             _topicRepository = topicRepository;
             _topicCreationRunRepository = topicCreationRunRepository;

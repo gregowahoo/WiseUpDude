@@ -25,8 +25,8 @@ namespace WiseUpDude.Data.Entities
         [MaxLength(50)]
         public string Type { get; set; } // "Topic" or "Prompt"
 
-        [MaxLength(100)]
-        public string? Topic { get; set; }
+        //[MaxLength(100)]
+        //public string? Topic { get; set; }
 
         public string? Prompt { get; set; }
 
@@ -37,6 +37,12 @@ namespace WiseUpDude.Data.Entities
         [Required]
         [MaxLength(50)]
         public string Difficulty { get; set; } = string.Empty;
+
+        [ForeignKey("Topic")]
+        public int TopicId { get; set; } // Foreign key to Topic
+
+        public Topic Topic { get; set; } = null!; // Navigation property
+
     }
 }
 

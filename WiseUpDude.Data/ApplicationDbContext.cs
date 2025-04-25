@@ -26,6 +26,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .Property(t => t.CreationDate)
             .HasDefaultValueSql("GETUTCDATE()");
 
+        modelBuilder.Entity<Quiz>()
+            .HasOne(q => q.Topic)
+            .WithMany(t => t.Quizzes) // Add a collection property in `Topic` if needed
+            .HasForeignKey(q => q.TopicId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Add any specific configurations for UserQuiz and UserQuizQuestion if needed
     }
 }

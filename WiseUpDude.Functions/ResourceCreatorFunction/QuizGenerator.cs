@@ -22,7 +22,7 @@ namespace ResourceCreatorFunction
             QuizRepository quizRepository,
             QuizQuestionsFromTopic quizQuestionsFromTopic)
         {
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _topicRepository = topicRepository;
             _quizRepository = quizRepository;
             _quizQuestionsFromTopic = quizQuestionsFromTopic;

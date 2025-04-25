@@ -23,5 +23,7 @@ namespace WiseUpDude.Data.Entities
 
         // Navigation property for the related TopicCreationRun
         public required TopicCreationRun TopicCreationRun { get; set; }
+        public ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
+
     }
 }

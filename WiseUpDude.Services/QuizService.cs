@@ -36,7 +36,7 @@ namespace WiseUpDude.Services
                     Difficulty = q.Difficulty // Include question-level difficulty
                 }).ToList(),
                 Type = e.Type,
-                Topic = e.Topic,
+                Topic = e.Topic?.Name, // Extract the Topic's Name
                 Prompt = e.Prompt,
                 Description = e.Description,
                 Difficulty = e.Difficulty // Include quiz-level difficulty

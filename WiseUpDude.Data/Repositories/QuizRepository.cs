@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-// Ensure this repository is used only for function-generated quizzes.
-// No changes needed here unless specific logic is required to differentiate usage.
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +22,7 @@ namespace WiseUpDude.Data.Repositories
             var entities = await _context.Quizzes
                 .Include(q => q.Questions)
                 .Include(q => q.User) // Include the User to access UserName
+                .Include(q => q.Topic) // Include the Topic
                 .ToListAsync();
 
             return entities.Select(e => new Model.Quiz
@@ -40,8 +39,7 @@ namespace WiseUpDude.Data.Repositories
                     Difficulty = q.Difficulty // Include question-level difficulty
                 }).ToList(),
                 Type = e.Type,
-                Topic = e.Topic,
-                Prompt = e.Prompt,
+                Topic = e.Topic?.Name, // Use the Topic's Name
                 Description = e.Description,
                 Difficulty = e.Difficulty // Include quiz-level difficulty
             });
@@ -52,6 +50,7 @@ namespace WiseUpDude.Data.Repositories
             var entity = await _context.Quizzes
                 .Include(q => q.Questions)
                 .Include(q => q.User) // Include the User to access UserName
+                .Include(q => q.Topic) // Include the Topic
                 .FirstOrDefaultAsync(q => q.Id == id);
 
             if (entity == null)
@@ -71,8 +70,7 @@ namespace WiseUpDude.Data.Repositories
                     Difficulty = q.Difficulty // Include question-level difficulty
                 }).ToList(),
                 Type = entity.Type,
-                Topic = entity.Topic,
-                Prompt = entity.Prompt,
+                Topic = entity.Topic?.Name, // Use the Topic's Name
                 Description = entity.Description,
                 Difficulty = entity.Difficulty // Include quiz-level difficulty
             };
@@ -80,14 +78,18 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task AddAsync(Model.Quiz quiz)
         {
+            // Find the Topic by its Name
+            var topic = await _context.Topics.FirstOrDefaultAsync(t => t.Name == quiz.Topic);
+            if (topic == null)
+                throw new KeyNotFoundException($"Topic with Name '{quiz.Topic}' not found.");
+
             // Create a new Quiz entity
             var entity = new Entities.Quiz
             {
                 Name = quiz.Name,
                 UserId = quiz.User.Id,
                 Type = quiz.Type,
-                Topic = quiz.Topic,
-                Prompt = quiz.Prompt,
+                TopicId = topic.Id, // Set the TopicId
                 Description = quiz.Description,
                 Difficulty = quiz.Difficulty // Save quiz-level difficulty
             };
@@ -129,13 +131,17 @@ namespace WiseUpDude.Data.Repositories
                 throw new InvalidOperationException($"User with UserName '{userName}' not found.");
             }
 
+            // Find the Topic by its Name
+            var topic = await _context.Topics.FirstOrDefaultAsync(t => t.Name == quizResponse.Topic);
+            if (topic == null)
+                throw new KeyNotFoundException($"Topic with Name '{quizResponse.Topic}' not found.");
+
             var quiz = new Entities.Quiz
             {
                 Name = quizName,
                 UserId = user.Id,
                 Type = quizResponse.Type,
-                Topic = quizResponse.Topic,
-                Prompt = quizResponse.Prompt,
+                TopicId = topic.Id, // Set the TopicId
                 Description = quizResponse.Description,
                 Difficulty = quizResponse.Difficulty // Save quiz-level difficulty
             };
@@ -171,10 +177,14 @@ namespace WiseUpDude.Data.Repositories
             if (entity == null)
                 throw new KeyNotFoundException($"Quiz with Id {model.Id} not found.");
 
+            // Find the Topic by its Name
+            var topic = await _context.Topics.FirstOrDefaultAsync(t => t.Name == model.Topic);
+            if (topic == null)
+                throw new KeyNotFoundException($"Topic with Name '{model.Topic}' not found.");
+
             entity.Name = model.Name;
             entity.Type = model.Type;
-            entity.Topic = model.Topic;
-            entity.Prompt = model.Prompt;
+            entity.TopicId = topic.Id; // Update the TopicId
             entity.Description = model.Description;
             entity.Difficulty = model.Difficulty; // Update quiz-level difficulty
 

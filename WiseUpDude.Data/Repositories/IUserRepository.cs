@@ -7,6 +7,7 @@ namespace WiseUpDude.Data.Repositories
     {
         Task<IEnumerable<T>> GetAllAsync();
         Task<T> GetByIdAsync(int id);
+        Task<IEnumerable<Model.Topic>> GetTopicsAsync(int count);
         Task AddAsync(T entity);
         Task UpdateAsync(T entity);
         Task DeleteAsync(int id);

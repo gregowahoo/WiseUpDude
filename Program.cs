@@ -75,6 +75,7 @@ builder.Services.AddScoped<IRepository<WiseUpDude.Model.Quiz>, QuizRepository>()
 builder.Services.AddScoped<IRepository<WiseUpDude.Model.QuizQuestion>, QuizQuestionRepository>();
 builder.Services.AddScoped<IUserRepository<WiseUpDude.Model.Quiz>, UserQuizRepository>();
 builder.Services.AddScoped<IUserRepository<WiseUpDude.Model.QuizQuestion>, UserQuizQuestionRepository>();
+builder.Services.AddScoped<IUserRepository<WiseUpDude.Model.Topic>, TopicRepository>();
 
 builder.Services.AddScoped<QuizTopicService>();
 builder.Services.AddScoped<QuizQuestionsFromTopic>();

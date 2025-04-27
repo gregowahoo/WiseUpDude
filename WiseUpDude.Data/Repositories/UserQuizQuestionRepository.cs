@@ -50,6 +50,10 @@ namespace WiseUpDude.Data.Repositories
                 QuizId = userQuizQuestion.QuizId
             };
         }
+        public Task<IEnumerable<Model.Topic>> GetTopicsAsync(int count)
+        {
+            throw new NotImplementedException();
+        }
 
         public async Task AddAsync(WiseUpDude.Model.QuizQuestion quizQuestion)
         {

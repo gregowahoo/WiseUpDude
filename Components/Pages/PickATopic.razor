@@ -1,15 +1,15 @@
-﻿@* QuizMe.razor *@
-@page "/pickatopic"
+﻿@page "/pickatopic"
 
 @using Microsoft.AspNetCore.Authorization
 @using WiseUpDude.Services
 @using WiseUpDude.Services.Interfaces
+@using WiseUpDude.Data.Repositories
+@using WiseUpDude.Model
 
 @inject QuizStateService QuizState
 @inject NavigationManager NavigationManager
-@inject QuizTopicService QuizTopicService
 @inject IJSRuntime JSRuntime
-
+@inject IUserRepository<Topic> TopicRepository
 @inject ITopicsCacheService<Topic> TopicsCacheService
 @inject QuizQuestionsFromTopic QuizQuestionsFromTopic
 
@@ -95,14 +95,21 @@
         if (SuggestedTopics == null || !SuggestedTopics.Any())
         {
             Console.WriteLine("👀 OnInitializedAsync was called.");
-            var result = await QuizTopicService.GetRelevantQuizTopicsAsync();
-
-            SuggestedTopics = result.Topics;
-            ErrorMessage = result.ErrorMessage;
-
-            if (SuggestedTopics != null && SuggestedTopics.Any())
+            try
             {
-                TopicsCacheService.SetItems(SuggestedTopics);
+                // Fetch 25 topics from the database
+                var topics = await TopicRepository.GetTopicsAsync(25);
+                SuggestedTopics = topics.ToList();
+
+                if (SuggestedTopics.Any())
+                {
+                    TopicsCacheService.SetItems(SuggestedTopics);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching topics: {ex.Message}");
+                ErrorMessage = "Failed to load topics. Please try again later.";
             }
         }
     }

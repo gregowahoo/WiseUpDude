@@ -1,4 +1,4 @@
-﻿@page "/urlquiz"
+﻿@page "/urltoquiz"
 
 @layout WiseUpDude.Components.Layout.MinimalLayout
 
@@ -19,21 +19,22 @@
 
 @if (showOverlay)
 {
-	<div class="overlay">
-		<div class="spinner"></div>
-		<p class="overlay-text">Please wait...</p>
-	</div>
-}    
+    <div class="overlay">
+        @* <i class="fas fa-brain spinner"></i> *@
+        <div class="spinner"></div>
+        <p class="overlay-text">Please wait...</p>
+    </div>
+}
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
-	<p class="text-danger">@errorMessage</p>
-	<p class="text-danger">That site is not valid for generating a quiz, sorry.</p>
+    <p class="text-danger">@errorMessage</p>
+    <p class="text-danger">That site is not valid for generating a quiz, sorry.</p>
 }
 
 <div class="container">
     <h1 class="title">Quiz Generator</h1>
-    <div class="card">        
+    <div class="card">
         <UrlSelector UrlList="@myUrls"
                      SelectedUrl="@url"
                      SelectedUrlChanged="@OnSelectedUrlChanged"
@@ -48,20 +49,30 @@
     </div>
 </div>
 
-@code {    
+@code {
     private List<string> myUrls = new List<string>
     {
         "https://www.webmd.com/vitamins/ai/ingredientmono-954/vitamin-e",
         "https://www.webmd.com/menopause/understanding-menopause-treatment#1-2",
         "https://www.verywellhealth.com/mounjaro-for-weight-loss-8689784",
         "https://www.history.com/articles/department-education-andrew-johnson-reconstruction",
-        "https://www.mayoclinic.org/diseases-conditions/parkinsons-disease/symptoms-causes/syc-20376055",        
-        "https://www.healthline.com/health/neck-pain"
+        "https://www.mayoclinic.org/diseases-conditions/parkinsons-disease/symptoms-causes/syc-20376055",
+        "https://www.healthline.com/health/neck-pain",
+        "https://en.wikipedia.org/wiki/Photosynthesis",
+        "https://en.wikipedia.org/wiki/World_War_II",
+        "https://en.wikipedia.org/wiki/Periodic_table",
+        "https://en.wikipedia.org/wiki/Human_nervous_system",
+        "https://www.history.com/topics/ancient-egypt/ancient-egypt",
+        "https://solarsystem.nasa.gov/solar-system/our-solar-system/overview/",
+        "https://www.khanacademy.org/humanities/us-history",
+        "https://www.sparknotes.com/lit/gatsby/",
+        "https://plato.stanford.edu/entries/ethics-virtue/",
+        "https://auto.howstuffworks.com/under-the-hood/auto-parts/engine.htm"
     };
-    
+
     private string url { get; set; } = string.Empty;
     private bool useTestData { get; set; } = false;
-    
+
     private void OnSelectedUrlChanged(string newValue)
     {
         url = newValue;
@@ -106,17 +117,26 @@
         if (!fetchResult.IsSuccess)
         {
             errorMessage = fetchResult.ErrorMessage;
-            showOverlay = false; 
+            showOverlay = false;
+            StateHasChanged();          //Do I really need this?
             return;
         }
 
         // 2) Pass the validated text content to QuizBuilderService.
-        quizResponse = await QuizBuilderService.GenerateQuizAsync(fetchResult.Content, 25);
+        quizResponse = await QuizBuilderService.GenerateQuizAsync(fetchResult.Content, 25);     //TODO: Make this n appsettings variable
 
         // 3) Navigate or show an error based on the quiz response.
         if (quizResponse.Questions != null && quizResponse.Questions.Count > 0)
         {
-            QuizState.CurrentQuiz = quizResponse;
+            QuizState.CurrentQuiz = new QuizResponse();
+
+            QuizState.CurrentQuiz.Questions = quizResponse.Questions;
+            QuizState.CurrentQuiz.Difficulty = quizResponse.Difficulty;
+            QuizState.CurrentQuiz.Type = "Prompt";
+            QuizState.CurrentQuiz.Topic = string.Empty;
+            QuizState.CurrentQuiz.Prompt = url;
+            QuizState.CurrentQuiz.Description = $"Quiz generated from {url}";
+
             NavManager.NavigateTo("/takequiz");
         }
         else

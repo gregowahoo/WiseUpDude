@@ -43,6 +43,20 @@ namespace WiseUpDude.Data.Repositories
             };
         }
 
+        public async Task<IEnumerable<Model.Topic>> GetTopicsAsync(int count)
+        {
+            var topics = await _context.Topics
+                .Take(count) // Limit the number of topics returned
+                .ToListAsync();
+
+            return topics.Select(topic => new Model.Topic
+            {
+                Id = topic.Id,
+                Name = topic.Name,
+                Description = topic.Description
+            });
+        }
+
         public async Task AddAsync(Model.Topic topic)
         {
             var entity = new Entities.Topic
@@ -126,5 +140,6 @@ namespace WiseUpDude.Data.Repositories
                 Description = topic.Description
             });
         }
+
     }
 }

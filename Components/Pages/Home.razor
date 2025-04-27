@@ -3,146 +3,109 @@
 @layout WiseUpDude.Components.Layout.MinimalLayout
 
 @using WiseUpDude.Services
-@using WiseUpDude.Components.Controls
-
-@inject WiseUpDude.Services.ContentFetchingService ContentFetchingService
-@inject WiseUpDude.Services.QuizBuilderService QuizBuilderService
+@using WiseUpDude.Model
 
 @inject QuizStateService QuizState
 @inject NavigationManager NavManager
 
 @rendermode InteractiveServer
 
-@using Microsoft.AspNetCore.Authorization
+<h1 class="text-center mt-4">Welcome to Your Dashboard</h1>
 
-@attribute [Authorize]
-
-@if (showOverlay)
-{
-    <div class="overlay">
-        <i class="fas fa-brain spinner"></i>
-        <p class="overlay-text">Please wait...</p>
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(errorMessage))
-{
-    <p class="text-danger">@errorMessage</p>
-    <p class="text-danger">That site is not valid for generating a quiz, sorry.</p>
-}
-
-<div class="container">
-    <h1 class="title">Quiz Generator</h1>
-    <div class="card">
-        <UrlSelector UrlList="@myUrls"
-        SelectedUrl="@url"
-        SelectedUrlChanged="@OnSelectedUrlChanged"
-        OnGenerateQuiz="@GenerateQuiz" />
-        <button class="btn btn-primary" @onclick="GenerateQuiz">Generate Quiz</button>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="useTestData" @bind="useTestData">
-            <label class="form-check-label" for="useTestData">
-                Use Test Data
-            </label>
+<div class="container mt-5">
+    <div class="row">
+        <!-- Summary Card -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center p-4">
+                <h5>Total Quizzes Taken</h5>
+                <p class="display-4">@TotalQuizzesTaken</p>
+            </div>
         </div>
+
+        <!-- Average Score Card -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center p-4">
+                <h5>Average Score</h5>
+                <p class="display-4">@AverageScore%</p>
+            </div>
+        </div>
+
+        <!-- Best Quiz Card -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center p-4">
+                <h5>Best Quiz</h5>
+                <p>@BestQuizTitle</p>
+                <p class="text-success">Score: @BestQuizScore%</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Quizzes Section -->
+    <div class="mt-5">
+        <h3>Recent Quizzes</h3>
+        @if (RecentQuizzes?.Any() == true)
+        {
+            <ul class="list-group">
+                @foreach (var quiz in RecentQuizzes)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>@quiz.Name</span>
+                        <span class="badge bg-primary rounded-pill">@quiz.Score%</span>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p>No quizzes taken yet. Start your learning journey now!</p>
+        }
+    </div>
+
+    <!-- Call-to-Action Section -->
+    <div class="text-center mt-5">
+        <a class="btn btn-success btn-lg" href="/pickatopic">Take a New Quiz</a>
     </div>
 </div>
 
 @code {
-    private List<string> myUrls = new List<string>
-    {
-        "https://www.webmd.com/vitamins/ai/ingredientmono-954/vitamin-e",
-        "https://www.webmd.com/menopause/understanding-menopause-treatment#1-2",
-        "https://www.verywellhealth.com/mounjaro-for-weight-loss-8689784",
-        "https://www.history.com/articles/department-education-andrew-johnson-reconstruction",
-        "https://www.mayoclinic.org/diseases-conditions/parkinsons-disease/symptoms-causes/syc-20376055",
-        "https://www.healthline.com/health/neck-pain",
-        "https://en.wikipedia.org/wiki/Photosynthesis",
-        "https://en.wikipedia.org/wiki/World_War_II",
-        "https://en.wikipedia.org/wiki/Periodic_table",
-        "https://en.wikipedia.org/wiki/Human_nervous_system",
-        "https://www.history.com/topics/ancient-egypt/ancient-egypt",
-        "https://solarsystem.nasa.gov/solar-system/our-solar-system/overview/",
-        "https://www.khanacademy.org/humanities/us-history",
-        "https://www.sparknotes.com/lit/gatsby/",
-        "https://plato.stanford.edu/entries/ethics-virtue/",
-        "https://auto.howstuffworks.com/under-the-hood/auto-parts/engine.htm"
-    };
+    private int TotalQuizzesTaken { get; set; }
+    private double AverageScore { get; set; }
+    private string BestQuizTitle { get; set; } = "N/A";
+    private double BestQuizScore { get; set; }
+    private List<UserQuiz> RecentQuizzes { get; set; } = new();
 
-    private string url { get; set; } = string.Empty;
-    private bool useTestData { get; set; } = false;
-
-    private void OnSelectedUrlChanged(string newValue)
+    protected override async Task OnInitializedAsync()
     {
-        url = newValue;
+        // Simulate fetching data (replace with actual service calls)
+        await LoadQuizDataAsync();
     }
-}
 
-@code {
-    private string errorMessage = string.Empty;
-    private bool showOverlay = false;
-
-    private async Task GenerateQuiz()
+    private async Task LoadQuizDataAsync()
     {
-        QuizResponse quizResponse;
-
-        if (useTestData)
+        // Example: Replace with actual data fetching logic
+        RecentQuizzes = new List<UserQuiz>
         {
-            quizResponse = await QuizBuilderService.LoadQuizFromFileAsync("wwwroot/data/quiz.json");
-            if (quizResponse.Questions != null && quizResponse.Questions.Count > 0)
-            {
-                QuizState.CurrentQuiz = quizResponse;
-                NavManager.NavigateTo("/takequiz");
-            }
-            else
-            {
-                errorMessage = "No questions were generated from the test data.";
-            }
-            return;
+            new UserQuiz { Name = "World War II", Score = 85 },
+            new UserQuiz { Name = "Photosynthesis", Score = 90 },
+            new UserQuiz { Name = "Periodic Table", Score = 75 }
+        };
+
+        TotalQuizzesTaken = RecentQuizzes.Count;
+        AverageScore = RecentQuizzes.Any() ? RecentQuizzes.Average(q => q.Score) : 0;
+        var bestQuiz = RecentQuizzes.OrderByDescending(q => q.Score).FirstOrDefault();
+        if (bestQuiz != null)
+        {
+            BestQuizTitle = bestQuiz.Name;
+            BestQuizScore = bestQuiz.Score;
         }
 
-        if (string.IsNullOrWhiteSpace(url))
-            return;
+        await Task.CompletedTask;
+    }
 
-        errorMessage = string.Empty;
-        showOverlay = true;
-        StateHasChanged();
-
-        await Task.Delay(500); // Optional delay to allow overlay to appear
-
-        // 1) Fetch and validate text content from the URL.
-        var fetchResult = await ContentFetchingService.FetchValidatedTextContentAsync(url);
-
-        if (!fetchResult.IsSuccess)
-        {
-            errorMessage = fetchResult.ErrorMessage;
-            showOverlay = false;
-            StateHasChanged();          //Do I really need this?
-            return;
-        }
-
-        // 2) Pass the validated text content to QuizBuilderService.
-        quizResponse = await QuizBuilderService.GenerateQuizAsync(fetchResult.Content, 25);     //TODO: Make this n appsettings variable
-
-        // 3) Navigate or show an error based on the quiz response.
-        if (quizResponse.Questions != null && quizResponse.Questions.Count > 0)
-        {
-            QuizState.CurrentQuiz = new QuizResponse();
-
-            QuizState.CurrentQuiz.Questions = quizResponse.Questions;
-            QuizState.CurrentQuiz.Difficulty = quizResponse.Difficulty;
-            QuizState.CurrentQuiz.Type = "Prompt";
-            QuizState.CurrentQuiz.Topic = string.Empty;
-            QuizState.CurrentQuiz.Prompt = url;
-            QuizState.CurrentQuiz.Description = $"Quiz generated from {url}";
-
-            NavManager.NavigateTo("/takequiz");
-        }
-        else
-        {
-            errorMessage = "No questions were generated.";
-        }
-
-        showOverlay = false;
+    // Example UserQuiz model (replace with actual model)
+    private class UserQuiz
+    {
+        public string Name { get; set; } = string.Empty;
+        public double Score { get; set; }
     }
 }

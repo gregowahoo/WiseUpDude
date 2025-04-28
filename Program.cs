@@ -13,6 +13,7 @@ using WiseUpDude.Services;
 using WiseUpDude.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.Google;
 using Serilog;
+using WiseUpDude.Data.Repositories.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,11 +72,12 @@ builder.Services.AddScoped<ContentFetchingService>();
 builder.Services.AddScoped<QuizBuilderService>();
 builder.Services.AddScoped<QuizStateService>();
 
-builder.Services.AddScoped<IRepository<WiseUpDude.Model.Quiz>, QuizRepository>();
-builder.Services.AddScoped<IRepository<WiseUpDude.Model.QuizQuestion>, QuizQuestionRepository>();
-builder.Services.AddScoped<IUserRepository<WiseUpDude.Model.Quiz>, UserQuizRepository>();
-builder.Services.AddScoped<IUserRepository<WiseUpDude.Model.QuizQuestion>, UserQuizQuestionRepository>();
-builder.Services.AddScoped<IUserRepository<WiseUpDude.Model.Topic>, TopicRepository>();
+builder.Services.AddScoped<IRepository<Quiz>, QuizRepository>();
+builder.Services.AddScoped<IQuizQuestionRepository<QuizQuestion>, QuizQuestionRepository>();
+builder.Services.AddScoped<ITopicRepository<Topic>, TopicRepository>();
+
+builder.Services.AddScoped<IUserRepository<Quiz>, UserQuizRepository>();
+builder.Services.AddScoped<IUserRepository<QuizQuestion>, UserQuizQuestionRepository>();
 
 builder.Services.AddScoped<QuizTopicService>();
 builder.Services.AddScoped<QuizQuestionsFromTopic>();

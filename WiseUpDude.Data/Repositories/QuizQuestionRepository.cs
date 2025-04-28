@@ -5,11 +5,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using WiseUpDude.Data.Entities;
+using WiseUpDude.Data.Repositories.Interfaces;
 using WiseUpDude.Model;
 
 namespace WiseUpDude.Data.Repositories
 {
-    public class QuizQuestionRepository : IRepository<Model.QuizQuestion>
+    public class QuizQuestionRepository : IQuizQuestionRepository<Model.QuizQuestion>
     {
         private readonly ApplicationDbContext _context;
 
@@ -108,5 +109,10 @@ namespace WiseUpDude.Data.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+        //public Task<IEnumerable<Model.Quiz>> GetQuizzesByTopicIdAsync(int topicId)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }

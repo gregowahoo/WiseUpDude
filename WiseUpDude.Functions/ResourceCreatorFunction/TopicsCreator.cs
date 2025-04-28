@@ -52,7 +52,7 @@ namespace ResourceCreatorFunction
             }
 
             // Create a new TopicCreationRun record
-            var topicCreationRun = new TopicCreationRun
+            var topicCreationRun = new WiseUpDude.Model.TopicCreationRun
             {
                 Llm = _llmName
             };

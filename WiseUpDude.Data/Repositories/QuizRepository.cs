@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using WiseUpDude.Data.Entities;
 using WiseUpDude.Data;
 using WiseUpDude.Model;
+using System.Text.Json;
+using WiseUpDude.Data.Repositories.Interfaces;
 
 namespace WiseUpDude.Data.Repositories
 {
@@ -40,6 +42,7 @@ namespace WiseUpDude.Data.Repositories
                 }).ToList(),
                 Type = e.Type,
                 Topic = e.Topic?.Name, // Use the Topic's Name
+                TopicId = e.TopicId, // Map TopicId
                 Description = e.Description,
                 Difficulty = e.Difficulty // Include quiz-level difficulty
             });
@@ -71,25 +74,56 @@ namespace WiseUpDude.Data.Repositories
                 }).ToList(),
                 Type = entity.Type,
                 Topic = entity.Topic?.Name, // Use the Topic's Name
+                TopicId = entity.TopicId, // Map TopicId
                 Description = entity.Description,
                 Difficulty = entity.Difficulty // Include quiz-level difficulty
             };
         }
 
+        public async Task<IEnumerable<Model.Quiz>> GetQuizzesByTopicIdAsync(int topicId)
+        {
+            var quizzes = await _context.Quizzes
+                .Include(q => q.Questions)
+                .Include(q => q.User) // Include User for UserName
+                .Include(q => q.Topic) // Include Topic for Topic details
+                .Where(q => q.TopicId == topicId) // Filter by TopicId
+                .ToListAsync();
+
+            return quizzes.Select(q => new Model.Quiz
+            {
+                Id = q.Id,
+                Name = q.Name,
+                Questions = q.Questions.Select(qq => new Model.QuizQuestion
+                {
+                    Id = qq.Id,
+                    Question = qq.Question,
+                    Options = qq.OptionsJson != null ? JsonSerializer.Deserialize<List<string>>(qq.OptionsJson) : null,
+                    Answer = qq.Answer,
+                    Explanation = qq.Explanation,
+                    QuestionType = (Model.QuizQuestionType)qq.QuestionType,
+                    Difficulty = qq.Difficulty
+                }).ToList(),
+                UserName = q.User?.UserName ?? "Unknown User",
+                User = q.User,
+                Type = q.Type,
+                Topic = q.Topic?.Name,
+                TopicId = q.TopicId,
+                Prompt = q.Prompt,
+                Description = q.Description,
+                Difficulty = q.Difficulty
+            });
+        }
+
+
         public async Task AddAsync(Model.Quiz quiz)
         {
-            // Find the Topic by its Name
-            var topic = await _context.Topics.FirstOrDefaultAsync(t => t.Name == quiz.Topic);
-            if (topic == null)
-                throw new KeyNotFoundException($"Topic with Name '{quiz.Topic}' not found.");
-
             // Create a new Quiz entity
             var entity = new Entities.Quiz
             {
                 Name = quiz.Name,
                 UserId = quiz.User.Id,
                 Type = quiz.Type,
-                TopicId = topic.Id, // Set the TopicId
+                TopicId = quiz.TopicId, // Use TopicId directly
                 Description = quiz.Description,
                 Difficulty = quiz.Difficulty // Save quiz-level difficulty
             };
@@ -177,14 +211,9 @@ namespace WiseUpDude.Data.Repositories
             if (entity == null)
                 throw new KeyNotFoundException($"Quiz with Id {model.Id} not found.");
 
-            // Find the Topic by its Name
-            var topic = await _context.Topics.FirstOrDefaultAsync(t => t.Name == model.Topic);
-            if (topic == null)
-                throw new KeyNotFoundException($"Topic with Name '{model.Topic}' not found.");
-
             entity.Name = model.Name;
             entity.Type = model.Type;
-            entity.TopicId = topic.Id; // Update the TopicId
+            entity.TopicId = model.TopicId; // Update TopicId
             entity.Description = model.Description;
             entity.Difficulty = model.Difficulty; // Update quiz-level difficulty
 
@@ -218,5 +247,6 @@ namespace WiseUpDude.Data.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
     }
 }

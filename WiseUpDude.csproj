@@ -80,6 +80,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="Components\Pages\UrlToQuiz.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Components\Pages\UrlToQuiz.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="WiseUpDude.Data\WiseUpDude.Data.csproj" />
     <ProjectReference Include="WiseUpDude.Services\WiseUpDude.Services.csproj" />
   </ItemGroup>

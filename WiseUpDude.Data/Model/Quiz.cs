@@ -27,6 +27,9 @@ namespace WiseUpDude.Model
         public string? Description { get; set; } // Optional
 
         public required string Difficulty { get; set; }
+
+        // Add TopicId to match Entities.Quiz
+        public int TopicId { get; set; } // Foreign key to Topic
     }
 
 }

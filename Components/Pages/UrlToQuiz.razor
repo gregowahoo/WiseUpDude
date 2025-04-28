@@ -36,15 +36,15 @@
     <h1 class="title">Quiz Generator</h1>
     <div class="card">
         <UrlSelector UrlList="@myUrls"
-                     SelectedUrl="@url"
-                     SelectedUrlChanged="@OnSelectedUrlChanged"
-                     OnGenerateQuiz="@GenerateQuiz" />
+        SelectedUrl="@url"
+        SelectedUrlChanged="@OnSelectedUrlChanged"
+        OnGenerateQuiz="@GenerateQuiz" />
         <button class="btn btn-primary" @onclick="GenerateQuiz">Generate Quiz</button>
         <div class="form-check">
             <input class="form-check-input" type="checkbox" id="useTestData" @bind="useTestData">
-            <label class="form-check-label" for="useTestData">
+@*             <label class="form-check-label" for="useTestData">
                 Use Test Data
-            </label>
+            </label> *@
         </div>
     </div>
 </div>
@@ -85,22 +85,23 @@
 
     private async Task GenerateQuiz()
     {
-        QuizResponse quizResponse;
+        // QuizResponse quizResponse;
+        var quizResponse = new Quiz(); ;
 
-        if (useTestData)
-        {
-            quizResponse = await QuizBuilderService.LoadQuizFromFileAsync("wwwroot/data/quiz.json");
-            if (quizResponse.Questions != null && quizResponse.Questions.Count > 0)
-            {
-                QuizState.CurrentQuiz = quizResponse;
-                NavManager.NavigateTo("/takequiz");
-            }
-            else
-            {
-                errorMessage = "No questions were generated from the test data.";
-            }
-            return;
-        }
+        // if (useTestData)
+        // {
+        //     quizResponse = await QuizBuilderService.LoadQuizFromFileAsync("wwwroot/data/quiz.json");
+        //     if (quizResponse.Questions != null && quizResponse.Questions.Count > 0)
+        //     {
+        //         QuizState.CurrentQuiz = quizResponse;
+        //         NavManager.NavigateTo("/takequiz");
+        //     }
+        //     else
+        //     {
+        //         errorMessage = "No questions were generated from the test data.";
+        //     }
+        //     return;
+        // }
 
         if (string.IsNullOrWhiteSpace(url))
             return;

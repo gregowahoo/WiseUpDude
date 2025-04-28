@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using WiseUpDude.Model;
 
 namespace WiseUpDude.Data.Repositories
 {
@@ -10,5 +11,8 @@ namespace WiseUpDude.Data.Repositories
         Task AddAsync(T entity);
         Task UpdateAsync(T entity);
         Task DeleteAsync(int id);
+
+        // Add this method for fetching quizzes by TopicId
+        Task<IEnumerable<Quiz>> GetQuizzesByTopicIdAsync(int topicId);
     }
 }

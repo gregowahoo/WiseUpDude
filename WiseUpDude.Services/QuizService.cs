@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WiseUpDude.Data.Repositories;
 using WiseUpDude.Data.Entities;
 using WiseUpDude.Data;
+using WiseUpDude.Data.Repositories.Interfaces;
 
 namespace WiseUpDude.Services
 {

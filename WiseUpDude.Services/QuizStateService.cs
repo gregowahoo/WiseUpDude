@@ -5,7 +5,7 @@ namespace WiseUpDude.Services
 {
     public class QuizStateService
     {
-        public QuizResponse? CurrentQuiz { get; set; }
+        public Quiz? CurrentQuiz { get; set; }
 
         //// Removed QuizSource and updated to use QuizResponse properties directly
         //public string Type { get; set; } = string.Empty; // "Topic" or "Prompt"

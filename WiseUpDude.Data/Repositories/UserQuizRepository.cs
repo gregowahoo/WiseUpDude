@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using WiseUpDude.Data.Entities;
+using WiseUpDude.Data.Repositories.Interfaces;
 using WiseUpDude.Model;
 
 namespace WiseUpDude.Data.Repositories
@@ -91,10 +92,10 @@ namespace WiseUpDude.Data.Repositories
             };
         }
 
-        public Task<IEnumerable<Model.Topic>> GetTopicsAsync(int count)
-        {
-            throw new NotImplementedException();
-        }
+        //public Task<IEnumerable<Model.Topic>> GetTopicsAsync(int count)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         public async Task AddAsync(WiseUpDude.Model.Quiz quiz)
         {

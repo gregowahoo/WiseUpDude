@@ -3,11 +3,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using WiseUpDude.Data.Entities;
+using WiseUpDude.Data.Repositories.Interfaces;
 using WiseUpDude.Model;
 
 namespace WiseUpDude.Data.Repositories
 {
-    public class TopicRepository : IUserRepository<Model.Topic>
+    public class TopicRepository : ITopicRepository<Model.Topic>
     {
         private readonly ApplicationDbContext _context;
 
@@ -57,34 +58,29 @@ namespace WiseUpDude.Data.Repositories
             });
         }
 
+        public async Task<IEnumerable<Model.Topic>> GetTopicsWithoutQuestionsAsync()
+        {
+            var topicsWithoutQuestions = await _context.Topics
+                .Where(topic => !topic.Quizzes.Any()) // Check if the topic has no associated quizzes
+                .ToListAsync();
+
+            return topicsWithoutQuestions.Select(topic => new Model.Topic
+            {
+                Id = topic.Id,
+                Name = topic.Name,
+                Description = topic.Description
+            });
+        }
+
         public async Task AddAsync(Model.Topic topic)
         {
             var entity = new Entities.Topic
             {
                 Name = topic.Name,
                 Description = topic.Description,
-                TopicCreationRun = new TopicCreationRun
+                TopicCreationRun = new Entities.TopicCreationRun
                 {
-                    Llm = "DefaultLlmValue" // Provide a default or meaningful value for the required property
-                }
-            };
-
-            _context.Topics.Add(entity);
-            await _context.SaveChangesAsync();
-
-            topic.Id = entity.Id;
-        }
-
-        public async Task AddAsync(Model.Topic topic, int topicCreationRunId)
-        {
-            var entity = new Entities.Topic
-            {
-                Name = topic.Name,
-                Description = topic.Description,
-                TopicCreationRunId = topicCreationRunId,
-                TopicCreationRun = new TopicCreationRun // Initialize the required TopicCreationRun property
-                {
-                    Id = topicCreationRunId
+                    Llm = "DefaultLlmValue"
                 }
             };
 
@@ -104,14 +100,6 @@ namespace WiseUpDude.Data.Repositories
             entity.Name = topic.Name;
             entity.Description = topic.Description;
 
-            if (entity.TopicCreationRun == null)
-            {
-                entity.TopicCreationRun = new TopicCreationRun
-                {
-                    Llm = "DefaultLlmValue" // Provide a default or meaningful value for the required property
-                };
-            }
-
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
@@ -126,20 +114,6 @@ namespace WiseUpDude.Data.Repositories
                 await _context.SaveChangesAsync();
             }
         }
-
-        public async Task<IEnumerable<Model.Topic>> GetTopicsWithoutQuestionsAsync()
-        {
-            var topicsWithoutQuestions = await _context.Topics
-                .Where(topic => !topic.Quizzes.Any()) // Check if the topic has no associated quizzes
-                .ToListAsync();
-
-            return topicsWithoutQuestions.Select(topic => new Model.Topic
-            {
-                Id = topic.Id,
-                Name = topic.Name,
-                Description = topic.Description
-            });
-        }
-
     }
+
 }

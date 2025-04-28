@@ -57,7 +57,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 Console.WriteLine($"DefaultConnection: {builder.Configuration.GetConnectionString("DefaultConnection")}");
 
 // Register Services
-builder.Services.AddScoped<QuizTopicService>(); // Register QuizTopicService
+builder.Services.AddScoped<ContentCreatorService>(); // Register ContentCreatorService
+
+builder.Services.AddScoped<TopicService>(); // Register TopicService
 builder.Services.AddScoped<TopicRepository>();  // Register TopicRepository
 builder.Services.AddScoped<TopicCreationRunRepository>();  // Register TopicRepository
 builder.Services.AddScoped<QuizQuestionsFromTopic>(); // Register QuizQuestionsFromTopic

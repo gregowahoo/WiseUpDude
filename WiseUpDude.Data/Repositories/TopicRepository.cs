@@ -29,6 +29,21 @@ namespace WiseUpDude.Data.Repositories
             });
         }
 
+        public async Task<IEnumerable<Model.Topic>> GetUniqueTopicsAsync()
+        {
+            var uniqueTopics = await _context.Topics
+                .GroupBy(t => t.Name) // Group by the Name property to ensure uniqueness
+                .Select(g => g.First()) // Select the first topic in each group
+                .ToListAsync();
+
+            return uniqueTopics.Select(topic => new Model.Topic
+            {
+                Id = topic.Id,
+                Name = topic.Name,
+                Description = topic.Description
+            });
+        }
+
         public async Task<Model.Topic> GetByIdAsync(int id)
         {
             var entity = await _context.Topics.FirstOrDefaultAsync(t => t.Id == id);

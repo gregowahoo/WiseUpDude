@@ -4,16 +4,16 @@ using WiseUpDude.Model;
 
 namespace WiseUpDude.Services
 {
-    public class QuizTopicService
+    public class TopicService
     {
         private readonly IChatClient _chatClient;
 
-        public QuizTopicService(IChatClient chatClient)
+        public TopicService(IChatClient chatClient)
         {
             _chatClient = chatClient;
         }
 
-        public async Task<(List<Topic>? Topics, string? ErrorMessage)> GetRelevantQuizTopicsAsync()
+        public async Task<(List<Topic>? Topics, string? ErrorMessage)> GetRelevantQuizTopicsAsync(List<Model.Topic> existingTopics)
         {
             try
             {
@@ -23,10 +23,12 @@ namespace WiseUpDude.Services
 
                 var result = await _chatClient.GetResponseAsync(
                     "You are a helpful assistant that suggests topics for short, engaging quizzes. " +
+                    $"Exclude the following topics: {string.Join(", ", existingTopics.Select(t => t.Name))}. " +
                     "Can you create a list of at least 20 topics that would be interesting for people to take a quiz on? " +
                     "Only topics that will be able to be used to create at least 20 questions from. " +
                     "Topics should be interesting and current. Each topic should include a short 1-sentence description " +
                     "explaining why it's interesting or relevant. \n\n" + prompt);
+
                 var content = result.Text;
 
                 try

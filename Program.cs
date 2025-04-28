@@ -79,7 +79,7 @@ builder.Services.AddScoped<ITopicRepository<Topic>, TopicRepository>();
 builder.Services.AddScoped<IUserRepository<Quiz>, UserQuizRepository>();
 builder.Services.AddScoped<IUserRepository<QuizQuestion>, UserQuizQuestionRepository>();
 
-builder.Services.AddScoped<QuizTopicService>();
+builder.Services.AddScoped<TopicService>();
 builder.Services.AddScoped<QuizQuestionsFromTopic>();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();

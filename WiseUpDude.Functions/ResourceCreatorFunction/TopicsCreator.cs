@@ -5,6 +5,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using WiseUpDude.Data.Entities;
 using WiseUpDude.Data.Repositories;
+using WiseUpDude.Data.Repositories.Interfaces;
 using WiseUpDude.Model;
 using WiseUpDude.Services;
 
@@ -13,7 +14,7 @@ namespace ResourceCreatorFunction
     public class TopicsCreator
     {
         private readonly ILogger _logger;
-        private readonly QuizTopicService _quizTopicService;
+        private readonly TopicService _topicService;
         private readonly TopicRepository _topicRepository;
         private readonly TopicCreationRunRepository _topicCreationRunRepository;
         private readonly string _llmName;
@@ -21,46 +22,59 @@ namespace ResourceCreatorFunction
 
         public TopicsCreator(
             ILogger<TopicsCreator> logger,
-            QuizTopicService quizTopicService,
+            TopicService topicService,
             TopicRepository topicRepository,
             TopicCreationRunRepository topicCreationRunRepository,
             string llmName)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _quizTopicService = quizTopicService;
+            _topicService = topicService;
             _topicRepository = topicRepository;
             _topicCreationRunRepository = topicCreationRunRepository;
             _llmName = llmName;
         }
 
         [Function("TopicsCreator")]
-        public async Task Run([TimerTrigger("%TopicGeneratorSchedule%")] TimerInfo myTimer)
+        //public async Task Run([TimerTrigger("%TopicGeneratorSchedule%")] TimerInfo myTimer)
+        public async Task Run([TimerTrigger("0 0 9 * * *")] TimerInfo topicsCreatorTimer)
         {
-            _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
-
-            if (myTimer.ScheduleStatus is not null)
+            if (topicsCreatorTimer.ScheduleStatus is not null)                                              // Log the next timer schedule
             {
-                _logger.LogInformation($"Next timer schedule at: {myTimer.ScheduleStatus.Next}");
+                _logger.LogInformation($"Next timer schedule at: {topicsCreatorTimer.ScheduleStatus.Next}");
             }
 
-            // Retrieve topics using QuizTopicService
-            var (topics, errorMessage) = await _quizTopicService.GetRelevantQuizTopicsAsync();
+            _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");               // Log the execution time
+
+            var uniqueTopics = (await _topicRepository.GetUniqueTopicsAsync()).ToList();                    // Fetch unique topics from the repository
+
+            if (uniqueTopics == null) // Check if uniqueTopics is null
+            {
+                _logger.LogInformation("No unique topics found in the database.");
+                return;
+            }
+
+            if (uniqueTopics.Count > 100) // Check if there are more than 100 topics
+            {
+                _logger.LogInformation($"There are greater than 100 topics in the DB. Current count: {uniqueTopics.Count}");
+                return;
+            }
+
+            var (topics, errorMessage) = await _topicService.GetRelevantQuizTopicsAsync(uniqueTopics);      // Retrieve topics using TopicService
             if (topics == null || errorMessage != null)
             {
                 _logger.LogError($"Failed to retrieve topics: {errorMessage}");
                 return;
             }
 
-            // Create a new TopicCreationRun record
-            var topicCreationRun = new WiseUpDude.Model.TopicCreationRun
+            var topicCreationRun = new WiseUpDude.Model.TopicCreationRun                    // Create a new TopicCreationRun record
             {
                 Llm = _llmName
             };
 
             try
             {
-                // Persist the TopicCreationRun and associated topics to the database
-                await _topicCreationRunRepository.AddAsync(topicCreationRun, topics);
+                await _topicCreationRunRepository.AddAsync(topicCreationRun, topics);       // Persist the TopicCreationRun and associated topics to the database
+
                 _logger.LogInformation($"Successfully created TopicCreationRun with {topics.Count} topics.");
             }
             catch (Exception ex)

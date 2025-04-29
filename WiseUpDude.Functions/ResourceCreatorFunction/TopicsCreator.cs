@@ -35,51 +35,64 @@ namespace ResourceCreatorFunction
         }
 
         [Function("TopicsCreator")]
-        //public async Task Run([TimerTrigger("%TopicGeneratorSchedule%")] TimerInfo myTimer)
-        public async Task Run([TimerTrigger("0 0 9 * * *")] TimerInfo topicsCreatorTimer)
+        public async Task Run([TimerTrigger("22 8 * * *")] TimerInfo topicsCreatorTimer)
         {
-            if (topicsCreatorTimer.ScheduleStatus is not null)                                              // Log the next timer schedule
+            if (topicsCreatorTimer.ScheduleStatus is not null)
             {
                 _logger.LogInformation($"Next timer schedule at: {topicsCreatorTimer.ScheduleStatus.Next}");
             }
 
-            _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");               // Log the execution time
+            _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
 
-            var uniqueTopics = (await _topicRepository.GetUniqueTopicsAsync()).ToList();                    // Fetch unique topics from the repository
+            var uniqueTopics = (await _topicRepository.GetUniqueTopicsAsync()).ToList();
 
-            if (uniqueTopics == null) // Check if uniqueTopics is null
+            if (uniqueTopics == null)
             {
                 _logger.LogInformation("No unique topics found in the database.");
                 return;
             }
 
-            if (uniqueTopics.Count > 100) // Check if there are more than 100 topics
+            int maxIterations = 10; // Safeguard to prevent infinite loops
+            int iteration = 0;
+
+            while (uniqueTopics.Count <= 100 && iteration < maxIterations)
             {
-                _logger.LogInformation($"There are greater than 100 topics in the DB. Current count: {uniqueTopics.Count}");
-                return;
+                _logger.LogInformation($"Current unique topics count: {uniqueTopics.Count}. Fetching more topics...");
+
+                var (topics, errorMessage) = await _topicService.GetRelevantQuizTopicsAsync(uniqueTopics);
+                if (topics == null || errorMessage != null)
+                {
+                    _logger.LogError($"Failed to retrieve topics: {errorMessage}");
+                    return;
+                }
+
+                var topicCreationRun = new WiseUpDude.Model.TopicCreationRun
+                {
+                    Llm = _llmName
+                };
+
+                try
+                {
+                    await _topicCreationRunRepository.AddAsync(topicCreationRun, topics);
+                    _logger.LogInformation($"Successfully created TopicCreationRun with {topics.Count} topics.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Failed to create TopicCreationRun: {ex.Message}");
+                    return;
+                }
+
+                uniqueTopics = (await _topicRepository.GetUniqueTopicsAsync()).ToList();
+                iteration++;
             }
 
-            var (topics, errorMessage) = await _topicService.GetRelevantQuizTopicsAsync(uniqueTopics);      // Retrieve topics using TopicService
-            if (topics == null || errorMessage != null)
+            if (uniqueTopics.Count > 100)
             {
-                _logger.LogError($"Failed to retrieve topics: {errorMessage}");
-                return;
+                _logger.LogInformation($"Successfully reached the target of more than 100 unique topics. Final count: {uniqueTopics.Count}");
             }
-
-            var topicCreationRun = new WiseUpDude.Model.TopicCreationRun                    // Create a new TopicCreationRun record
+            else
             {
-                Llm = _llmName
-            };
-
-            try
-            {
-                await _topicCreationRunRepository.AddAsync(topicCreationRun, topics);       // Persist the TopicCreationRun and associated topics to the database
-
-                _logger.LogInformation($"Successfully created TopicCreationRun with {topics.Count} topics.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Failed to create TopicCreationRun: {ex.Message}");
+                _logger.LogWarning($"Loop terminated after {iteration} iterations without reaching the target. Current count: {uniqueTopics.Count}");
             }
         }
     }

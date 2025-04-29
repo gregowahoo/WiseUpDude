@@ -30,7 +30,7 @@ namespace ResourceCreatorFunction
 
         [Function("QuizGenerator")]
         //public async Task Run([TimerTrigger("%QuizGeneratorSchedule%")] TimerInfo myTimer) // Use a settings variable for the schedule
-        public async Task Run([TimerTrigger("0 15 9 * * *")] TimerInfo quizGeneratorTimer) // Use a settings variable for the schedule
+        public async Task Run([TimerTrigger("0 15 8 * * *")] TimerInfo quizGeneratorTimer) // Use a settings variable for the schedule
         {
             // Log the next timer schedule
             if (quizGeneratorTimer.ScheduleStatus is not null)

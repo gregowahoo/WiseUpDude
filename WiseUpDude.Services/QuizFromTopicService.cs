@@ -24,8 +24,9 @@ namespace WiseUpDude.Services
                 "Adjust the question complexity and vocabulary based on this scale.",
                 "Try to create at least 20 questions.",
                 "Include both multiple-choice and true/false questions.",
-                "For true/false questions, the options must always be: [\"True\", \"False\"].", // Added explicit instruction for true/false options
+                "For true/false questions, the options must always be: [\"True\", \"False\"].",
                 "Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\", \"QuestionType\".",
+                "When creating multiple-choice questions, randomly shuffle the answer options so the correct answer is not always first.",
                 "The \"QuestionType\" should be either \"TrueFalse\" or \"MultipleChoice\" depending on the type of question.",
                 "Return only valid JSON in the format:",
                 "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"Type\": \"...\", \"Topic\": \"...\", \"Description\": \"...\" }.",

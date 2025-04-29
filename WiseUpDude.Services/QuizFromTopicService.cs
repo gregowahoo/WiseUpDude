@@ -5,11 +5,11 @@ using WiseUpDude.Services.Utilities;
 
 namespace WiseUpDude.Services
 {
-    public class QuizQuestionsFromTopic
+    public class QuizFromTopicService
     {
         private readonly IChatClient _chatClient;
 
-        public QuizQuestionsFromTopic(IChatClient chatClient)
+        public QuizFromTopicService(IChatClient chatClient)
         {
             _chatClient = chatClient;
         }

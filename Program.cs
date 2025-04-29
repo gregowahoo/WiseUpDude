@@ -30,7 +30,7 @@ builder.Logging.AddDebug();
 #region Configuration
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    //.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
     .AddEnvironmentVariables();
 #endregion
@@ -47,13 +47,13 @@ var innerChatClientGithub = new AzureOpenAIClient(
     new ApiKeyCredential(builder.Configuration["GithubAI:Key"] ?? throw new InvalidOperationException("Missing GithubAI:Key")))
     .AsChatClient("gpt-4o");
 
-var innerChatClientOpenAI = new OpenAI.Chat.ChatClient("gpt-4o-mini",
+var innerChatClientOpenAI = new OpenAI.Chat.ChatClient("gpt-4.1",
     builder.Configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("Missing OpenAI:ApiKey"))
     .AsChatClient();
 
-builder.Services.AddChatClient(innerChatClientAzure); // Azure-based GPT-3.5
+//builder.Services.AddChatClient(innerChatClientAzure); // Azure-based GPT-3.5
 //builder.Services.AddChatClient(innerChatClientGithub); // Azure-based GPT-3.5
-//builder.Services.AddChatClient(innerChatClientOpenAI); // “gpt-4o-mini” from OpenAI
+builder.Services.AddChatClient(innerChatClientOpenAI); // “gpt-4o-mini” from OpenAI
 #endregion
 
 #region Services
@@ -71,6 +71,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<ContentFetchingService>();
 builder.Services.AddScoped<QuizBuilderService>();
 builder.Services.AddScoped<QuizStateService>();
+builder.Services.AddScoped<IQuizGenerationService, QuizFromPromptService>();
 
 builder.Services.AddScoped<IRepository<Quiz>, QuizRepository>();
 builder.Services.AddScoped<IQuizQuestionRepository<QuizQuestion>, QuizQuestionRepository>();
@@ -80,7 +81,7 @@ builder.Services.AddScoped<IUserRepository<Quiz>, UserQuizRepository>();
 builder.Services.AddScoped<IUserRepository<QuizQuestion>, UserQuizQuestionRepository>();
 
 builder.Services.AddScoped<TopicService>();
-builder.Services.AddScoped<QuizQuestionsFromTopic>();
+builder.Services.AddScoped<QuizFromTopicService>();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();

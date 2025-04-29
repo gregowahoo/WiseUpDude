@@ -14,13 +14,13 @@ namespace ResourceCreatorFunction
         private readonly ILogger _logger;
         private readonly TopicRepository _topicRepository;
         private readonly QuizRepository _quizRepository;
-        private readonly QuizQuestionsFromTopic _quizQuestionsFromTopic;
+        private readonly QuizFromTopicService _quizQuestionsFromTopic;
 
         public QuizGenerator(
             ILogger<QuizGenerator> logger,
             TopicRepository topicRepository,
             QuizRepository quizRepository,
-            QuizQuestionsFromTopic quizQuestionsFromTopic)
+            QuizFromTopicService quizQuestionsFromTopic)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _topicRepository = topicRepository;
@@ -30,7 +30,7 @@ namespace ResourceCreatorFunction
 
         [Function("QuizGenerator")]
         //public async Task Run([TimerTrigger("%QuizGeneratorSchedule%")] TimerInfo myTimer) // Use a settings variable for the schedule
-        public async Task Run([TimerTrigger("0 15 8 * * *")] TimerInfo quizGeneratorTimer) // Use a settings variable for the schedule
+        public async Task Run([TimerTrigger("* 45 11 * * *")] TimerInfo quizGeneratorTimer) // Use a settings variable for the schedule
         {
             // Log the next timer schedule
             if (quizGeneratorTimer.ScheduleStatus is not null)

@@ -18,8 +18,16 @@ builder.ConfigureFunctionsWebApplication();
 // Load configuration
 var configuration = builder.Configuration;
 
+#region Configuration
+builder.Configuration
+    .SetBasePath(Directory.GetCurrentDirectory())
+    //.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddEnvironmentVariables();
+#endregion
+
 #region MyRegion
-Console.WriteLine($"AI:Key: {configuration["AI:Key"]}");
+//Console.WriteLine($"AI:Key: {configuration["AI:Key"]}");
 
 //var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
 //logger.LogInformation($"AI:Key: {configuration["AI:Key"]}");
@@ -37,18 +45,17 @@ var innerChatClientGithub = new AzureOpenAIClient(
     new ApiKeyCredential(configuration["GithubAI:Key"] ?? throw new InvalidOperationException("Missing GithubAI:Key")))
     .AsChatClient("gpt-4o");
 
-var innerChatClientOpenAI = new OpenAI.Chat.ChatClient("gpt-4o-mini",
+var innerChatClientOpenAI = new OpenAI.Chat.ChatClient("gpt-4.1",
     configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("Missing OpenAI:ApiKey"))
     .AsChatClient();
 
-
 //Do not remove commentting as may need to change to a different model.
-builder.Services.AddChatClient(innerChatClientAzure); // Azure-based GPT-3.5
+//builder.Services.AddChatClient(innerChatClientAzure); // Azure-based GPT-3.5
 //builder.Services.AddChatClient(innerChatClientGithub); // Azure-based GPT-3.5
-//builder.Services.AddChatClient(innerChatClientOpenAI); // “gpt-4o-mini” from OpenAI
+builder.Services.AddChatClient(innerChatClientOpenAI); // “gpt-4o-mini” from OpenAI
 
 // Register the LLM name as a configuration or service
-builder.Services.AddSingleton(llmName => "gpt-35-turbo"); // Replace with the actual LLM name being used
+builder.Services.AddSingleton(llmName => "gpt-4.1"); // Replace with the actual LLM name being used
 
 // Add DbContext with SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -62,7 +69,7 @@ builder.Services.AddScoped<ContentCreatorService>(); // Register ContentCreatorS
 builder.Services.AddScoped<TopicService>(); // Register TopicService
 builder.Services.AddScoped<TopicRepository>();  // Register TopicRepository
 builder.Services.AddScoped<TopicCreationRunRepository>();  // Register TopicRepository
-builder.Services.AddScoped<QuizQuestionsFromTopic>(); // Register QuizQuestionsFromTopic
+builder.Services.AddScoped<QuizFromTopicService>(); // Register QuizFromTopicService
 builder.Services.AddScoped<QuizRepository>(); // Register QuizRepository
 
 builder.Build().Run();

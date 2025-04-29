@@ -26,6 +26,14 @@
 
             <div class="text-end">
                 <AuthorizeView>
+                    <Authorized>                //TODO: implment roles so we can have a boss!
+                        <ul class="nav">
+                            <li class="nav-item">
+                                <NavLink class="nav-link px-2 text-white" href="/admin" Match="NavLinkMatch.Prefix">Admin Dashboard</NavLink>
+                            </li>
+                        </ul>
+                    </Authorized>
+
                     <NotAuthorized>
                         <ul class="nav">
                             <li class="nav-item">

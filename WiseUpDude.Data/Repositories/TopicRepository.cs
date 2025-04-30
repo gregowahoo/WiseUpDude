@@ -19,19 +19,25 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task<IEnumerable<Model.Topic>> GetAllAsync()
         {
-            var entities = await _context.Topics.ToListAsync();
+            var entities = await _context.Topics
+                .Include(t => t.Category) // Include the related Category
+                .ToListAsync();
 
             return entities.Select(e => new Model.Topic
             {
                 Id = e.Id,
                 Name = e.Name,
-                Description = e.Description
+                Description = e.Description,
+                CategoryId = e.CategoryId,
+                Category = e.Category.Name,
+                CategoryDescription = e.Category.Description
             });
         }
 
         public async Task<IEnumerable<Model.Topic>> GetUniqueTopicsAsync()
         {
             var uniqueTopics = await _context.Topics
+                .Include(t => t.Category) // Include the related Category
                 .GroupBy(t => t.Name) // Group by the Name property to ensure uniqueness
                 .Select(g => g.First()) // Select the first topic in each group
                 .ToListAsync();
@@ -40,13 +46,18 @@ namespace WiseUpDude.Data.Repositories
             {
                 Id = topic.Id,
                 Name = topic.Name,
-                Description = topic.Description
+                Description = topic.Description,
+                CategoryId = topic.CategoryId,
+                Category = topic.Category.Name,
+                CategoryDescription = topic.Category.Description
             });
         }
 
         public async Task<Model.Topic> GetByIdAsync(int id)
         {
-            var entity = await _context.Topics.FirstOrDefaultAsync(t => t.Id == id);
+            var entity = await _context.Topics
+                .Include(t => t.Category) // Include the related Category
+                .FirstOrDefaultAsync(t => t.Id == id);
 
             if (entity == null)
                 throw new KeyNotFoundException($"Topic with Id {id} not found.");
@@ -55,13 +66,17 @@ namespace WiseUpDude.Data.Repositories
             {
                 Id = entity.Id,
                 Name = entity.Name,
-                Description = entity.Description
+                Description = entity.Description,
+                CategoryId = entity.CategoryId,
+                Category = entity.Category.Name,
+                CategoryDescription = entity.Category.Description
             };
         }
 
         public async Task<IEnumerable<Model.Topic>> GetTopicsAsync(int count)
         {
             var topics = await _context.Topics
+                .Include(t => t.Category) // Include the related Category
                 .Take(count) // Limit the number of topics returned
                 .ToListAsync();
 
@@ -69,13 +84,17 @@ namespace WiseUpDude.Data.Repositories
             {
                 Id = topic.Id,
                 Name = topic.Name,
-                Description = topic.Description
+                Description = topic.Description,
+                CategoryId = topic.CategoryId,
+                Category = topic.Category.Name,
+                CategoryDescription = topic.Category.Description
             });
         }
 
         public async Task<IEnumerable<Model.Topic>> GetTopicsWithoutQuestionsAsync()
         {
             var topicsWithoutQuestions = await _context.Topics
+                .Include(t => t.Category) // Include the related Category
                 .Where(topic => !topic.Quizzes.Any()) // Check if the topic has no associated quizzes
                 .ToListAsync();
 
@@ -83,16 +102,25 @@ namespace WiseUpDude.Data.Repositories
             {
                 Id = topic.Id,
                 Name = topic.Name,
-                Description = topic.Description
+                Description = topic.Description,
+                CategoryId = topic.CategoryId,
+                Category = topic.Category.Name,
+                CategoryDescription = topic.Category.Description
             });
         }
 
         public async Task AddAsync(Model.Topic topic)
         {
+            var categoryEntity = await _context.Categories.FindAsync(topic.CategoryId);
+            if (categoryEntity == null)
+                throw new KeyNotFoundException($"Category with Id {topic.CategoryId} not found.");
+
             var entity = new Entities.Topic
             {
                 Name = topic.Name,
                 Description = topic.Description,
+                CategoryId = topic.CategoryId,
+                Category = categoryEntity, // set required Category navigation property
                 TopicCreationRun = new Entities.TopicCreationRun
                 {
                     Llm = "DefaultLlmValue"
@@ -114,6 +142,7 @@ namespace WiseUpDude.Data.Repositories
 
             entity.Name = topic.Name;
             entity.Description = topic.Description;
+            entity.CategoryId = topic.CategoryId;
 
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
@@ -130,5 +159,5 @@ namespace WiseUpDude.Data.Repositories
             }
         }
     }
-
 }
+

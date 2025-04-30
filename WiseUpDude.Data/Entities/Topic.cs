@@ -17,12 +17,20 @@ namespace WiseUpDude.Data.Entities
         [MaxLength(500)]
         public string Description { get; set; } = string.Empty;
 
-        // New foreign key to associate with a TopicCreationRun
+        // New foreign key for related Category
+        [ForeignKey("Category")]
+        public int CategoryId { get; set; }
+
+        // Navigation property for the related Category
+        public required Category Category { get; set; }
+
+        // Foreign key to associate with a TopicCreationRun
         [ForeignKey("TopicCreationRun")]
         public int TopicCreationRunId { get; set; }
 
         // Navigation property for the related TopicCreationRun
         public required TopicCreationRun TopicCreationRun { get; set; }
+        
         public ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
 
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]

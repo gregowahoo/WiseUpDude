@@ -74,6 +74,7 @@ namespace ResourceCreatorFunction
                 try
                 {
                     await _topicCreationRunRepository.AddAsync(topicCreationRun, topics);
+
                     _logger.LogInformation($"Successfully created TopicCreationRun with {topics.Count} topics.");
                 }
                 catch (Exception ex)

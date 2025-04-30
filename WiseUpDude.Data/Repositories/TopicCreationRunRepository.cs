@@ -28,13 +28,20 @@ namespace WiseUpDude.Data.Repositories
                 {
                     Name = t.Name,
                     Description = t.Description,
-                    TopicCreationRunId = entity.Id, // Set the foreign key
+                    CategoryId = t.CategoryId, // use CategoryId from the model
+                    TopicCreationRunId = entity.Id,
                     TopicCreationRun = new WiseUpDude.Data.Entities.TopicCreationRun
                     {
                         Id = entity.Id,
                         CreationDate = entity.CreationDate,
                         Llm = entity.Llm
-                    } // Map the required TopicCreationRun property
+                    },
+                    Category = new WiseUpDude.Data.Entities.Category // Ensure required member 'Category' is set
+                    {
+                        //Id = t.CategoryId,
+                        Name = t.Category,
+                        Description = t.CategoryDescription
+                    }
                 }).ToList() ?? new List<WiseUpDude.Data.Entities.Topic>() // Handle possible null reference
             };
 
@@ -48,18 +55,51 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task AddAsync(Model.TopicCreationRun topicCreationRun, List<Model.Topic> modelTopics)
         {
-            // Map Model.Topic to Entity.Topic
+            // Ensure categories are added to the database and get their IDs
+            var categoryMap = new Dictionary<string, WiseUpDude.Data.Entities.Category>();
+            foreach (var topic in modelTopics)
+            {
+                if (!string.IsNullOrWhiteSpace(topic.Category))
+                {
+                    // Check if the category already exists
+                    var existingCategory = await _context.Categories
+                        .FirstOrDefaultAsync(c => c.Name == topic.Category);
+
+                    if (existingCategory == null)
+                    {
+                        // Add new category
+                        var newCategory = new WiseUpDude.Data.Entities.Category
+                        {
+                            Name = topic.Category,
+                            Description = topic.CategoryDescription
+                        };
+
+                        _context.Categories.Add(newCategory);
+                        await _context.SaveChangesAsync();
+
+                        categoryMap[topic.Category] = newCategory;
+                    }
+                    else
+                    {
+                        categoryMap[topic.Category] = existingCategory;
+                    }
+                }
+            }
+
+            // Fix for CS9035: Ensure the required 'Category' property is set in the object initializer
             var entityTopics = modelTopics.Select(mt => new WiseUpDude.Data.Entities.Topic
             {
                 Name = mt.Name,
                 Description = mt.Description,
+                CategoryId = categoryMap.ContainsKey(mt.Category) ? categoryMap[mt.Category].Id : 0, // assign based on CategoryName lookup
                 TopicCreationRunId = topicCreationRun.Id,
                 TopicCreationRun = new WiseUpDude.Data.Entities.TopicCreationRun
                 {
                     Id = topicCreationRun.Id,
                     CreationDate = topicCreationRun.CreationDate,
                     Llm = topicCreationRun.Llm
-                } // Map Model.TopicCreationRun to Entity.TopicCreationRun
+                },
+                Category = categoryMap.ContainsKey(mt.Category) ? categoryMap[mt.Category] : null // Reuse existing category
             }).ToList();
 
             // Create a new Entity.TopicCreationRun and assign the mapped topics
@@ -99,7 +139,10 @@ namespace WiseUpDude.Data.Repositories
                 {
                     Id = t.Id,
                     Name = t.Name,
-                    Description = t.Description
+                    Description = t.Description,
+                    CategoryId = t.CategoryId,                      // new mapping field
+                    Category = t.Category.Name,                 // mapped from the Category navigation property
+                    CategoryDescription = t.Category.Description    // mapped from Category.Description
                 }).ToList()
             };
         }
@@ -121,7 +164,10 @@ namespace WiseUpDude.Data.Repositories
                 {
                     Id = t.Id,
                     Name = t.Name,
-                    Description = t.Description
+                    Description = t.Description,
+                    CategoryId = t.CategoryId,
+                    Category = t.Category.Name,
+                    CategoryDescription = t.Category.Description
                 }).ToList()
             });
         }
@@ -143,13 +189,21 @@ namespace WiseUpDude.Data.Repositories
             // Update topics (optional, depending on your requirements)
             if (model.Topics != null)
             {
+                // Fix for CS9035: Ensure the required 'Category' property is set in the object initializer
                 entity.Topics = model.Topics.Select(t => new Entities.Topic
                 {
                     Id = t.Id,
                     Name = t.Name,
                     Description = t.Description,
+                    CategoryId = t.CategoryId,  // use the model's CategoryId
                     TopicCreationRunId = entity.Id,
-                    TopicCreationRun = entity // Set the required TopicCreationRun property
+                    TopicCreationRun = entity, // Set the required TopicCreationRun property
+                    Category = new Entities.Category // Ensure the required 'Category' property is set
+                    {
+                        Id = t.CategoryId, // Use the CategoryId from the model
+                        Name = t.Category ?? "Default Category", // Provide a default value if t.Category is null
+                        Description = t.CategoryDescription ?? "Default Description" // Provide a default value if t.CategoryDescription is null
+                    }
                 }).ToList();
             }
 

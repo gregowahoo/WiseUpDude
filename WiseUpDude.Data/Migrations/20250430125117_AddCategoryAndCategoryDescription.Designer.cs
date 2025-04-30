@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WiseUpDude.Data;
 
@@ -11,9 +12,11 @@ using WiseUpDude.Data;
 namespace WiseUpDude.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250430125117_AddCategoryAndCategoryDescription")]
+    partial class AddCategoryAndCategoryDescription
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -220,29 +223,6 @@ namespace WiseUpDude.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("WiseUpDude.Data.Entities.Category", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Categories");
-                });
-
             modelBuilder.Entity("WiseUpDude.Data.Entities.Quiz", b =>
                 {
                     b.Property<int>("Id")
@@ -360,9 +340,6 @@ namespace WiseUpDude.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int?>("CategoryId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreationDate")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("datetime2")
@@ -382,8 +359,6 @@ namespace WiseUpDude.Data.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
 
                     b.HasIndex("TopicCreationRunId");
 
@@ -594,10 +569,6 @@ namespace WiseUpDude.Data.Migrations
 
             modelBuilder.Entity("WiseUpDude.Data.Entities.Topic", b =>
                 {
-                    b.HasOne("WiseUpDude.Data.Entities.Category", null)
-                        .WithMany("Topics")
-                        .HasForeignKey("CategoryId");
-
                     b.HasOne("WiseUpDude.Data.Entities.TopicCreationRun", "TopicCreationRun")
                         .WithMany("Topics")
                         .HasForeignKey("TopicCreationRunId")
@@ -627,11 +598,6 @@ namespace WiseUpDude.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Quiz");
-                });
-
-            modelBuilder.Entity("WiseUpDude.Data.Entities.Category", b =>
-                {
-                    b.Navigation("Topics");
                 });
 
             modelBuilder.Entity("WiseUpDude.Data.Entities.Quiz", b =>

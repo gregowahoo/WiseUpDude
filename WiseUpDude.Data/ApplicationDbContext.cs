@@ -14,6 +14,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<QuizQuestion> QuizQuestions { get; set; }
     public DbSet<Topic> Topics { get; set; }
     public DbSet<TopicCreationRun> TopicCreationRuns { get; set; }
+    public DbSet<Category> Categories{ get; set; }
 
     public DbSet<UserQuiz> UserQuizzes { get; set; }
     public DbSet<UserQuizQuestion> UserQuizQuestions { get; set; }

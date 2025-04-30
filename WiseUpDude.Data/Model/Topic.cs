@@ -13,5 +13,11 @@ namespace WiseUpDude.Model
         [JsonPropertyName("description")]
         public string Description { get; set; } = string.Empty;
 
+        [JsonPropertyName("category")]
+        public string Category { get; set; } = string.Empty; // Added Category property
+
+        [JsonPropertyName("categoryDescription")]
+        public string CategoryDescription { get; set; } = string.Empty; // Added CategoryDescription property
+        public int CategoryId { get; internal set; }
     }
 }

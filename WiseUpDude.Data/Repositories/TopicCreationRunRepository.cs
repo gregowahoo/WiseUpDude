@@ -19,7 +19,6 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task AddAsync(Model.TopicCreationRun entity)
         {
-            // Map Model.TopicCreationRun to Entity.TopicCreationRun
             var entityTopicCreationRun = new WiseUpDude.Data.Entities.TopicCreationRun
             {
                 CreationDate = entity.CreationDate,
@@ -28,7 +27,7 @@ namespace WiseUpDude.Data.Repositories
                 {
                     Name = t.Name,
                     Description = t.Description,
-                    CategoryId = t.CategoryId, // use CategoryId from the model
+                    CategoryId = t.CategoryId, // Removed '?? 0' since CategoryId is non-nullable
                     TopicCreationRunId = entity.Id,
                     TopicCreationRun = new WiseUpDude.Data.Entities.TopicCreationRun
                     {
@@ -36,38 +35,33 @@ namespace WiseUpDude.Data.Repositories
                         CreationDate = entity.CreationDate,
                         Llm = entity.Llm
                     },
-                    Category = new WiseUpDude.Data.Entities.Category // Ensure required member 'Category' is set
+                    Category = t.Category != null ? new WiseUpDude.Data.Entities.Category
                     {
-                        //Id = t.CategoryId,
-                        Name = t.Category,
-                        Description = t.CategoryDescription
-                    }
-                }).ToList() ?? new List<WiseUpDude.Data.Entities.Topic>() // Handle possible null reference
+                        Id = t.CategoryId,
+                        Name = t.Category ?? "Default Category",
+                        Description = t.CategoryDescription ?? "Default Description"
+                    } : null
+                }).ToList() ?? new List<WiseUpDude.Data.Entities.Topic>()
             };
 
-            // Add the TopicCreationRun to the database
             await _context.TopicCreationRuns.AddAsync(entityTopicCreationRun);
             await _context.SaveChangesAsync();
 
-            // Update the model ID with the generated entity ID
             entity.Id = entityTopicCreationRun.Id;
         }
 
         public async Task AddAsync(Model.TopicCreationRun topicCreationRun, List<Model.Topic> modelTopics)
         {
-            // Ensure categories are added to the database and get their IDs
             var categoryMap = new Dictionary<string, WiseUpDude.Data.Entities.Category>();
             foreach (var topic in modelTopics)
             {
                 if (!string.IsNullOrWhiteSpace(topic.Category))
                 {
-                    // Check if the category already exists
                     var existingCategory = await _context.Categories
                         .FirstOrDefaultAsync(c => c.Name == topic.Category);
 
                     if (existingCategory == null)
                     {
-                        // Add new category
                         var newCategory = new WiseUpDude.Data.Entities.Category
                         {
                             Name = topic.Category,
@@ -86,12 +80,11 @@ namespace WiseUpDude.Data.Repositories
                 }
             }
 
-            // Fix for CS9035: Ensure the required 'Category' property is set in the object initializer
             var entityTopics = modelTopics.Select(mt => new WiseUpDude.Data.Entities.Topic
             {
                 Name = mt.Name,
                 Description = mt.Description,
-                CategoryId = categoryMap.ContainsKey(mt.Category) ? categoryMap[mt.Category].Id : 0, // assign based on CategoryName lookup
+                CategoryId = categoryMap.ContainsKey(mt.Category) ? categoryMap[mt.Category].Id : 0,
                 TopicCreationRunId = topicCreationRun.Id,
                 TopicCreationRun = new WiseUpDude.Data.Entities.TopicCreationRun
                 {
@@ -99,10 +92,9 @@ namespace WiseUpDude.Data.Repositories
                     CreationDate = topicCreationRun.CreationDate,
                     Llm = topicCreationRun.Llm
                 },
-                Category = categoryMap.ContainsKey(mt.Category) ? categoryMap[mt.Category] : null // Reuse existing category
+                Category = categoryMap.ContainsKey(mt.Category) ? categoryMap[mt.Category] : null
             }).ToList();
 
-            // Create a new Entity.TopicCreationRun and assign the mapped topics
             var entityTopicCreationRun = new WiseUpDude.Data.Entities.TopicCreationRun
             {
                 Id = topicCreationRun.Id,
@@ -111,25 +103,22 @@ namespace WiseUpDude.Data.Repositories
                 Topics = entityTopics
             };
 
-            // Add the TopicCreationRun to the database
             await _context.TopicCreationRuns.AddAsync(entityTopicCreationRun);
             await _context.SaveChangesAsync();
 
-            // Update the model ID with the generated entity ID
             topicCreationRun.Id = entityTopicCreationRun.Id;
         }
 
-        // Get a TopicCreationRun by ID
         public async Task<Model.TopicCreationRun> GetByIdAsync(int id)
         {
             var entity = await _context.TopicCreationRuns
-                .Include(t => t.Topics) // Include related Topics
+                .Include(t => t.Topics)
+                .ThenInclude(t => t.Category) // Ensure Category is included
                 .FirstOrDefaultAsync(t => t.Id == id);
 
             if (entity == null)
                 throw new KeyNotFoundException($"TopicCreationRun with Id {id} not found.");
 
-            // Map Entity.TopicCreationRun to Model.TopicCreationRun
             return new Model.TopicCreationRun
             {
                 Id = entity.Id,
@@ -140,21 +129,20 @@ namespace WiseUpDude.Data.Repositories
                     Id = t.Id,
                     Name = t.Name,
                     Description = t.Description,
-                    CategoryId = t.CategoryId,                      // new mapping field
-                    Category = t.Category.Name,                 // mapped from the Category navigation property
-                    CategoryDescription = t.Category.Description    // mapped from Category.Description
+                    CategoryId = t.CategoryId ?? 0, // Use 0 as a default value for CategoryId
+                    Category = t.Category?.Name ?? "Uncategorized", // Handle null Category
+                    CategoryDescription = t.Category?.Description ?? string.Empty // Handle null Category.Description
                 }).ToList()
             };
         }
 
-        // Get all TopicCreationRuns
         public async Task<IEnumerable<Model.TopicCreationRun>> GetAllAsync()
         {
             var entities = await _context.TopicCreationRuns
-                .Include(t => t.Topics) // Include related Topics
+                .Include(t => t.Topics)
+                .ThenInclude(t => t.Category) // Ensure Category is included
                 .ToListAsync();
 
-            // Map Entity.TopicCreationRun to Model.TopicCreationRun
             return entities.Select(entity => new Model.TopicCreationRun
             {
                 Id = entity.Id,
@@ -165,14 +153,13 @@ namespace WiseUpDude.Data.Repositories
                     Id = t.Id,
                     Name = t.Name,
                     Description = t.Description,
-                    CategoryId = t.CategoryId,
-                    Category = t.Category.Name,
-                    CategoryDescription = t.Category.Description
+                    CategoryId = t.CategoryId ?? 0, // Use 0 as a default value for CategoryId
+                    Category = t.Category?.Name ?? "Uncategorized", // Handle null Category
+                    CategoryDescription = t.Category?.Description ?? string.Empty // Handle null Category.Description
                 }).ToList()
             });
         }
 
-        // Update an existing TopicCreationRun
         public async Task UpdateAsync(Model.TopicCreationRun model)
         {
             var entity = await _context.TopicCreationRuns
@@ -182,28 +169,25 @@ namespace WiseUpDude.Data.Repositories
             if (entity == null)
                 throw new KeyNotFoundException($"TopicCreationRun with Id {model.Id} not found.");
 
-            // Update entity properties
             entity.Llm = model.Llm;
             entity.CreationDate = model.CreationDate;
 
-            // Update topics (optional, depending on your requirements)
             if (model.Topics != null)
             {
-                // Fix for CS9035: Ensure the required 'Category' property is set in the object initializer
                 entity.Topics = model.Topics.Select(t => new Entities.Topic
                 {
                     Id = t.Id,
                     Name = t.Name,
                     Description = t.Description,
-                    CategoryId = t.CategoryId,  // use the model's CategoryId
+                    CategoryId = t.CategoryId,
                     TopicCreationRunId = entity.Id,
-                    TopicCreationRun = entity, // Set the required TopicCreationRun property
-                    Category = new Entities.Category // Ensure the required 'Category' property is set
+                    TopicCreationRun = entity,
+                    Category = t.Category != null ? new Entities.Category
                     {
-                        Id = t.CategoryId, // Use the CategoryId from the model
-                        Name = t.Category ?? "Default Category", // Provide a default value if t.Category is null
-                        Description = t.CategoryDescription ?? "Default Description" // Provide a default value if t.CategoryDescription is null
-                    }
+                        Id = t.CategoryId,
+                        Name = t.Category ?? "Default Category",
+                        Description = t.CategoryDescription ?? "Default Description"
+                    } : null
                 }).ToList();
             }
 
@@ -211,7 +195,6 @@ namespace WiseUpDude.Data.Repositories
             await _context.SaveChangesAsync();
         }
 
-        // Delete a TopicCreationRun by ID
         public async Task DeleteAsync(int id)
         {
             var entity = await _context.TopicCreationRuns.FindAsync(id);

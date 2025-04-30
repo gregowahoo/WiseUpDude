@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WiseUpDude.Data.Entities
 {
-    [Table("Topics")] // Optional: Specify the table name
+    [Table("Topics")]
     public class Topic
     {
         [Key]
@@ -17,23 +17,22 @@ namespace WiseUpDude.Data.Entities
         [MaxLength(500)]
         public string Description { get; set; } = string.Empty;
 
-        // New foreign key for related Category
+        // Foreign key for related Category
         [ForeignKey("Category")]
-        public int CategoryId { get; set; }
+        public int? CategoryId { get; set; } // Make CategoryId nullable
 
         // Navigation property for the related Category
-        public required Category Category { get; set; }
+        public Category? Category { get; set; } // Make Category optional
 
-        // Foreign key to associate with a TopicCreationRun
         [ForeignKey("TopicCreationRun")]
         public int TopicCreationRunId { get; set; }
 
-        // Navigation property for the related TopicCreationRun
         public required TopicCreationRun TopicCreationRun { get; set; }
-        
+
         public ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
 
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime CreationDate { get; set; }
     }
+
 }

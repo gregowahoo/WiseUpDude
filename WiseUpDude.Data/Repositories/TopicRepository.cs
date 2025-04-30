@@ -28,9 +28,9 @@ namespace WiseUpDude.Data.Repositories
                 Id = e.Id,
                 Name = e.Name,
                 Description = e.Description,
-                CategoryId = e.CategoryId,
-                Category = e.Category.Name,
-                CategoryDescription = e.Category.Description
+                CategoryId = e.CategoryId ?? 0, // Handle nullable CategoryId
+                Category = e.Category?.Name ?? "Uncategorized", // Handle null Category
+                CategoryDescription = e.Category?.Description ?? string.Empty // Handle null Category
             });
         }
 
@@ -47,9 +47,9 @@ namespace WiseUpDude.Data.Repositories
                 Id = topic.Id,
                 Name = topic.Name,
                 Description = topic.Description,
-                CategoryId = topic.CategoryId,
-                Category = topic.Category.Name,
-                CategoryDescription = topic.Category.Description
+                CategoryId = topic.CategoryId ?? 0, // Handle nullable CategoryId
+                Category = topic.Category?.Name ?? "Uncategorized", // Handle null Category
+                CategoryDescription = topic.Category?.Description ?? string.Empty // Handle null Category
             });
         }
 
@@ -67,9 +67,9 @@ namespace WiseUpDude.Data.Repositories
                 Id = entity.Id,
                 Name = entity.Name,
                 Description = entity.Description,
-                CategoryId = entity.CategoryId,
-                Category = entity.Category.Name,
-                CategoryDescription = entity.Category.Description
+                CategoryId = entity.CategoryId ?? 0, // Handle nullable CategoryId
+                Category = entity.Category?.Name ?? "Uncategorized", // Handle null Category
+                CategoryDescription = entity.Category?.Description ?? string.Empty // Handle null Category
             };
         }
 
@@ -85,9 +85,9 @@ namespace WiseUpDude.Data.Repositories
                 Id = topic.Id,
                 Name = topic.Name,
                 Description = topic.Description,
-                CategoryId = topic.CategoryId,
-                Category = topic.Category.Name,
-                CategoryDescription = topic.Category.Description
+                CategoryId = topic.CategoryId ?? 0, // Handle nullable CategoryId
+                Category = topic.Category?.Name ?? "Uncategorized", // Handle null Category
+                CategoryDescription = topic.Category?.Description ?? string.Empty // Handle null Category
             });
         }
 
@@ -103,9 +103,9 @@ namespace WiseUpDude.Data.Repositories
                 Id = topic.Id,
                 Name = topic.Name,
                 Description = topic.Description,
-                CategoryId = topic.CategoryId,
-                Category = topic.Category.Name,
-                CategoryDescription = topic.Category.Description
+                CategoryId = topic.CategoryId ?? 0, // Handle nullable CategoryId
+                Category = topic.Category?.Name ?? "Uncategorized", // Handle null Category
+                CategoryDescription = topic.Category?.Description ?? string.Empty // Handle null Category
             });
         }
 
@@ -119,8 +119,8 @@ namespace WiseUpDude.Data.Repositories
             {
                 Name = topic.Name,
                 Description = topic.Description,
-                CategoryId = topic.CategoryId,
-                Category = categoryEntity, // set required Category navigation property
+                CategoryId = topic.CategoryId, // No change needed here
+                Category = categoryEntity, // Set required Category navigation property
                 TopicCreationRun = new Entities.TopicCreationRun
                 {
                     Llm = "DefaultLlmValue"
@@ -142,7 +142,7 @@ namespace WiseUpDude.Data.Repositories
 
             entity.Name = topic.Name;
             entity.Description = topic.Description;
-            entity.CategoryId = topic.CategoryId;
+            entity.CategoryId = topic.CategoryId; // No change needed here
 
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();

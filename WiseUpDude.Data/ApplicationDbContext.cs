@@ -22,16 +22,41 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(modelBuilder);
 
+        // Configure CreationDate for TopicCreationRun
         modelBuilder.Entity<TopicCreationRun>()
             .Property(t => t.CreationDate)
             .HasDefaultValueSql("GETUTCDATE()");
 
+        // Configure CreationDate for Quiz
+        modelBuilder.Entity<Quiz>()
+            .Property(q => q.CreationDate)
+            .HasDefaultValueSql("GETUTCDATE()");
+
+        // Configure CreationDate for QuizQuestion
+        modelBuilder.Entity<QuizQuestion>()
+            .Property(qq => qq.CreationDate)
+            .HasDefaultValueSql("GETUTCDATE()");
+
+        // Configure CreationDate for Topic
+        modelBuilder.Entity<Topic>()
+            .Property(t => t.CreationDate)
+            .HasDefaultValueSql("GETUTCDATE()");
+
+        // Configure CreationDate for UserQuiz
+        modelBuilder.Entity<UserQuiz>()
+            .Property(uq => uq.CreationDate)
+            .HasDefaultValueSql("GETUTCDATE()");
+
+        // Configure CreationDate for UserQuizQuestion
+        modelBuilder.Entity<UserQuizQuestion>()
+            .Property(uqq => uqq.CreationDate)
+            .HasDefaultValueSql("GETUTCDATE()");
+
+        // Existing configuration for Quiz and Topic relationship
         modelBuilder.Entity<Quiz>()
             .HasOne(q => q.Topic)
-            .WithMany(t => t.Quizzes) // Add a collection property in `Topic` if needed
+            .WithMany(t => t.Quizzes)
             .HasForeignKey(q => q.TopicId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        // Add any specific configurations for UserQuiz and UserQuizQuestion if needed
     }
 }

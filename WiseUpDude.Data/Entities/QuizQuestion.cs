@@ -26,6 +26,9 @@ namespace WiseUpDude.Data.Entities
         [Required]
         [MaxLength(50)]
         public string Difficulty { get; set; } = string.Empty;
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public DateTime CreationDate { get; set; }
     }
 
     public enum QuizQuestionType

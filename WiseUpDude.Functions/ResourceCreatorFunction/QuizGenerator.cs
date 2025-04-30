@@ -82,8 +82,8 @@ namespace ResourceCreatorFunction
                 }
 
                 // Pause for 1 minute to avoid hitting API rate limits
-                _logger.LogInformation("Pausing for 1 minute before processing the next topic...");
-                await Task.Delay(TimeSpan.FromMinutes(1));
+                _logger.LogInformation("Pausing for 5 minutes before processing the next topic...");
+                await Task.Delay(TimeSpan.FromMinutes(5));
             }
         }
     }

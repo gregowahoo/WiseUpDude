@@ -41,7 +41,9 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <div>
-            <h3 class="mb-0">🧠 Take Quiz</h3>
+            @* <h3 class="mb-0">🧠 Take Quiz</h3> *@
+            <h3 class="mb-0">🧠 Take Quiz - @(string.IsNullOrWhiteSpace(QuizState.CurrentQuiz?.Prompt) ? QuizState.CurrentQuiz?.Topic : QuizState.CurrentQuiz?.Prompt)</h3>
+
             <p class="mb-0">Select an answer for each question to see if you're correct.</p>
             @if (!string.IsNullOrWhiteSpace(QuizState.CurrentQuiz?.Difficulty))
             {

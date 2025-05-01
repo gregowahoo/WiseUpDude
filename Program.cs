@@ -79,6 +79,7 @@ builder.Services.AddScoped<ITopicRepository<Topic>, TopicRepository>();
 
 builder.Services.AddScoped<IUserRepository<Quiz>, UserQuizRepository>();
 builder.Services.AddScoped<IUserRepository<QuizQuestion>, UserQuizQuestionRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 builder.Services.AddScoped<TopicService>();
 builder.Services.AddScoped<QuizFromTopicService>();

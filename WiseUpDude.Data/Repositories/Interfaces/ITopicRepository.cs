@@ -12,5 +12,6 @@ namespace WiseUpDude.Data.Repositories.Interfaces
         Task UpdateAsync(T entity);
         Task DeleteAsync(int id);
         Task<IEnumerable<Topic>> GetTopicsAsync(int count);
+        Task<IEnumerable<T>> GetTopicsByCategoryAsync(int categoryId); // New method
     }
 }

@@ -109,6 +109,24 @@ namespace WiseUpDude.Data.Repositories
             });
         }
 
+        public async Task<IEnumerable<Model.Topic>> GetTopicsByCategoryAsync(int categoryId)
+        {
+            var topics = await _context.Topics
+                .Include(t => t.Category) // Include the related Category
+                .Where(t => t.CategoryId == categoryId) // Filter by CategoryId
+                .ToListAsync();
+
+            return topics.Select(topic => new Model.Topic
+            {
+                Id = topic.Id,
+                Name = topic.Name,
+                Description = topic.Description,
+                CategoryId = topic.CategoryId ?? 0, // Handle nullable CategoryId
+                Category = topic.Category?.Name ?? "Uncategorized", // Handle null Category
+                CategoryDescription = topic.Category?.Description ?? string.Empty // Handle null Category.Description
+            });
+        }
+
         public async Task AddAsync(Model.Topic topic)
         {
             var categoryEntity = await _context.Categories.FindAsync(topic.CategoryId);

@@ -20,6 +20,8 @@ namespace WiseUpDude.Data.Entities
 
         // Navigation property for related Topics
         public ICollection<Topic> Topics { get; set; } = new List<Topic>();
+
+        public DateTime CreationDate { get; set; }
     }
 }
 

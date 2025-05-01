@@ -31,7 +31,6 @@ namespace WiseUpDude.Data.Entities
 
         public ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
 
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime CreationDate { get; set; }
     }
 

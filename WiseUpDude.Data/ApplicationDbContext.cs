@@ -26,32 +26,37 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         // Configure CreationDate for TopicCreationRun
         modelBuilder.Entity<TopicCreationRun>()
             .Property(t => t.CreationDate)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("GETDATE()");
 
         // Configure CreationDate for Quiz
         modelBuilder.Entity<Quiz>()
             .Property(q => q.CreationDate)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("GETDATE()");
 
         // Configure CreationDate for QuizQuestion
         modelBuilder.Entity<QuizQuestion>()
             .Property(qq => qq.CreationDate)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("GETDATE()");
 
         // Configure CreationDate for Topic
         modelBuilder.Entity<Topic>()
             .Property(t => t.CreationDate)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("GETDATE()");
 
         // Configure CreationDate for UserQuiz
         modelBuilder.Entity<UserQuiz>()
             .Property(uq => uq.CreationDate)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("GETDATE()");
 
         // Configure CreationDate for UserQuizQuestion
         modelBuilder.Entity<UserQuizQuestion>()
             .Property(uqq => uqq.CreationDate)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("GETDATE()");
+
+        // Configure CreationDate for UserQuizQuestion
+        modelBuilder.Entity<Category>()
+            .Property(uqq => uqq.CreationDate)
+            .HasDefaultValueSql("GETDATE()");
 
         // Existing configuration for Quiz and Topic relationship
         modelBuilder.Entity<Quiz>()

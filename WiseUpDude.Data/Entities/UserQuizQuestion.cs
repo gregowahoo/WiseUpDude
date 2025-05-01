@@ -33,7 +33,6 @@ namespace WiseUpDude.Data.Entities
         [MaxLength(50)]
         public string Difficulty { get; set; } = string.Empty;
 
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime CreationDate { get; set; }
     }
 

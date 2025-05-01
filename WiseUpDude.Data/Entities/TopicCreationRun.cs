@@ -12,14 +12,11 @@ namespace WiseUpDude.Data.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        // Automatically populated with GETUTCDATE()
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-        public DateTime CreationDate { get; set; }
-
         // Navigation property for associated Topics
         public ICollection<Topic> Topics { get; set; } = new List<Topic>();
 
         [MaxLength(50)]
         public string Llm { get; set; } = "DefaultLLM"; // Supply a default value
+        public DateTime CreationDate { get; set; }
     }
 }

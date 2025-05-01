@@ -1,0 +1,195 @@
+﻿@page "/pickatopic"
+
+@using Microsoft.AspNetCore.Authorization
+@using WiseUpDude.Data.Repositories
+@using WiseUpDude.Data.Repositories.Interfaces
+@using WiseUpDude.Model
+@using WiseUpDude.Services
+@using WiseUpDude.Services.Interfaces
+
+@inject QuizStateService QuizState
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+@inject ITopicRepository<Topic> TopicRepository
+@inject IRepository<Quiz> QuizRepository
+
+@inject ITopicsCacheService<Topic> TopicsCacheService
+@inject QuizFromTopicService QuizQuestionsFromTopic
+
+@inject IConfiguration Configuration
+
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+@if (IsGenerating)
+{
+    <p class="text-center mt-3 text-muted">🧠 Generating your quiz...</p>
+}
+
+<div class="container mt-5">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">🎯 Quiz Me!</h2>
+        <p class="text-muted">Type or pick a topic you're curious about, pick a difficulty, and go!</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <label for="topicInput" class="form-label fw-semibold">What do you want to learn today?</label>
+@*             <InputText id="topicInput" @bind-Value="UserTopic" class="form-control form-control-lg mb3"
+                       placeholder="e.g. Space exploration, AI, World War II, Mi English no hasta bueno." /> *@
+            @* <br /> *@
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                @if (SuggestedTopics?.Any() == true)
+                {
+                    @foreach (var topicItem in SuggestedTopics)
+                    {
+                        <HoverPopover TargetText="@topicItem.Name"
+                                      Description="@topicItem.Description"
+                                      TopicId="@topicItem.Id"
+                                      OnClick="@(() => SelectedTopicId = topicItem.Id)" />
+                    }
+                }
+                else if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <p class="text-danger">@ErrorMessage</p>
+                }
+                else
+                {
+                    <p><em>Loading topic suggestions...</em></p>
+                }
+            </div>
+
+            <label class="form-label fw-semibold">Choose Difficulty:</label>
+            <div class="btn-group w-100 mb-4" role="group">
+                @foreach (var level in DifficultyLevels)
+                {
+                    <input type="radio"
+                           class="btn-check"
+                           name="difficulty"
+                           id="@level"
+                           value="@level"
+                           @onchange="() => SelectedDifficulty = level"
+                           checked="@(SelectedDifficulty == level)" />
+                    <label class="btn btn-outline-primary" for="@level">@level</label>
+                }
+            </div>
+
+            <div class="text-center">
+                <button class="btn btn-success btn-lg px-5" @onclick="GetQuiz">
+                    🚀 Quiz Me!
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? UserTopic { get; set; }
+    private string SelectedDifficulty = "Medium";
+
+    private List<Topic>? SuggestedTopics;
+    private string? ErrorMessage;
+
+    private readonly string[] DifficultyLevels = new[] { "Easy", "Medium", "Hard" };
+
+    private bool IsGenerating = false;
+
+    private int? SelectedTopicId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CheckCache();
+
+        // Read the topic count from appsettings or fallback to 25
+        var topicCount = Configuration.GetValue<int>("TopicSettings:TopicCount", 25);
+
+        if (SuggestedTopics == null || !SuggestedTopics.Any())
+        {
+            Console.WriteLine("👀 OnInitializedAsync was called.");
+            try
+            {
+                var topics = await TopicRepository.GetTopicsAsync(topicCount);
+                SuggestedTopics = topics.ToList();
+
+                if (SuggestedTopics.Any())
+                {
+                    TopicsCacheService.SetItems(SuggestedTopics);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching topics: {ex.Message}");
+                ErrorMessage = "Failed to load topics. Please try again later.";
+            }
+        }
+    }
+
+    private void CheckCache()
+    {
+        var cachedTopics = TopicsCacheService.GetItems();
+        if (cachedTopics != null && cachedTopics.Any())
+        {
+            SuggestedTopics = cachedTopics;
+        }
+    }
+
+    private async Task GetQuiz()
+    {
+        IsGenerating = true;
+
+        try
+        {
+            // Determine the topic ID to use
+            var topicIdToUse = SelectedTopicId ?? SuggestedTopics?.FirstOrDefault()?.Id;
+
+            if (topicIdToUse == null)
+            {
+                Console.WriteLine("🚫 No topic selected or available.");
+                ErrorMessage = "Please select a topic to proceed.";
+                IsGenerating = false;
+                return;
+            }
+
+            // Fetch quizzes for the selected topic using the repository method
+            var quizzes = await QuizRepository.GetQuizzesByTopicIdAsync(topicIdToUse.Value);
+
+            if (quizzes.Any())
+            {
+                // If quizzes exist, set the first quiz as the current quiz
+                var selectedQuiz = quizzes.First();
+                QuizState.CurrentQuiz = new Quiz
+                    {
+                        Id = selectedQuiz.Id,
+                        Name = selectedQuiz.Name,
+                        Questions = selectedQuiz.Questions,
+                        UserName = selectedQuiz.UserName,
+                        User = selectedQuiz.User,
+                        Type = selectedQuiz.Type,
+                        Topic = selectedQuiz.Topic,
+                        TopicId = selectedQuiz.TopicId,
+                        Prompt = selectedQuiz.Prompt,
+                        Description = selectedQuiz.Description,
+                        Difficulty = selectedQuiz.Difficulty
+                    };
+
+                NavigationManager.NavigateTo("/TakeQuiz");
+            }
+            else
+            {
+                // If no quizzes exist, log or handle the case (e.g., show a message)
+                Console.WriteLine("🚫 No quizzes found for the selected topic. Consider generating one via AI.");
+                ErrorMessage = "No quizzes found for the selected topic. Please try another topic.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during quiz generation or fetch: {ex.Message}");
+            ErrorMessage = "An error occurred while processing your request. Please try again later.";
+        }
+        finally
+        {
+            IsGenerating = false;
+        }
+    }
+}

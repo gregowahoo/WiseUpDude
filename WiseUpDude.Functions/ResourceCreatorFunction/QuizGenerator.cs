@@ -29,7 +29,7 @@ namespace ResourceCreatorFunction
         }
 
         [Function("QuizGenerator")]
-        public async Task Run([TimerTrigger("0 0 * * * *")] TimerInfo quizGeneratorTimer)
+        public async Task Run([TimerTrigger("0 */5 * * * *")] TimerInfo quizGeneratorTimer)
         {
             // Log the next timer schedule
             if (quizGeneratorTimer.ScheduleStatus is not null)
@@ -81,9 +81,9 @@ namespace ResourceCreatorFunction
                     _logger.LogError($"Failed to generate quiz for topic {topic.Name}: {ex.Message}");
                 }
 
-                // Pause for 1 minute to avoid hitting API rate limits
-                _logger.LogInformation("Pausing for 5 minutes before processing the next topic...");
-                await Task.Delay(TimeSpan.FromMinutes(5));
+                //// Pause for 1 minute to avoid hitting API rate limits
+                //_logger.LogInformation("Pausing for 5 minutes before processing the next topic...");
+                //await Task.Delay(TimeSpan.FromMinutes(5));
             }
         }
     }

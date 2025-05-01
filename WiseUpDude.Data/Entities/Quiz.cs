@@ -43,7 +43,6 @@ namespace WiseUpDude.Data.Entities
 
         public Topic Topic { get; set; } = null!; // Navigation property
 
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime CreationDate { get; set; }
     }
 }

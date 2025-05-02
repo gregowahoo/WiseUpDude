@@ -63,11 +63,15 @@
 
         try
         {
+            Console.WriteLine($"[INFO] Sending prompt to QuizGenerationService: {UserPrompt}");
+
             // Call the AI API to generate a quiz based on the user's prompt
             var generatedQuiz = await QuizGenerationService.GenerateQuizFromPromptAsync(UserPrompt);
 
             if (generatedQuiz != null)
             {
+                Console.WriteLine($"[INFO] Quiz successfully generated. Description: {generatedQuiz.Description}");
+
                 // Map the generated quiz to a new Quiz object
                 var newQuiz = new Quiz
                 {
@@ -87,12 +91,13 @@
             }
             else
             {
+                Console.WriteLine("[ERROR] QuizGenerationService returned null.");
                 ErrorMessage = "Failed to generate a quiz. Please try again.";
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error during quiz generation: {ex.Message}");
+            Console.WriteLine($"[ERROR] Exception during quiz generation: {ex.Message}");
             ErrorMessage = "An error occurred while generating the quiz. Please try again later.";
         }
         finally

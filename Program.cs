@@ -69,7 +69,9 @@ builder.Services.AddSingleton<ITopicsCacheService<WiseUpDude.Model.Topic>, Topic
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<ContentFetchingService>();
-builder.Services.AddScoped<QuizBuilderService>();
+
+builder.Services.AddScoped<QuizBuilderService>();           //TODO:Deterine if this is needed
+
 builder.Services.AddScoped<QuizStateService>();
 builder.Services.AddScoped<IQuizGenerationService, QuizFromPromptService>();
 

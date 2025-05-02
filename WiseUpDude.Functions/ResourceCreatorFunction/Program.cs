@@ -45,7 +45,8 @@ var innerChatClientGithub = new AzureOpenAIClient(
     new ApiKeyCredential(configuration["GithubAI:Key"] ?? throw new InvalidOperationException("Missing GithubAI:Key")))
     .AsChatClient("gpt-4o");
 
-var innerChatClientOpenAI = new OpenAI.Chat.ChatClient("gpt-4.1",
+//var innerChatClientOpenAI = new OpenAI.Chat.ChatClient("gpt-4.1",
+var innerChatClientOpenAI = new OpenAI.Chat.ChatClient("gpt-4-0125-preview",
     configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("Missing OpenAI:ApiKey"))
     .AsChatClient();
 

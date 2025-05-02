@@ -8,6 +8,7 @@ using WiseUpDude.Data.Repositories;
 using WiseUpDude.Data.Repositories.Interfaces;
 using WiseUpDude.Model;
 using WiseUpDude.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace ResourceCreatorFunction
 {
@@ -18,13 +19,14 @@ namespace ResourceCreatorFunction
         private readonly TopicRepository _topicRepository;
         private readonly TopicCreationRunRepository _topicCreationRunRepository;
         private readonly string _llmName;
-        //private readonly QuizQuestionRepository _quizQuestionRepository;
+        private readonly int _maximumTopicsToCreate;
 
         public TopicsCreator(
             ILogger<TopicsCreator> logger,
             TopicService topicService,
             TopicRepository topicRepository,
             TopicCreationRunRepository topicCreationRunRepository,
+            IConfiguration configuration,
             string llmName)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -32,10 +34,13 @@ namespace ResourceCreatorFunction
             _topicRepository = topicRepository;
             _topicCreationRunRepository = topicCreationRunRepository;
             _llmName = llmName;
+
+            // Read the maximumTopicsToCreate setting from configuration
+            _maximumTopicsToCreate = configuration.GetValue<int>("maximumTopicsToCreate");
         }
 
         [Function("TopicsCreator")]
-        public async Task Run([TimerTrigger("0 0 * * * *")] TimerInfo topicsCreatorTimer)
+        public async Task Run([TimerTrigger("0 */5 * * * *")] TimerInfo topicsCreatorTimer)
         {
             if (topicsCreatorTimer.ScheduleStatus is not null)
             {
@@ -55,7 +60,7 @@ namespace ResourceCreatorFunction
             int maxIterations = 10; // Safeguard to prevent infinite loops
             int iteration = 0;
 
-            while (uniqueTopics.Count <= 100 && iteration < maxIterations)
+            while (uniqueTopics.Count <= _maximumTopicsToCreate && iteration < maxIterations)
             {
                 _logger.LogInformation($"Current unique topics count: {uniqueTopics.Count}. Fetching more topics...");
 
@@ -87,9 +92,9 @@ namespace ResourceCreatorFunction
                 iteration++;
             }
 
-            if (uniqueTopics.Count > 100)
+            if (uniqueTopics.Count > _maximumTopicsToCreate)
             {
-                _logger.LogInformation($"Successfully reached the target of more than 100 unique topics. Final count: {uniqueTopics.Count}");
+                _logger.LogInformation($"Successfully reached the target of more than {_maximumTopicsToCreate} unique topics. Final count: {uniqueTopics.Count}");
             }
             else
             {
@@ -98,3 +103,4 @@ namespace ResourceCreatorFunction
         }
     }
 }
+

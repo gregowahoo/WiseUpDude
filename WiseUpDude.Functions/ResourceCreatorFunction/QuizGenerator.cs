@@ -29,7 +29,7 @@ namespace ResourceCreatorFunction
         }
 
         [Function("QuizGenerator")]
-        public async Task Run([TimerTrigger("0 0 * * * *")] TimerInfo quizGeneratorTimer)
+        public async Task Run([TimerTrigger("0 */5 * * * *")] TimerInfo quizGeneratorTimer)
         {
             // Log the next timer schedule
             if (quizGeneratorTimer.ScheduleStatus is not null)

@@ -68,12 +68,14 @@ builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<ITopicsCacheService<WiseUpDude.Model.Topic>, TopicsCacheService<WiseUpDude.Model.Topic>>();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddHttpClient();
+
 builder.Services.AddScoped<ContentFetchingService>();
 
 builder.Services.AddScoped<QuizBuilderService>();           //TODO:Deterine if this is needed
 
 builder.Services.AddScoped<QuizStateService>();
-builder.Services.AddScoped<IQuizGenerationService, QuizFromPromptService>();
+builder.Services.AddScoped<IQuizFromPromptService, QuizFromPromptService>();
+builder.Services.AddScoped<AnswerRandomizerService>();
 
 builder.Services.AddScoped<IRepository<Quiz>, QuizRepository>();
 builder.Services.AddScoped<IQuizQuestionRepository<QuizQuestion>, QuizQuestionRepository>();

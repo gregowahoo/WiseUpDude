@@ -3,17 +3,18 @@ using System.Text.Json;
 using WiseUpDude.Data.Entities;
 using WiseUpDude.Model;
 using WiseUpDude.Services.Interfaces;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WiseUpDude.Services
 {
-    public class QuizFromPromptService : IQuizGenerationService
+    public class QuizFromPromptService : IQuizFromPromptService
     {
         private readonly IChatClient _chatClient;
+        private readonly AnswerRandomizerService _answerRandomizer;
 
-        public QuizFromPromptService(IChatClient chatClient)
+        public QuizFromPromptService(IChatClient chatClient, AnswerRandomizerService answerRandomizer)
         {
             _chatClient = chatClient;
+            _answerRandomizer = answerRandomizer;
         }
 
         public async Task<QuizResponse?> GenerateQuizFromPromptAsync(string prompt)
@@ -32,7 +33,6 @@ namespace WiseUpDude.Services
                 "- In the entire quiz, balance the distribution of correct answer positions as evenly as possible, so the correct answer appears roughly 25% of the time in each position (i.e., if there are 20 questions, about 5 in each slot).",
                 "- Do NOT put the correct answer in the first position by default.",
                 "- For the 20 multiple-choice questions, ensure that exactly 5 questions have the correct answer in position 1, 5 in position 2, 5 in position 3, and 5 in position 4. Track and enforce this distribution as you generate the quiz. Do not allow any position to have more than 5 correct answers.",
-
                 "",
                 "For true/false questions:",
                 "- Always use exactly two answer options: [\"True\", \"False\"], in that order. Never shuffle or reverse these.",
@@ -74,43 +74,70 @@ namespace WiseUpDude.Services
                     return null;
                 }
 
-                // ------ NEW: SHUFFLING MULTIPLE-CHOICE OPTIONS WITH SECOND API CALL ------
-                // 1. Build new prompt for shuffling answer options
-                var shufflePrompt = string.Join("\n", new[]
+                //Put it in here!
+                try
                 {
-                    "Here is a JSON object containing quiz questions.",
-                    "For each question of \"QuestionType\": \"MultipleChoice\", RANDOMLY shuffle the order of the \"Options\" array. Update the \"Answer\" field so it matches the new position of the correct answer.",
-                    "For questions of \"QuestionType\": \"TrueFalse\", DO NOT change the order of the options (always [\"True\", \"False\"]). Do not alter their \"Answer\".",
-                    "Return the updated questions in the exact same JSON structure.",
-                    "Return only the JSON, with no other text.",
-                    "- Return only the raw JSON, without any code block formatting or prefixes like 'json'.",
-                    json // Include generated quiz JSON as content!
-                });
+                    QuizResponse? parsedQuiz = JsonSerializer.Deserialize<QuizResponse>(json, options);
 
-                // 2. Make second call to the LLM to shuffle answers
+                    if (parsedQuiz != null)
+                    {
+                        parsedQuiz = _answerRandomizer.RandomizeAnswers(parsedQuiz);
+                        return parsedQuiz; // Return the randomized quiz if successful
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Randomization failed: {ex.Message}. Proceeding to shuffle answers.");
+                }
+
+                // Call the new method to shuffle answers
+                var shuffledQuiz = await ShuffleQuizAnswersAsync(json, options);
+                return shuffledQuiz;
+            }
+            catch (JsonException jex)
+            {
+                Console.WriteLine($"Quiz JSON parse error: {jex.Message}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Quiz generation failed: {ex.Message}");
+                return null;
+            }
+        }
+
+        private async Task<QuizResponse?> ShuffleQuizAnswersAsync(string quizJson, JsonSerializerOptions options)
+        {
+            var shufflePrompt = string.Join("\n", new[]
+            {
+                "Here is a JSON object containing quiz questions.",
+                "For each question of \"QuestionType\": \"MultipleChoice\", RANDOMLY shuffle the order of the \"Options\" array. Update the \"Answer\" field so it matches the new position of the correct answer.",
+                "For questions of \"QuestionType\": \"TrueFalse\", DO NOT change the order of the options (always [\"True\", \"False\"]). Do not alter their \"Answer\".",
+                "Return the updated questions in the exact same JSON structure.",
+                "Return only the JSON, with no other text.",
+                "- Return only the raw JSON, without any code block formatting or prefixes like 'json'.",
+                quizJson // Include generated quiz JSON as content!
+            });
+
+            Console.WriteLine("Shuffling quiz answers...");
+
+            try
+            {
                 var shuffleResult = await _chatClient.GetResponseAsync(shufflePrompt);
                 var shuffledJson = shuffleResult.Text;
                 Console.WriteLine($"Shuffled AI API Response: {shuffledJson}");
 
-                // 3. Parse the new shuffled JSON
+                // Check for errors in the shuffled response
                 if (!string.IsNullOrWhiteSpace(shuffledJson) && shuffledJson.TrimStart().StartsWith("{\"Error\"", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine($"Shuffling error from AI: {shuffledJson}");
                     return null;
                 }
 
-                QuizResponse? parsedJson;
-                try
-                {
-                    parsedJson = JsonSerializer.Deserialize<QuizResponse>(shuffledJson, options);
-                }
-                catch (JsonException ex)
-                {
-                    Console.WriteLine($"JSON parsing error during shuffle validation: {ex.Message}");
-                    return null;
-                }
+                // Parse the shuffled JSON
+                var parsedJson = JsonSerializer.Deserialize<QuizResponse>(shuffledJson, options);
 
-                // Confirm non-empty, all QuestionTypes valid
+                // Validate the parsed JSON
                 if (parsedJson?.Questions == null ||
                     !parsedJson.Questions.All(q =>
                         q.QuestionType == Model.QuizQuestionType.TrueFalse ||
@@ -127,16 +154,15 @@ namespace WiseUpDude.Services
                 }
 
                 return parsedJson;
-                // ------ END SECOND API CALL SECTION ------
             }
-            catch (JsonException jex)
+            catch (JsonException ex)
             {
-                Console.WriteLine($"Quiz JSON parse error: {jex.Message}");
+                Console.WriteLine($"JSON parsing error during shuffle validation: {ex.Message}");
                 return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Quiz generation failed: {ex.Message}");
+                Console.WriteLine($"Shuffling quiz answers failed: {ex.Message}");
                 return null;
             }
         }

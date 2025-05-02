@@ -67,23 +67,46 @@ namespace WiseUpDude.Services
                 var json = result.Text;
                 Console.WriteLine($"Raw AI API Response: {json}");
 
-                // --- NEW: Handle error JSON responses upfront ---
+                // Check error JSON
                 if (!string.IsNullOrWhiteSpace(json) && json.TrimStart().StartsWith("{\"Error\"", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine($"Quiz generation error from AI: {json}");
-                    // Optionally, parse and surface this for the frontend/UI
-                    // For now, we could return null or a QuizResponse with a special Error property/message for the UI.
+                    return null;
+                }
+
+                // ------ NEW: SHUFFLING MULTIPLE-CHOICE OPTIONS WITH SECOND API CALL ------
+                // 1. Build new prompt for shuffling answer options
+                var shufflePrompt = string.Join("\n", new[]
+                {
+                    "Here is a JSON object containing quiz questions.",
+                    "For each question of \"QuestionType\": \"MultipleChoice\", RANDOMLY shuffle the order of the \"Options\" array. Update the \"Answer\" field so it matches the new position of the correct answer.",
+                    "For questions of \"QuestionType\": \"TrueFalse\", DO NOT change the order of the options (always [\"True\", \"False\"]). Do not alter their \"Answer\".",
+                    "Return the updated questions in the exact same JSON structure.",
+                    "Return only the JSON, with no other text.",
+                    "- Return only the raw JSON, without any code block formatting or prefixes like 'json'.",
+                    json // Include generated quiz JSON as content!
+                });
+
+                // 2. Make second call to the LLM to shuffle answers
+                var shuffleResult = await _chatClient.GetResponseAsync(shufflePrompt);
+                var shuffledJson = shuffleResult.Text;
+                Console.WriteLine($"Shuffled AI API Response: {shuffledJson}");
+
+                // 3. Parse the new shuffled JSON
+                if (!string.IsNullOrWhiteSpace(shuffledJson) && shuffledJson.TrimStart().StartsWith("{\"Error\"", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine($"Shuffling error from AI: {shuffledJson}");
                     return null;
                 }
 
                 QuizResponse? parsedJson;
                 try
                 {
-                    parsedJson = JsonSerializer.Deserialize<QuizResponse>(json, options);
+                    parsedJson = JsonSerializer.Deserialize<QuizResponse>(shuffledJson, options);
                 }
                 catch (JsonException ex)
                 {
-                    Console.WriteLine($"JSON parsing error during validation: {ex.Message}");
+                    Console.WriteLine($"JSON parsing error during shuffle validation: {ex.Message}");
                     return null;
                 }
 
@@ -93,17 +116,18 @@ namespace WiseUpDude.Services
                         q.QuestionType == Model.QuizQuestionType.TrueFalse ||
                         q.QuestionType == Model.QuizQuestionType.MultipleChoice))
                 {
-                    Console.WriteLine("Invalid QuestionType values in AI API response.");
+                    Console.WriteLine("Invalid QuestionType values in AI shuffled response.");
                     return null;
                 }
 
                 if (!parsedJson.Questions.Any())
                 {
-                    Console.WriteLine("AI API response does not contain valid quiz data.");
+                    Console.WriteLine("AI shuffled response does not contain valid quiz data.");
                     return null;
                 }
 
                 return parsedJson;
+                // ------ END SECOND API CALL SECTION ------
             }
             catch (JsonException jex)
             {

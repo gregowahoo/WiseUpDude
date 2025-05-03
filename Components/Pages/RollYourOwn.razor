@@ -9,6 +9,7 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject IQuizFromPromptService QuizGenerationService
+@inject ILogger<RollYourOwn> Logger
 
 @rendermode InteractiveServer
 @attribute [Authorize]
@@ -63,14 +64,14 @@
 
         try
         {
-            Console.WriteLine($"[INFO] Sending prompt to QuizGenerationService: {UserPrompt}");
+            Logger.LogInformation("Sending prompt to QuizGenerationService: {UserPrompt}", UserPrompt);
 
             // Call the AI API to generate a quiz based on the user's prompt
             var generatedQuiz = await QuizGenerationService.GenerateQuizFromPromptAsync(UserPrompt);
 
             if (generatedQuiz != null)
             {
-                Console.WriteLine($"[INFO] Quiz successfully generated. Description: {generatedQuiz.Description}");
+                Logger.LogInformation("Quiz successfully generated. Description: {Description}", generatedQuiz.Description);
 
                 // Map the generated quiz to a new Quiz object
                 var newQuiz = new Quiz
@@ -91,13 +92,13 @@
             }
             else
             {
-                Console.WriteLine("[ERROR] QuizGenerationService returned null.");
+                Logger.LogError("QuizGenerationService returned null.");
                 ErrorMessage = "Failed to generate a quiz. Please try again.";
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ERROR] Exception during quiz generation: {ex.Message}");
+            Logger.LogError(ex, "Exception during quiz generation.");
             ErrorMessage = "An error occurred while generating the quiz. Please try again later.";
         }
         finally

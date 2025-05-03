@@ -1,4 +1,5 @@
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using WiseUpDude.Data.Entities;
 using WiseUpDude.Model;
@@ -10,11 +11,13 @@ namespace WiseUpDude.Services
     {
         private readonly IChatClient _chatClient;
         private readonly AnswerRandomizerService _answerRandomizer;
+        private readonly ILogger<QuizFromPromptService> _logger;
 
-        public QuizFromPromptService(IChatClient chatClient, AnswerRandomizerService answerRandomizer)
+        public QuizFromPromptService(IChatClient chatClient, AnswerRandomizerService answerRandomizer, ILogger<QuizFromPromptService> logger)
         {
             _chatClient = chatClient;
             _answerRandomizer = answerRandomizer;
+            _logger = logger;
         }
 
         public async Task<QuizResponse?> GenerateQuizFromPromptAsync(string prompt)
@@ -53,7 +56,7 @@ namespace WiseUpDude.Services
                     "- If the prompt is ambiguous, choose the most likely intended topic based on the text. If still unclear, return the above error object explaining that the prompt was ambiguous."
                 });
 
-            Console.WriteLine($"[INFO] Sending AI prompt: {aiPrompt}");
+            _logger.LogInformation("Sending AI prompt: {AiPrompt}", aiPrompt);
 
             try
             {
@@ -66,12 +69,12 @@ namespace WiseUpDude.Services
                 var result = await _chatClient.GetResponseAsync(aiPrompt);
                 var json = result.Text;
 
-                Console.WriteLine($"[INFO] Raw AI API Response: {json}");
+                _logger.LogInformation("Raw AI API Response: {Json}", json);
 
                 // Check error JSON
                 if (!string.IsNullOrWhiteSpace(json) && json.TrimStart().StartsWith("{\"Error\"", StringComparison.OrdinalIgnoreCase))
                 {
-                    Console.WriteLine($"[ERROR] AI API returned an error: {json}");
+                    _logger.LogError("AI API returned an error: {Json}", json);
                     return null;
                 }
 
@@ -88,7 +91,7 @@ namespace WiseUpDude.Services
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[ERROR] Randomization failed: {ex.Message}. Proceeding to shuffle answers.");
+                    _logger.LogError(ex, "Randomization failed. Proceeding to shuffle answers.");
                 }
 
                 // Call the new method to shuffle answers
@@ -97,12 +100,12 @@ namespace WiseUpDude.Services
             }
             catch (JsonException jex)
             {
-                Console.WriteLine($"[ERROR] Quiz JSON parse error: {jex.Message}");
+                _logger.LogError(jex, "Quiz JSON parse error.");
                 return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ERROR] Quiz generation failed: {ex.Message}");
+                _logger.LogError(ex, "Quiz generation failed.");
                 return null;
             }
         }
@@ -120,18 +123,18 @@ namespace WiseUpDude.Services
                     quizJson // Include generated quiz JSON as content!
                 });
 
-            Console.WriteLine("[INFO] Shuffling quiz answers...");
+            _logger.LogInformation("Shuffling quiz answers...");
 
             try
             {
                 var shuffleResult = await _chatClient.GetResponseAsync(shufflePrompt);
                 var shuffledJson = shuffleResult.Text;
-                Console.WriteLine($"[INFO] Shuffled AI API Response: {shuffledJson}");
+                _logger.LogInformation("Shuffled AI API Response: {ShuffledJson}", shuffledJson);
 
                 // Check for errors in the shuffled response
                 if (!string.IsNullOrWhiteSpace(shuffledJson) && shuffledJson.TrimStart().StartsWith("{\"Error\"", StringComparison.OrdinalIgnoreCase))
                 {
-                    Console.WriteLine($"[ERROR] Shuffling error from AI: {shuffledJson}");
+                    _logger.LogError("Shuffling error from AI: {ShuffledJson}", shuffledJson);
                     return null;
                 }
 
@@ -144,13 +147,13 @@ namespace WiseUpDude.Services
                         q.QuestionType == Model.QuizQuestionType.TrueFalse ||
                         q.QuestionType == Model.QuizQuestionType.MultipleChoice))
                 {
-                    Console.WriteLine("[ERROR] Invalid QuestionType values in AI shuffled response.");
+                    _logger.LogError("Invalid QuestionType values in AI shuffled response.");
                     return null;
                 }
 
                 if (!parsedJson.Questions.Any())
                 {
-                    Console.WriteLine("[ERROR] AI shuffled response does not contain valid quiz data.");
+                    _logger.LogError("AI shuffled response does not contain valid quiz data.");
                     return null;
                 }
 
@@ -158,12 +161,12 @@ namespace WiseUpDude.Services
             }
             catch (JsonException ex)
             {
-                Console.WriteLine($"[ERROR] JSON parsing error during shuffle validation: {ex.Message}");
+                _logger.LogError(ex, "JSON parsing error during shuffle validation.");
                 return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ERROR] Shuffling quiz answers failed: {ex.Message}");
+                _logger.LogError(ex, "Shuffling quiz answers failed.");
                 return null;
             }
         }

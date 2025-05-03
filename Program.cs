@@ -14,14 +14,34 @@ using WiseUpDude.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.Google;
 using Serilog;
 using WiseUpDude.Data.Repositories.Interfaces;
+using Microsoft.Extensions.Logging;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 #region Logging Configuration
-// Configure Serilog
+
+// Update the logging configuration to include Azure Web App Diagnostics  
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+builder.Logging.AddAzureWebAppDiagnostics();
+
+// Configure Serilog (this replaces default logging)
 builder.Host.UseSerilog((context, services, configuration) =>
-    configuration.WriteTo.Console()
-                 .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day));
+{
+    configuration
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+        .MinimumLevel.Information()
+        .Enrich.FromLogContext()
+        .WriteTo.Console()
+        .WriteTo.File("/home/LogFiles/serilog.log", rollingInterval: RollingInterval.Day); // ✅ Azure Linux-friendly path
+});
+
+// Optional: if you want to add App Service diagnostics *in addition to* Serilog
+// Uncomment this if you still want it
+builder.Logging.AddAzureWebAppDiagnostics();
 
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
@@ -170,5 +190,9 @@ app.Use(async (context, next) =>
     await next();
 });
 #endregion
+
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("WISE UP LOG: Greg, this log entry should be visible in Azure at {Time}", DateTime.UtcNow);
+
 
 app.Run();

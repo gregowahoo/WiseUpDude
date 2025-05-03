@@ -13,22 +13,22 @@ using WiseUpDude.Services;
 using WiseUpDude.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.Google;
 using Serilog;
+using Serilog.Events;
 using WiseUpDude.Data.Repositories.Interfaces;
 using Microsoft.Extensions.Logging;
-using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 #region Logging Configuration
 
-// Update the logging configuration to include Azure Web App Diagnostics  
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.AddDebug();
-builder.Logging.AddAzureWebAppDiagnostics();
+var isAzure = Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID") != null;
+var logPath = isAzure
+    ? @"D:\\home\\LogFiles\\serilog.log" // Azure App Service (Windows)
+    : Path.Combine("Logs", "log-.txt"); // Local dev logs
 
-// Configure Serilog (this replaces default logging)
+if (!isAzure && !Directory.Exists("Logs"))
+    Directory.CreateDirectory("Logs");
+
 builder.Host.UseSerilog((context, services, configuration) =>
 {
     configuration
@@ -36,15 +36,15 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .MinimumLevel.Information()
         .Enrich.FromLogContext()
         .WriteTo.Console()
-        .WriteTo.File("/home/LogFiles/serilog.log", rollingInterval: RollingInterval.Day); // ✅ Azure Linux-friendly path
+        .WriteTo.File(logPath, rollingInterval: RollingInterval.Day);
 });
 
-// Optional: if you want to add App Service diagnostics *in addition to* Serilog
-// Uncomment this if you still want it
-builder.Logging.AddAzureWebAppDiagnostics();
-
+// Optional: Also enable Azure Web App Diagnostics if needed for Log Stream
+builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
+builder.Logging.AddAzureWebAppDiagnostics();
+
 #endregion
 
 #region Configuration
@@ -56,7 +56,6 @@ builder.Configuration
 #endregion
 
 #region Chat Client Configuration
-// Chat client setup for Azure, GitHub, and OpenAI
 var innerChatClientAzure = new AzureOpenAIClient(
     new Uri(builder.Configuration["AI:Endpoint"] ?? throw new InvalidOperationException("Missing AI:Endpoint")),
     new ApiKeyCredential(builder.Configuration["AI:Key"] ?? throw new InvalidOperationException("Missing AI:Key")))
@@ -71,13 +70,10 @@ var innerChatClientOpenAI = new OpenAI.Chat.ChatClient("gpt-4.1",
     builder.Configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("Missing OpenAI:ApiKey"))
     .AsChatClient();
 
-//builder.Services.AddChatClient(innerChatClientAzure); // Azure-based GPT-3.5
-//builder.Services.AddChatClient(innerChatClientGithub); // Azure-based GPT-3.5
-builder.Services.AddChatClient(innerChatClientOpenAI); // “gpt-4o-mini” from OpenAI
+builder.Services.AddChatClient(innerChatClientOpenAI);
 #endregion
 
 #region Services
-// General service registrations
 builder.Services.AddApplicationInsightsTelemetry(options =>
 {
     options.ConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"]
@@ -90,21 +86,16 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<ContentFetchingService>();
-
-builder.Services.AddScoped<QuizBuilderService>();           //TODO:Deterine if this is needed
-
+builder.Services.AddScoped<QuizBuilderService>();
 builder.Services.AddScoped<QuizStateService>();
 builder.Services.AddScoped<IQuizFromPromptService, QuizFromPromptService>();
 builder.Services.AddScoped<AnswerRandomizerService>();
-
 builder.Services.AddScoped<IRepository<Quiz>, QuizRepository>();
 builder.Services.AddScoped<IQuizQuestionRepository<QuizQuestion>, QuizQuestionRepository>();
 builder.Services.AddScoped<ITopicRepository<Topic>, TopicRepository>();
-
 builder.Services.AddScoped<IUserRepository<Quiz>, UserQuizRepository>();
 builder.Services.AddScoped<IUserRepository<QuizQuestion>, UserQuizQuestionRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-
 builder.Services.AddScoped<TopicService>();
 builder.Services.AddScoped<QuizFromTopicService>();
 builder.Services.AddScoped<IdentityUserAccessor>();
@@ -112,11 +103,9 @@ builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-
 #endregion
 
 #region Authentication
-// Authentication setup
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = IdentityConstants.ApplicationScheme;
@@ -129,12 +118,11 @@ builder.Services.AddAuthentication()
     {
         googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? throw new InvalidOperationException("Missing Google ClientId in configuration.");
         googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? throw new InvalidOperationException("Missing Google ClientSecret in configuration.");
-        googleOptions.CallbackPath = new PathString("/signin-google"); // Default redirect URI
+        googleOptions.CallbackPath = new PathString("/signin-google");
     });
 #endregion
 
 #region EF Core and Identity
-// EF Core and Identity setup
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
@@ -152,7 +140,6 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 var app = builder.Build();
 
 #region Database Initialization
-// Auto-apply any pending migrations on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -175,15 +162,12 @@ app.UseHttpsRedirection();
 app.UseAntiforgery();
 app.UseStaticFiles();
 
-// Static assets & Razor Components
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-// Identity UI endpoints
 app.MapAdditionalIdentityEndpoints();
 
-// Middleware to set the X-Content-Type-Options header on every response
 app.Use(async (context, next) =>
 {
     context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
@@ -192,7 +176,6 @@ app.Use(async (context, next) =>
 #endregion
 
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
-logger.LogInformation("WISE UP LOG: Greg, this log entry should be visible in Azure at {Time}", DateTime.UtcNow);
-
+logger.LogInformation("🔥 WISE UP LOG: Local + Azure logging is working at {Time}", DateTime.UtcNow);
 
 app.Run();

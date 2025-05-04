@@ -1,58 +1,67 @@
 ﻿<header class="p-3 bg-dark text-white">
     <div class="container">
-        <div class="d-flex flex-wrap align-items-center justify-content-between">
-            <!-- Add the logo aligned to the left -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <!-- Logo -->
             <a class="navbar-brand" href="/">
                 <img src="images/WiseUpDudeLogoWhite.png" alt="Wise Up Dude Logo" style="height: 50px; width: auto;" />
             </a>
 
-            <ul class="nav">
-                <li class="nav-item">
-                    <NavLink class="nav-link px-2 text-white" href="/" Match="NavLinkMatch.All">Home</NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link px-2 text-white" href="/pickatopic" Match="NavLinkMatch.Prefix">Pick a Topic</NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link px-2 text-white" href="/rollyourown" Match="NavLinkMatch.Prefix">Roll Your Own</NavLink>
-                </li>
-            </ul>
+            <!-- Hamburger Menu Button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-            <div class="text-end">
-                <AuthorizeView>
-                    Hello wise guy: @context.User.Identity?.Name!
-                </AuthorizeView>
+            <!-- Collapsible Navbar Content -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <NavLink class="nav-link px-2 text-white" href="/" Match="NavLinkMatch.All">Home</NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link px-2 text-white" href="/pickatopic" Match="NavLinkMatch.Prefix">Pick a Topic</NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link px-2 text-white" href="/rollyourown" Match="NavLinkMatch.Prefix">Roll Your Own</NavLink>
+                    </li>
+                </ul>
+
+                <!-- Right-aligned Content -->
+                <div class="text-end">
+                    <AuthorizeView>
+                        Hello wise guy: @context.User.Identity?.Name!
+                    </AuthorizeView>
+                </div>
+
+                <div class="text-end">
+                    <AuthorizeView>
+                        <Authorized>
+                            <ul class="navbar-nav">
+                                <li class="nav-item">
+                                    <NavLink class="nav-link px-2 text-white" href="/admin" Match="NavLinkMatch.Prefix">Admin Dashboard</NavLink>
+                                </li>
+                            </ul>
+                        </Authorized>
+
+                        <NotAuthorized>
+                            <ul class="navbar-nav">
+                                <li class="nav-item">
+                                    <NavLink class="nav-link px-2 text-white" href="/Account/Login" Match="NavLinkMatch.Prefix">Login</NavLink>
+                                </li>
+                                <li class="nav-item">
+                                    <NavLink class="nav-link px-2 text-white" href="/Account/Register" Match="NavLinkMatch.Prefix">Sign-up</NavLink>
+                                </li>
+                            </ul>
+                        </NotAuthorized>
+                        <Authorized>
+                            <ul class="navbar-nav">
+                                <li class="nav-item">
+                                    <NavLink class="nav-link px-2 text-white" href="/Account/logout" Match="NavLinkMatch.Prefix">Logout</NavLink>
+                                </li>
+                            </ul>
+                        </Authorized>
+                    </AuthorizeView>
+                </div>
             </div>
-
-            <div class="text-end">
-                <AuthorizeView>
-                    <Authorized>                //TODO: implment roles so we can have a boss!
-                        <ul class="nav">
-                            <li class="nav-item">
-                                <NavLink class="nav-link px-2 text-white" href="/admin" Match="NavLinkMatch.Prefix">Admin Dashboard</NavLink>
-                            </li>
-                        </ul>
-                    </Authorized>
-
-                    <NotAuthorized>
-                        <ul class="nav">
-                            <li class="nav-item">
-                                <NavLink class="nav-link px-2 text-white" href="/Account/Login" Match="NavLinkMatch.Prefix">Login</NavLink>
-                            </li>
-                            <li class="nav-item">
-                                <NavLink class="nav-link px-2 text-white" href="/Account/Register" Match="NavLinkMatch.Prefix">Sign-up</NavLink>
-                            </li>
-                        </ul>
-                    </NotAuthorized>
-                    <Authorized>
-                        <ul class="nav">
-                            <li class="nav-item">
-                                <NavLink class="nav-link px-2 text-white" href="/Account/logout" Match="NavLinkMatch.Prefix">Logout</NavLink>
-                            </li>
-                        </ul>
-                    </Authorized>
-                </AuthorizeView>
-            </div>
-        </div>
+        </nav>
     </div>
 </header>

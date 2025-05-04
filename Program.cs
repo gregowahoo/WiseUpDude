@@ -80,6 +80,15 @@ builder.Services.AddApplicationInsightsTelemetry(options =>
         ?? throw new InvalidOperationException("Missing Application Insights ConnectionString in configuration.");
 });
 
+builder.Logging.AddApplicationInsights(
+    configureTelemetryConfiguration: (config) =>
+    {
+        config.ConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
+    },
+    configureApplicationInsightsLoggerOptions: (options) => { }
+);
+
+
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<ITopicsCacheService<WiseUpDude.Model.Topic>, TopicsCacheService<WiseUpDude.Model.Topic>>();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();

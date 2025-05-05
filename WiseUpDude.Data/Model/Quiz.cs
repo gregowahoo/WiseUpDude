@@ -30,6 +30,9 @@ namespace WiseUpDude.Model
 
         // Add TopicId to match Entities.Quiz
         public int TopicId { get; set; } // Foreign key to Topic
+
+        // Add CreationDate to match UserQuiz
+        public DateTime CreationDate { get; set; }
     }
 
 }

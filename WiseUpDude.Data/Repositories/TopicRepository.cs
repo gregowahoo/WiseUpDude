@@ -8,7 +8,7 @@ using WiseUpDude.Model;
 
 namespace WiseUpDude.Data.Repositories
 {
-    public class TopicRepository : ITopicRepository<Model.Topic>
+    public class TopicRepository : ITopicRepository<WiseUpDude.Model.Topic>
     {
         private readonly ApplicationDbContext _context;
 
@@ -16,14 +16,16 @@ namespace WiseUpDude.Data.Repositories
         {
             _context = context;
         }
+        public string? Category { get; set; }
+        public string? CategoryDescription { get; set; }
 
-        public async Task<IEnumerable<Model.Topic>> GetAllAsync()
+        public async Task<IEnumerable<WiseUpDude.Model.Topic>> GetAllAsync()
         {
             var entities = await _context.Topics
                 .Include(t => t.Category) // Include the related Category
                 .ToListAsync();
 
-            return entities.Select(e => new Model.Topic
+            return entities.Select(e => new WiseUpDude.Model.Topic
             {
                 Id = e.Id,
                 Name = e.Name,
@@ -34,7 +36,7 @@ namespace WiseUpDude.Data.Repositories
             });
         }
 
-        public async Task<IEnumerable<Model.Topic>> GetUniqueTopicsAsync()
+        public async Task<IEnumerable<WiseUpDude.Model.Topic>> GetUniqueTopicsAsync()
         {
             var uniqueTopics = await _context.Topics
                 .Include(t => t.Category) // Include the related Category
@@ -42,7 +44,7 @@ namespace WiseUpDude.Data.Repositories
                 .Select(g => g.First()) // Select the first topic in each group
                 .ToListAsync();
 
-            return uniqueTopics.Select(topic => new Model.Topic
+            return uniqueTopics.Select(topic => new WiseUpDude.Model.Topic
             {
                 Id = topic.Id,
                 Name = topic.Name,
@@ -53,7 +55,7 @@ namespace WiseUpDude.Data.Repositories
             });
         }
 
-        public async Task<Model.Topic> GetByIdAsync(int id)
+        public async Task<WiseUpDude.Model.Topic> GetByIdAsync(int id)
         {
             var entity = await _context.Topics
                 .Include(t => t.Category) // Include the related Category
@@ -62,7 +64,7 @@ namespace WiseUpDude.Data.Repositories
             if (entity == null)
                 throw new KeyNotFoundException($"Topic with Id {id} not found.");
 
-            return new Model.Topic
+            return new WiseUpDude.Model.Topic
             {
                 Id = entity.Id,
                 Name = entity.Name,
@@ -73,14 +75,14 @@ namespace WiseUpDude.Data.Repositories
             };
         }
 
-        public async Task<IEnumerable<Model.Topic>> GetTopicsAsync(int count)
+        public async Task<IEnumerable<WiseUpDude.Model.Topic>> GetTopicsAsync(int count)
         {
             var topics = await _context.Topics
                 .Include(t => t.Category) // Include the related Category
                 .Take(count) // Limit the number of topics returned
                 .ToListAsync();
 
-            return topics.Select(topic => new Model.Topic
+            return topics.Select(topic => new WiseUpDude.Model.Topic
             {
                 Id = topic.Id,
                 Name = topic.Name,
@@ -91,14 +93,14 @@ namespace WiseUpDude.Data.Repositories
             });
         }
 
-        public async Task<IEnumerable<Model.Topic>> GetTopicsWithoutQuestionsAsync()
+        public async Task<IEnumerable<WiseUpDude.Model.Topic>> GetTopicsWithoutQuestionsAsync()
         {
             var topicsWithoutQuestions = await _context.Topics
                 .Include(t => t.Category) // Include the related Category
                 .Where(topic => !topic.Quizzes.Any()) // Check if the topic has no associated quizzes
                 .ToListAsync();
 
-            return topicsWithoutQuestions.Select(topic => new Model.Topic
+            return topicsWithoutQuestions.Select(topic => new WiseUpDude.Model.Topic
             {
                 Id = topic.Id,
                 Name = topic.Name,
@@ -109,14 +111,14 @@ namespace WiseUpDude.Data.Repositories
             });
         }
 
-        public async Task<IEnumerable<Model.Topic>> GetTopicsByCategoryAsync(int categoryId)
+        public async Task<IEnumerable<WiseUpDude.Model.Topic>> GetTopicsByCategoryAsync(int categoryId)
         {
             var topics = await _context.Topics
                 .Include(t => t.Category) // Include the related Category
                 .Where(t => t.CategoryId == categoryId) // Filter by CategoryId
                 .ToListAsync();
 
-            return topics.Select(topic => new Model.Topic
+            return topics.Select(topic => new WiseUpDude.Model.Topic
             {
                 Id = topic.Id,
                 Name = topic.Name,
@@ -127,7 +129,7 @@ namespace WiseUpDude.Data.Repositories
             });
         }
 
-        public async Task AddAsync(Model.Topic topic)
+        public async Task AddAsync(WiseUpDude.Model.Topic topic)
         {
             var categoryEntity = await _context.Categories.FindAsync(topic.CategoryId);
             if (categoryEntity == null)
@@ -151,7 +153,7 @@ namespace WiseUpDude.Data.Repositories
             topic.Id = entity.Id;
         }
 
-        public async Task UpdateAsync(Model.Topic topic)
+        public async Task UpdateAsync(WiseUpDude.Model.Topic topic)
         {
             var entity = await _context.Topics.FirstOrDefaultAsync(t => t.Id == topic.Id);
 

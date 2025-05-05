@@ -174,5 +174,58 @@ namespace WiseUpDude.Data.Repositories
             _context.UserQuizzes.Remove(userQuiz);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<List<WiseUpDude.Model.Quiz>> GetUserQuizzesAsync(string userId)
+        {
+            var userQuizzes = await _context.UserQuizzes
+                .Include(q => q.Questions)
+                .Include(q => q.User) // Eagerly load the User property
+                .Where(q => q.UserId == userId)
+                .OrderByDescending(q => q.CreationDate)
+                .ToListAsync();
+
+            return userQuizzes.Select(uq => new WiseUpDude.Model.Quiz
+            {
+                Id = uq.Id,
+                Name = uq.Name,
+                UserName = uq.UserId, // Assuming UserId maps to UserName in the model
+                Questions = uq.Questions.Select(q => new WiseUpDude.Model.QuizQuestion
+                {
+                    Id = q.Id,
+                    Question = q.Question,
+                    Answer = q.Answer,
+                    Explanation = q.Explanation,
+                    QuestionType = (WiseUpDude.Model.QuizQuestionType)q.QuestionType,
+                    Options = string.IsNullOrEmpty(q.OptionsJson)
+                        ? new List<string>()
+                        : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson),
+                    UserAnswer = q.UserAnswer,
+                    Difficulty = q.Difficulty
+                }).ToList(),
+                Type = uq.Type,
+                Topic = uq.Topic,
+                Prompt = uq.Prompt,
+                Description = uq.Description,
+                Difficulty = uq.Difficulty,
+                //TopicId = uq.TopicId // Assuming TopicId exists in the entity
+                User = new ApplicationUser
+                {
+                    Id = uq.UserId,
+                    UserName = uq.User.UserName
+                }
+            }).ToList();
+        }
+
+
+        // Helper to get recent quizzes (e.g., last 5)
+        public async Task<List<UserQuiz>> GetRecentUserQuizzesAsync(string userId, int count = 5)
+        {
+            return await _context.UserQuizzes
+                .Include(q => q.Questions)
+                .Where(q => q.UserId == userId)
+                .OrderByDescending(q => q.CreationDate)
+                .Take(count)
+                .ToListAsync();
+        }
     }
 }

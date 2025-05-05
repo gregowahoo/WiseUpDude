@@ -10,7 +10,7 @@ using WiseUpDude.Model;
 
 namespace WiseUpDude.Data.Repositories
 {
-    public class QuizQuestionRepository : IQuizQuestionRepository<Model.QuizQuestion>
+    public class QuizQuestionRepository : IQuizQuestionRepository<WiseUpDude.Model.QuizQuestion>
     {
         private readonly ApplicationDbContext _context;
 
@@ -19,14 +19,14 @@ namespace WiseUpDude.Data.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Model.QuizQuestion>> GetAllAsync()
+        public async Task<IEnumerable<WiseUpDude.Model.QuizQuestion>> GetAllAsync()
         {
             var entities = await _context.QuizQuestions.ToListAsync();
-            return entities.Select(e => new Model.QuizQuestion
+            return entities.Select(e => new WiseUpDude.Model.QuizQuestion
             {
                 Id = e.Id,
                 Question = e.Question,
-                QuestionType = (Model.QuizQuestionType)e.QuestionType, // Explicit cast
+                QuestionType = (WiseUpDude.Model.QuizQuestionType)e.QuestionType, // Explicit cast
                 Options = string.IsNullOrEmpty(e.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(e.OptionsJson),
                 Answer = e.Answer,
                 Explanation = e.Explanation,
@@ -35,17 +35,17 @@ namespace WiseUpDude.Data.Repositories
             });
         }
 
-        public async Task<Model.QuizQuestion> GetByIdAsync(int id)
+        public async Task<WiseUpDude.Model.QuizQuestion> GetByIdAsync(int id)
         {
             var entity = await _context.QuizQuestions.FirstOrDefaultAsync(q => q.Id == id);
             if (entity == null)
                 throw new KeyNotFoundException($"QuizQuestion with Id {id} not found.");
 
-            return new Model.QuizQuestion
+            return new WiseUpDude.Model.QuizQuestion
             {
                 Id = entity.Id,
                 Question = entity.Question,
-                QuestionType = (Model.QuizQuestionType)entity.QuestionType, // Explicit cast
+                QuestionType = (WiseUpDude.Model.QuizQuestionType)entity.QuestionType, // Explicit cast
                 Options = string.IsNullOrEmpty(entity.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(entity.OptionsJson),
                 Answer = entity.Answer,
                 Explanation = entity.Explanation,
@@ -54,7 +54,7 @@ namespace WiseUpDude.Data.Repositories
             };
         }
 
-        public async Task AddAsync(Model.QuizQuestion model)
+        public async Task AddAsync(WiseUpDude.Model.QuizQuestion model)
         {
             // Fetch the associated Quiz entity to set the required Quiz property
             var quizEntity = await _context.Quizzes.FirstOrDefaultAsync(q => q.Id == model.QuizId);

@@ -10,7 +10,7 @@ using WiseUpDude.Data.Repositories.Interfaces;
 
 namespace WiseUpDude.Data.Repositories
 {
-    public class QuizRepository : IRepository<Model.Quiz>
+    public class QuizRepository : IRepository<WiseUpDude.Model.Quiz>
     {
         private readonly ApplicationDbContext _context;
 
@@ -19,7 +19,7 @@ namespace WiseUpDude.Data.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Model.Quiz>> GetAllAsync()
+        public async Task<IEnumerable<WiseUpDude.Model.Quiz>> GetAllAsync()
         {
             var entities = await _context.Quizzes
                 .Include(q => q.Questions)
@@ -27,13 +27,13 @@ namespace WiseUpDude.Data.Repositories
                 .Include(q => q.Topic) // Include the Topic
                 .ToListAsync();
 
-            return entities.Select(e => new Model.Quiz
+            return entities.Select(e => new WiseUpDude.Model.Quiz
             {
                 Id = e.Id,
                 Name = e.Name,
                 UserName = e.User?.UserName ?? "Unknown User", // Handle possible null reference
                 User = e.User ?? new ApplicationUser { UserName = "Unknown User" }, // Provide a default User object
-                Questions = e.Questions.Select(q => new Model.QuizQuestion
+                Questions = e.Questions.Select(q => new WiseUpDude.Model.QuizQuestion
                 {
                     Id = q.Id,
                     Question = q.Question,
@@ -48,7 +48,7 @@ namespace WiseUpDude.Data.Repositories
             });
         }
 
-        public async Task<Model.Quiz> GetByIdAsync(int id)
+        public async Task<WiseUpDude.Model.Quiz> GetByIdAsync(int id)
         {
             var entity = await _context.Quizzes
                 .Include(q => q.Questions)
@@ -59,13 +59,13 @@ namespace WiseUpDude.Data.Repositories
             if (entity == null)
                 throw new KeyNotFoundException($"Quiz with Id {id} not found.");
 
-            return new Model.Quiz
+            return new WiseUpDude.Model.Quiz
             {
                 Id = entity.Id,
                 Name = entity.Name,
                 UserName = entity.User?.UserName ?? "Unknown User", // Handle possible null reference
                 User = entity.User ?? new ApplicationUser { UserName = "Unknown User" }, // Provide a default User object
-                Questions = entity.Questions.Select(q => new Model.QuizQuestion
+                Questions = entity.Questions.Select(q => new WiseUpDude.Model.QuizQuestion
                 {
                     Id = q.Id,
                     Question = q.Question,
@@ -80,7 +80,7 @@ namespace WiseUpDude.Data.Repositories
             };
         }
 
-        public async Task<IEnumerable<Model.Quiz>> GetQuizzesByTopicIdAsync(int topicId)
+        public async Task<IEnumerable<WiseUpDude.Model.Quiz>> GetQuizzesByTopicIdAsync(int topicId)
         {
             var quizzes = await _context.Quizzes
                 .Include(q => q.Questions)
@@ -89,18 +89,18 @@ namespace WiseUpDude.Data.Repositories
                 .Where(q => q.TopicId == topicId) // Filter by TopicId
                 .ToListAsync();
 
-            return quizzes.Select(q => new Model.Quiz
+            return quizzes.Select(q => new WiseUpDude.Model.Quiz
             {
                 Id = q.Id,
                 Name = q.Name,
-                Questions = q.Questions.Select(qq => new Model.QuizQuestion
+                Questions = q.Questions.Select(qq => new WiseUpDude.Model.QuizQuestion
                 {
                     Id = qq.Id,
                     Question = qq.Question,
                     Options = qq.OptionsJson != null ? JsonSerializer.Deserialize<List<string>>(qq.OptionsJson) : null,
                     Answer = qq.Answer,
                     Explanation = qq.Explanation,
-                    QuestionType = (Model.QuizQuestionType)qq.QuestionType,
+                    QuestionType = (WiseUpDude.Model.QuizQuestionType)qq.QuestionType,
                     Difficulty = qq.Difficulty
                 }).ToList(),
                 UserName = q.User?.UserName ?? "Unknown User",
@@ -115,7 +115,7 @@ namespace WiseUpDude.Data.Repositories
         }
 
 
-        public async Task AddAsync(Model.Quiz quiz)
+        public async Task AddAsync(WiseUpDude.Model.Quiz quiz)
         {
             // Create a new Quiz entity
             var entity = new Entities.Quiz
@@ -202,7 +202,7 @@ namespace WiseUpDude.Data.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(Model.Quiz model)
+        public async Task UpdateAsync(WiseUpDude.Model.Quiz model)
         {
             var entity = await _context.Quizzes
                 .Include(q => q.Questions)

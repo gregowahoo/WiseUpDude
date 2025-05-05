@@ -2,10 +2,13 @@
 
 @layout WiseUpDude.Components.Layout.MinimalLayout
 
+@using Microsoft.AspNetCore.Components.Authorization
+@using WiseUpDude.Data.Model
 @using WiseUpDude.Services
-@using WiseUpDude.Model
+@* @using WiseUpDude.Services.Models *@
 
-@inject QuizStateService QuizState
+@inject DashboardDataService DashboardData
+@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavManager
 
 @rendermode InteractiveServer
@@ -18,7 +21,7 @@
         <div class="col-md-4">
             <div class="card border-0 shadow-sm text-center p-4">
                 <h5>Total Quizzes Taken</h5>
-                <p class="display-4">@TotalQuizzesTaken</p>
+                <p class="display-4">@Summary?.TotalQuizzesTaken</p>
             </div>
         </div>
 
@@ -26,7 +29,7 @@
         <div class="col-md-4">
             <div class="card border-0 shadow-sm text-center p-4">
                 <h5>Average Score</h5>
-                <p class="display-4">@AverageScore%</p>
+                <p class="display-4">@($"{Summary?.AverageScore:F0}%")</p>
             </div>
         </div>
 
@@ -34,8 +37,8 @@
         <div class="col-md-4">
             <div class="card border-0 shadow-sm text-center p-4">
                 <h5>Best Quiz</h5>
-                <p>@BestQuizTitle</p>
-                <p class="text-success">Score: @BestQuizScore%</p>
+                <p>@(Summary?.BestQuizName ?? "N/A")</p>
+                <p class="text-success">Score: @($"{Summary?.BestQuizScore ?? 0:F0}%")</p>
             </div>
         </div>
     </div>
@@ -43,14 +46,35 @@
     <!-- Recent Quizzes Section -->
     <div class="mt-5">
         <h3>Recent Quizzes</h3>
-        @if (RecentQuizzes?.Any() == true)
+        @if (Summary == null)
+        {
+            <p>Loading...</p>
+        }
+        else if (Summary.RecentQuizzes?.Any() == true)
         {
             <ul class="list-group">
-                @foreach (var quiz in RecentQuizzes)
+                @foreach (var quiz in Summary.RecentQuizzes)
                 {
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>@quiz.Name</span>
-                        <span class="badge bg-primary rounded-pill">@quiz.Score%</span>
+                    <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                        <div>
+                            <span class="fw-bold">@quiz.Name</span>
+                            @if (quiz.Type == "Prompt" && !string.IsNullOrWhiteSpace(quiz.Prompt))
+                            {
+                                <span class="ms-2 badge bg-secondary">Prompt</span>
+                                <span class="ms-1 text-muted">@quiz.Prompt</span>
+                            }
+                            else if (!string.IsNullOrWhiteSpace(quiz.Topic))
+                            {
+                                <span class="ms-2 badge bg-info text-dark">Topic: @quiz.Topic</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(quiz.Description))
+                            {
+                                <div class="text-muted" style="font-size: 0.85em; max-width: 500px; word-break: break-word;">
+                                    @quiz.Description
+                                </div>
+                            }
+                        </div>
+                        <span class="badge bg-primary rounded-pill align-self-md-center mt-2 mt-md-0">@($"{quiz.Score:F0}%")</span>
                     </li>
                 }
             </ul>
@@ -68,44 +92,19 @@
 </div>
 
 @code {
-    private int TotalQuizzesTaken { get; set; }
-    private double AverageScore { get; set; }
-    private string BestQuizTitle { get; set; } = "N/A";
-    private double BestQuizScore { get; set; }
-    private List<UserQuiz> RecentQuizzes { get; set; } = new();
+    private DashboardSummaryDto? Summary;
 
     protected override async Task OnInitializedAsync()
     {
-        // Simulate fetching data (replace with actual service calls)
-        await LoadQuizDataAsync();
-    }
-
-    private async Task LoadQuizDataAsync()
-    {
-        // Example: Replace with actual data fetching logic
-        RecentQuizzes = new List<UserQuiz>
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
         {
-            new UserQuiz { Name = "World War II", Score = 85 },
-            new UserQuiz { Name = "Photosynthesis", Score = 90 },
-            new UserQuiz { Name = "Periodic Table", Score = 75 }
-        };
-
-        TotalQuizzesTaken = RecentQuizzes.Count;
-        AverageScore = RecentQuizzes.Any() ? RecentQuizzes.Average(q => q.Score) : 0;
-        var bestQuiz = RecentQuizzes.OrderByDescending(q => q.Score).FirstOrDefault();
-        if (bestQuiz != null)
-        {
-            BestQuizTitle = bestQuiz.Name;
-            BestQuizScore = bestQuiz.Score;
+            var userId = user.FindFirst(c => c.Type == "sub" || c.Type.EndsWith("nameidentifier"))?.Value;
+            if (!string.IsNullOrEmpty(userId))
+            {
+                Summary = await DashboardData.GetDashboardSummaryAsync(userId);
+            }
         }
-
-        await Task.CompletedTask;
-    }
-
-    // Example UserQuiz model (replace with actual model)
-    private class UserQuiz
-    {
-        public string Name { get; set; } = string.Empty;
-        public double Score { get; set; }
     }
 }

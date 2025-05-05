@@ -17,13 +17,13 @@ namespace WiseUpDude.Data.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Model.Category>> GetAllAsync()
+        public async Task<IEnumerable<WiseUpDude.Model.Category>> GetAllAsync()
         {
             var entities = await _context.Categories
                 .Include(c => c.Topics) // Include related Topics if needed
                 .ToListAsync();
 
-            return entities.Select(e => new Model.Category
+            return entities.Select(e => new WiseUpDude.Model.Category
             {
                 Id = e.Id,
                 Name = e.Name,
@@ -31,7 +31,7 @@ namespace WiseUpDude.Data.Repositories
             });
         }
 
-        public async Task<Model.Category?> GetByIdAsync(int id)
+        public async Task<WiseUpDude.Model.Category?> GetByIdAsync(int id)
         {
             var entity = await _context.Categories
                 .Include(c => c.Topics) // Include related Topics if needed
@@ -40,7 +40,7 @@ namespace WiseUpDude.Data.Repositories
             if (entity == null)
                 return null;
 
-            return new Model.Category
+            return new WiseUpDude.Model.Category
             {
                 Id = entity.Id,
                 Name = entity.Name,
@@ -48,7 +48,7 @@ namespace WiseUpDude.Data.Repositories
             };
         }
 
-        public async Task AddAsync(Model.Category category)
+        public async Task AddAsync(WiseUpDude.Model.Category category)
         {
             var entity = new Entities.Category
             {
@@ -62,7 +62,7 @@ namespace WiseUpDude.Data.Repositories
             category.Id = entity.Id;
         }
 
-        public async Task UpdateAsync(Model.Category category)
+        public async Task UpdateAsync(WiseUpDude.Model.Category category)
         {
             var entity = await _context.Categories.FirstOrDefaultAsync(c => c.Id == category.Id);
 

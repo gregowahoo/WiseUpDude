@@ -8,7 +8,7 @@ using WiseUpDude.Model;
 
 namespace WiseUpDude.Data.Repositories
 {
-    public class TopicCreationRunRepository : ITopicCreationRunRepository<Model.TopicCreationRun>
+    public class TopicCreationRunRepository : ITopicCreationRunRepository<WiseUpDude.Model.TopicCreationRun>
     {
         private readonly ApplicationDbContext _context;
 
@@ -17,7 +17,7 @@ namespace WiseUpDude.Data.Repositories
             _context = context;
         }
 
-        public async Task AddAsync(Model.TopicCreationRun entity)
+        public async Task AddAsync(WiseUpDude.Model.TopicCreationRun entity)
         {
             var entityTopicCreationRun = new WiseUpDude.Data.Entities.TopicCreationRun
             {
@@ -50,7 +50,7 @@ namespace WiseUpDude.Data.Repositories
             entity.Id = entityTopicCreationRun.Id;
         }
 
-        public async Task AddAsync(Model.TopicCreationRun topicCreationRun, List<Model.Topic> modelTopics)
+        public async Task AddAsync(WiseUpDude.Model.TopicCreationRun topicCreationRun, List<WiseUpDude.Model.Topic> modelTopics)
         {
             var categoryMap = new Dictionary<string, WiseUpDude.Data.Entities.Category>();
             foreach (var topic in modelTopics)
@@ -109,7 +109,7 @@ namespace WiseUpDude.Data.Repositories
             topicCreationRun.Id = entityTopicCreationRun.Id;
         }
 
-        public async Task<Model.TopicCreationRun> GetByIdAsync(int id)
+        public async Task<WiseUpDude.Model.TopicCreationRun> GetByIdAsync(int id)
         {
             var entity = await _context.TopicCreationRuns
                 .Include(t => t.Topics)
@@ -119,12 +119,12 @@ namespace WiseUpDude.Data.Repositories
             if (entity == null)
                 throw new KeyNotFoundException($"TopicCreationRun with Id {id} not found.");
 
-            return new Model.TopicCreationRun
+            return new WiseUpDude.Model.TopicCreationRun
             {
                 Id = entity.Id,
                 CreationDate = entity.CreationDate,
                 Llm = entity.Llm,
-                Topics = entity.Topics?.Select(t => new Model.Topic
+                Topics = entity.Topics?.Select(t => new WiseUpDude.Model.Topic
                 {
                     Id = t.Id,
                     Name = t.Name,
@@ -136,19 +136,19 @@ namespace WiseUpDude.Data.Repositories
             };
         }
 
-        public async Task<IEnumerable<Model.TopicCreationRun>> GetAllAsync()
+        public async Task<IEnumerable<WiseUpDude.Model.TopicCreationRun>> GetAllAsync()
         {
             var entities = await _context.TopicCreationRuns
                 .Include(t => t.Topics)
                 .ThenInclude(t => t.Category) // Ensure Category is included
                 .ToListAsync();
 
-            return entities.Select(entity => new Model.TopicCreationRun
+            return entities.Select(entity => new WiseUpDude.Model.TopicCreationRun
             {
                 Id = entity.Id,
                 CreationDate = entity.CreationDate,
                 Llm = entity.Llm,
-                Topics = entity.Topics?.Select(t => new Model.Topic
+                Topics = entity.Topics?.Select(t => new WiseUpDude.Model.Topic
                 {
                     Id = t.Id,
                     Name = t.Name,
@@ -160,7 +160,7 @@ namespace WiseUpDude.Data.Repositories
             });
         }
 
-        public async Task UpdateAsync(Model.TopicCreationRun model)
+        public async Task UpdateAsync(WiseUpDude.Model.TopicCreationRun model)
         {
             var entity = await _context.TopicCreationRuns
                 .Include(t => t.Topics)

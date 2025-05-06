@@ -218,14 +218,36 @@ namespace WiseUpDude.Data.Repositories
 
 
         // Helper to get recent quizzes (e.g., last 5)
-        public async Task<List<UserQuiz>> GetRecentUserQuizzesAsync(string userId, int count = 5)
+        public async Task<List<RecentQuizDto>> GetRecentUserQuizzesAsync(string userId, int count = 5)
         {
-            return await _context.UserQuizzes
+            var userQuizzes = await _context.UserQuizzes
                 .Include(q => q.Questions)
                 .Where(q => q.UserId == userId)
                 .OrderByDescending(q => q.CreationDate)
                 .Take(count)
                 .ToListAsync();
+
+            return userQuizzes.Select(uq => new RecentQuizDto
+            {
+                Id = uq.Id, // Populate the Id
+                Name = uq.Name,
+                Score = CalculateScore(uq),
+                Type = uq.Type,
+                Topic = uq.Topic,
+                Prompt = uq.Prompt,
+                Description = uq.Description
+            }).ToList();
         }
+        private double CalculateScore(UserQuiz userQuiz)
+        {
+            if (userQuiz.Questions == null || userQuiz.Questions.Count == 0)
+                return 0;
+
+            int totalQuestions = userQuiz.Questions.Count;
+            int correctAnswers = userQuiz.Questions.Count(q => q.UserAnswer == q.Answer);
+
+            return (double)correctAnswers / totalQuestions * 100;
+        }
+
     }
 }

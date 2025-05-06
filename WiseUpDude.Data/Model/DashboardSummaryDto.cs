@@ -1,4 +1,4 @@
-namespace WiseUpDude.Data.Model
+namespace WiseUpDude.Model
 {
     public class DashboardSummaryDto
     {
@@ -7,15 +7,5 @@ namespace WiseUpDude.Data.Model
         public string? BestQuizName { get; set; }
         public double? BestQuizScore { get; set; }
         public List<RecentQuizDto> RecentQuizzes { get; set; } = new();
-    }
-
-    public class RecentQuizDto
-    {
-        public string Name { get; set; }
-        public double Score { get; set; }
-        public string? Type { get; set; }
-        public string? Topic { get; set; }
-        public string? Prompt { get; set; }
-        public string? Description { get; set; }
     }
 }

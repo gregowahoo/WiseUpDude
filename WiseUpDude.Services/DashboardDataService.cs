@@ -1,7 +1,7 @@
 using WiseUpDude.Data.Repositories;
 //using WiseUpDude.Services.Models; // Ensure this using is present
 using WiseUpDude.Data.Entities;
-using WiseUpDude.Data.Model;
+using WiseUpDude.Model;
 
 namespace WiseUpDude.Services
 {
@@ -42,9 +42,9 @@ namespace WiseUpDude.Services
             // Recent quizzes (e.g., last 5)
             var recentQuizzes = quizzes
                 .OrderByDescending(q => q.CreationDate)
-                .Take(5)
-                .Select(q => new RecentQuizDto
+                .Select(q => new WiseUpDude.Model.RecentQuizDto
                 {
+                    Id = q.Id,
                     Name = q.Name,
                     Score = CalculateQuizScore(q),
                     Type = q.Type,

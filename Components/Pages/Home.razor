@@ -3,13 +3,16 @@
 @layout WiseUpDude.Components.Layout.MinimalLayout
 
 @using Microsoft.AspNetCore.Components.Authorization
-@using WiseUpDude.Data.Model
+@using WiseUpDude.Model
 @using WiseUpDude.Services
-@* @using WiseUpDude.Services.Models *@
+@using WiseUpDude.Data.Repositories
+@using WiseUpDude.Data.Repositories.Interfaces
 
 @inject DashboardDataService DashboardData
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavManager
+@inject IUserRepository<Quiz> QuizRepository
+@inject QuizStateService QuizState
 
 @rendermode InteractiveServer
 
@@ -45,34 +48,46 @@
 
     <!-- Recent Quizzes Section -->
     <div class="mt-5">
-        <h3>Recent Quizzes</h3>
-        @if (Summary == null)
+        <h3>Your Saved Quizzes</h3>
+        @if (IsGenerating)
+        {
+            <p class="text-center text-muted">🧠 Generating your quiz...</p>
+        }
+        else if (Summary == null)
         {
             <p>Loading...</p>
         }
         else if (Summary.RecentQuizzes?.Any() == true)
         {
             <ul class="list-group">
-                @foreach (var quiz in Summary.RecentQuizzes)
+                @foreach (var quiz in Summary?.RecentQuizzes ?? new List<RecentQuizDto>())
                 {
                     <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-md-center">
                         <div>
-                            <span class="fw-bold">@quiz.Name</span>
+                            <!-- Hidden field for Quiz.Id -->
+                            <input type="hidden" value="@quiz.Id" />
+
                             @if (quiz.Type == "Prompt" && !string.IsNullOrWhiteSpace(quiz.Prompt))
                             {
-                                <span class="ms-2 badge bg-secondary">Prompt</span>
-                                <span class="ms-1 text-muted">@quiz.Prompt</span>
+                                <span class="badge bg-orange text-dark fw-bold">Prompt:</span>
+                                <span class="ms-1">@quiz.Prompt</span>
                             }
                             else if (!string.IsNullOrWhiteSpace(quiz.Topic))
                             {
-                                <span class="ms-2 badge bg-info text-dark">Topic: @quiz.Topic</span>
+                                <span class="badge bg-info text-dark fw-bold">Topic:</span>
+                                <span class="ms-1">@quiz.Topic</span>
                             }
                             @if (!string.IsNullOrWhiteSpace(quiz.Description))
                             {
-                                <div class="text-muted" style="font-size: 0.85em; max-width: 500px; word-break: break-word;">
+                                <div class="text-muted" style="font-size: 0.85em; max-width: 100%; word-break: break-word;">
                                     @quiz.Description
                                 </div>
                             }
+                            <!-- Quiz Name and clickable link -->
+                            <span style="font-size: 0.85em;">Quiz Name:</span>
+                            <a href="#" @onclick="() => TakeQuiz(quiz.Id)" class="text-decoration-none fw-bold" style="font-size: 0.85em;">
+                                @quiz.Name
+                            </a>
                         </div>
                         <span class="badge bg-primary rounded-pill align-self-md-center mt-2 mt-md-0">@($"{quiz.Score:F0}%")</span>
                     </li>
@@ -93,6 +108,7 @@
 
 @code {
     private DashboardSummaryDto? Summary;
+    private bool IsGenerating = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -105,6 +121,51 @@
             {
                 Summary = await DashboardData.GetDashboardSummaryAsync(userId);
             }
+        }
+    }
+
+    private async Task TakeQuiz(int quizId)
+    {
+        IsGenerating = true;
+
+        try
+        {
+            // Fetch the quiz for the selected quiz ID using the repository method
+            var selectedQuiz = await QuizRepository.GetByIdAsync(quizId);
+
+            if (selectedQuiz != null)
+            {
+                // Set the fetched quiz as the current quiz
+                QuizState.CurrentQuiz = new Quiz
+                {
+                    Id = selectedQuiz.Id,
+                    Name = selectedQuiz.Name,
+                    Questions = selectedQuiz.Questions,
+                    UserName = selectedQuiz.UserName,
+                    User = selectedQuiz.User,
+                    Type = selectedQuiz.Type,
+                    Topic = selectedQuiz.Topic,
+                    TopicId = selectedQuiz.TopicId,
+                    Prompt = selectedQuiz.Prompt,
+                    Description = selectedQuiz.Description,
+                    Difficulty = selectedQuiz.Difficulty
+                };
+
+                NavManager.NavigateTo("/TakeQuiz");
+            }
+            else
+            {
+                // If no quiz is found, log or handle the case (e.g., show a message)
+                Console.WriteLine("🚫 No quiz found for the selected ID.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during quiz fetch: {ex.Message}");
+        }
+        finally
+        {
+            IsGenerating = false;
         }
     }
 }

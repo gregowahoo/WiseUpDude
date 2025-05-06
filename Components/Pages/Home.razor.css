@@ -8,3 +8,22 @@
 .list-group-item {
     font-size: 1.1rem;
 }
+
+.badge {
+    padding: 0.25em 0.5em; /* Add padding for better spacing */
+    border-radius: 0.25rem; /* Rounded corners for consistency */
+    font-weight: 700; /* Ensure text is bold */
+    display: inline-block; /* Ensure proper rendering */
+}
+
+.bg-orange {
+    background-color: #FFA500; /* Orange color */
+    color: #000; /* Black text for contrast */
+    font-weight: 700; /* Make text bold */
+}
+
+.bg-info {
+    background-color: #17a2b8; /* Blue color */
+    color: #fff; /* White text for contrast */
+    font-weight: 700; /* Make text bold */
+}

@@ -8,7 +8,7 @@ using WiseUpDude.Model;
 
 namespace WiseUpDude.Data.Repositories
 {
-    public class UserQuizQuestionRepository : IUserRepository<WiseUpDude.Model.QuizQuestion>
+    public class UserQuizQuestionRepository :  IUserQuizQuestionRepository<WiseUpDude.Model.QuizQuestion>
     {
         private readonly ApplicationDbContext _context;
 

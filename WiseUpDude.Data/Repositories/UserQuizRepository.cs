@@ -165,6 +165,21 @@ namespace WiseUpDude.Data.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateQuizNameAsync(int id, string newName)
+        {
+            // Find the UserQuiz by ID
+            var userQuiz = await _context.UserQuizzes.FirstOrDefaultAsync(uq => uq.Id == id);
+
+            if (userQuiz == null)
+                throw new KeyNotFoundException($"UserQuiz with Id {id} not found.");
+
+            // Update the name
+            userQuiz.Name = newName;
+
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+        }
+
         public async Task DeleteAsync(int id)
         {
             var userQuiz = await _context.UserQuizzes.FindAsync(id);

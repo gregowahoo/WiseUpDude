@@ -17,25 +17,6 @@
 
 @attribute [Authorize]
 
-<!-- Test Sound Button -->
-@* <button class="btn btn-primary mb-3" @onclick="PlaySoundSafely">Test Sound</button> *@
-
-@code {
-    private async Task PlaySoundSafely()
-    {
-        try
-        {
-            await JS.InvokeVoidAsync("playSound", "/sounds/correct.mp3");
-            await JS.InvokeVoidAsync("playSound", "/sounds/incorrect.mp3");
-            await JS.InvokeVoidAsync("playSound", "/sounds/applause.mp3");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error playing sound: {ex.Message}");
-            // Optionally log or display error info here
-        }
-    }
-}
 
 <!-- Quiz Card Layout -->
 <div class="card">

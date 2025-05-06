@@ -10,8 +10,18 @@
     [Parameter] public EventCallback<bool> OnAnswerSubmitted { get; set; }
     [Parameter] public bool MuteSound { get; set; }
 
-    private string userAnswer = string.Empty;
+    private string userAnswer = string.Empty; // Tracks the user's selected answer
     private bool submitted = false;
+
+    protected override void OnParametersSet()
+    {
+        // Pre-fill the user's saved answer if it exists
+        if (Question?.UserAnswer is not null)
+        {
+            userAnswer = Question.UserAnswer;
+            submitted = true; // Mark as submitted to show feedback
+        }
+    }
 
     private void OnSelectAnswer(string answer)
     {

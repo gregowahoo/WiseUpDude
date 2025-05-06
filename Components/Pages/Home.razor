@@ -97,7 +97,7 @@
                                     @quiz.Name
                                 </a>
                                 <button class="btn btn-sm btn-link text-decoration-none ms-2" @onclick="() => StartEditing(quiz.Id)">Edit</button>
-                                <a href="#" @onclick="() => DeleteQuiz(quiz.Id)" class="btn btn-sm btn-link text-decoration-none ms-1 text-danger">Delete</a>
+                                <a href="#" @onclick="() => ConfirmDelete(quiz.Id)" class="btn btn-sm btn-link text-decoration-none ms-1 text-danger">Delete</a>
                             }
                         </div>
                         <span class="badge bg-primary rounded-pill align-self-md-center mt-2 mt-md-0">@($"{quiz.Score:F0}%")</span>
@@ -116,6 +116,27 @@
         <a class="btn btn-success btn-lg" href="/pickatopic">Take a New Quiz</a>
     </div>
 </div>
+
+@if (quizToDeleteId.HasValue)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" @onclick="CancelDelete"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this quiz?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
+                    <button class="btn btn-danger" @onclick="ConfirmedDelete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     private int? editingQuizId = null; // Tracks the quiz being edited
@@ -190,19 +211,19 @@
             {
                 // Set the fetched quiz as the current quiz
                 QuizState.CurrentQuiz = new Quiz
-                {
-                    Id = selectedQuiz.Id,
-                    Name = selectedQuiz.Name,
-                    Questions = selectedQuiz.Questions,
-                    UserName = selectedQuiz.UserName,
-                    User = selectedQuiz.User,
-                    Type = selectedQuiz.Type,
-                    Topic = selectedQuiz.Topic,
-                    TopicId = selectedQuiz.TopicId,
-                    Prompt = selectedQuiz.Prompt,
-                    Description = selectedQuiz.Description,
-                    Difficulty = selectedQuiz.Difficulty
-                };
+                    {
+                        Id = selectedQuiz.Id,
+                        Name = selectedQuiz.Name,
+                        Questions = selectedQuiz.Questions,
+                        UserName = selectedQuiz.UserName,
+                        User = selectedQuiz.User,
+                        Type = selectedQuiz.Type,
+                        Topic = selectedQuiz.Topic,
+                        TopicId = selectedQuiz.TopicId,
+                        Prompt = selectedQuiz.Prompt,
+                        Description = selectedQuiz.Description,
+                        Difficulty = selectedQuiz.Difficulty
+                    };
 
                 NavManager.NavigateTo("/TakeQuiz");
             }
@@ -219,6 +240,47 @@
         finally
         {
             IsGenerating = false;
+        }
+    }
+}
+
+@code {
+    private int? quizToDeleteId = null; // Tracks the quiz to delete
+
+    private void ConfirmDelete(int quizId)
+    {
+        quizToDeleteId = quizId; // Set the quiz ID for confirmation
+    }
+
+    private void CancelDelete()
+    {
+        quizToDeleteId = null; // Cancel delete confirmation
+    }
+
+    private async Task ConfirmedDelete()
+    {
+        if (quizToDeleteId.HasValue)
+        {
+            try
+            {
+                // Call the repository to delete the quiz
+                await QuizRepository.DeleteAsync(quizToDeleteId.Value);
+
+                // Remove the deleted quiz from the UI
+                var quizToRemove = Summary?.RecentQuizzes?.FirstOrDefault(q => q.Id == quizToDeleteId.Value);
+                if (quizToRemove != null)
+                {
+                    Summary.RecentQuizzes.Remove(quizToRemove);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting quiz: {ex.Message}");
+            }
+            finally
+            {
+                quizToDeleteId = null; // Reset the quiz ID
+            }
         }
     }
 }

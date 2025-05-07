@@ -77,6 +77,11 @@ h1 {
 .score-pill {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     height: 1.5em;
-    margin-bottom: 0;
+    font-size: 0.75rem;
+    padding: 0 0.6em;
+    margin-top: -2px;
+    margin-left: 0.5rem;
+    white-space: nowrap;
 }

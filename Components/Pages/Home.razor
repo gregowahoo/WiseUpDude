@@ -68,14 +68,12 @@
                                 {
                                     <span class="badge bg-orange text-dark fw-bold">Prompt:</span>
                                     <span class="ms-1">@quiz.Prompt</span>
-                                    @* <span class=$"badge rounded-pill ms-2 {scoreClass}" style="margin-bottom: 2px;">@($"{quiz.Score:F0}%")</span> *@
                                     <span class="badge rounded-pill ms-2 score-pill @scoreClass" style="margin-bottom: 2px;">@($"{quiz.Score:F0}%")</span>
                                 }
                                 else if (!string.IsNullOrWhiteSpace(quiz.Topic))
                                 {
                                     <span class="badge bg-info text-dark fw-bold">Topic:</span>
                                     <span class="ms-1">@quiz.Topic</span>
-                                    @* <span class=$"badge rounded-pill ms-2 {scoreClass}" style="margin-bottom: 2px;">@($"{quiz.Score:F0}%")</span> *@
                                     <span class="badge rounded-pill ms-2 score-pill @scoreClass" style="margin-bottom: 2px;">@($"{quiz.Score:F0}%")</span>
                                 }
 
@@ -97,12 +95,14 @@
                                         }
                                         else
                                         {
-                                            <a href="#" @onclick="() => ResumeQuiz(quiz.Id)" class="text-decoration-none fw-bold" style="font-size: 0.85em;">
-                                                @quiz.Name
-                                            </a>
-                                            <button class="btn btn-sm text-primary border-0 bg-transparent" title="Edit" @onclick="() => EditQuiz(quiz.Id)">
-                                                <i class="bi bi-pencil fs-6"></i>
-                                            </button>
+                                            <div class="d-inline-flex align-items-center gap-1 flex-nowrap">
+                                                <a href="#" @onclick="() => ResumeQuiz(quiz.Id)" class="text-decoration-none fw-bold" style="font-size: 0.85em; white-space: nowrap;">
+                                                    @quiz.Name
+                                                </a>
+                                                <button class="btn btn-sm text-primary border-0 bg-transparent" title="Edit" @onclick="() => EditQuiz(quiz.Id)">
+                                                    <i class="bi bi-pencil fs-6"></i>
+                                                </button>
+                                            </div>
                                         }
                                     </div>
 

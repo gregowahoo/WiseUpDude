@@ -33,7 +33,7 @@
             padding: 5px;
             position: absolute;
             z-index: 1;
-            bottom: 125%; /* Position above the element */
+            bottom: 125%;
             left: 50%;
             transform: translateX(-50%);
             opacity: 0;
@@ -50,7 +50,6 @@
 
 <div class="container mt-5">
     <div class="row">
-        <!-- Summary Card -->
         <div class="col-md-4">
             <div class="card border-0 shadow-sm text-center p-4">
                 <h5>Total Quizzes Taken</h5>
@@ -58,7 +57,6 @@
             </div>
         </div>
 
-        <!-- Average Score Card -->
         <div class="col-md-4">
             <div class="card border-0 shadow-sm text-center p-4">
                 <h5>Average Score</h5>
@@ -66,7 +64,6 @@
             </div>
         </div>
 
-        <!-- Best Quiz Card -->
         <div class="col-md-4">
             <div class="card border-0 shadow-sm text-center p-4">
                 <h5>Best Quiz</h5>
@@ -76,7 +73,6 @@
         </div>
     </div>
 
-    <!-- Recent Quizzes Section -->
     <div class="mt-5">
         <h3>Your Saved Quizzes</h3>
         @if (IsGenerating)
@@ -89,65 +85,69 @@
         }
         else if (Summary.RecentQuizzes?.Any() == true)
         {
-            <ul class="list-group">
+            <ul class="list-group list-unstyled">
                 @foreach (var quiz in Summary?.RecentQuizzes ?? new List<RecentQuizDto>())
                 {
-                    <li class="list-group-item d-flex flex-column">
-                        <div>
-                            <!-- Hidden field for Quiz.Id -->
-                            <input type="hidden" value="@quiz.Id" />
+                    <li class="list-group-item">
+                        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+                            <div class="flex-grow-1">
+                                <input type="hidden" value="@quiz.Id" />
 
-                            @if (quiz.Type == "Prompt" && !string.IsNullOrWhiteSpace(quiz.Prompt))
-                            {
-                                <span class="badge bg-orange text-dark fw-bold">Prompt:</span>
-                                <span class="ms-1">@quiz.Prompt</span>
-                            }
-                            else if (!string.IsNullOrWhiteSpace(quiz.Topic))
-                            {
-                                <span class="badge bg-info text-dark fw-bold">Topic:</span>
-                                <span class="ms-1">@quiz.Topic</span>
-                            }
-                            @if (!string.IsNullOrWhiteSpace(quiz.Description))
-                            {
-                                <div class="text-muted" style="font-size: 0.85em; max-width: 100%; word-break: break-word;">
-                                    @quiz.Description
+                                @if (quiz.Type == "Prompt" && !string.IsNullOrWhiteSpace(quiz.Prompt))
+                                {
+                                    <span class="badge bg-orange text-dark fw-bold">Prompt:</span>
+                                    <span class="ms-1">@quiz.Prompt</span>
+                                }
+                                else if (!string.IsNullOrWhiteSpace(quiz.Topic))
+                                {
+                                    <span class="badge bg-info text-dark fw-bold">Topic:</span>
+                                    <span class="ms-1">@quiz.Topic</span>
+                                }
+
+                                @if (!string.IsNullOrWhiteSpace(quiz.Description))
+                                {
+                                    <div class="text-muted" style="font-size: 0.85em; max-width: 100%; word-break: break-word;">
+                                        @quiz.Description
+                                    </div>
+                                }
+
+                                <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2 mt-2">
+                                    <span style="font-size: 0.85em;">Quiz Name:</span>
+                                    @if (editingQuizId == quiz.Id)
+                                    {
+                                        <input type="text" class="form-control form-control-sm" style="width: auto; font-size: 0.85em;" @bind="quiz.Name" />
+                                        <button class="btn btn-sm btn-primary" @onclick="() => SaveQuizName(quiz)">Save</button>
+                                        <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button>
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex flex-column">
+                                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                                <a href="#" @onclick="() => ResumeQuiz(quiz.Id)" class="text-decoration-none fw-bold" style="font-size: 0.85em;">
+                                                    @quiz.Name
+                                                </a>
+                                                <button class="btn btn-sm text-primary border-0 bg-transparent" title="Edit" @onclick="() => EditQuiz(quiz.Id)">
+                                                    <i class="bi bi-pencil fs-6"></i>
+                                                </button>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2 mt-1">
+                                                <button class="btn btn-sm text-primary border-0 bg-transparent" title="Resume" @onclick="() => ResumeQuiz(quiz.Id)">
+                                                    <i class="bi bi-play-fill fs-6"></i>
+                                                </button>
+                                                <button class="btn btn-sm text-success border-0 bg-transparent" title="Start Fresh" @onclick="() => StartFresh(quiz.Id)">
+                                                    <i class="bi bi-arrow-clockwise fs-6"></i>
+                                                </button>
+                                                <button class="btn btn-sm text-secondary border-0 bg-transparent" title="Delete" @onclick="() => ConfirmDelete(quiz.Id)">
+                                                    <i class="bi bi-trash fs-6"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
                                 </div>
-                            }
-                            <!-- Quiz Name and in-place editing -->
-                            <span style="font-size: 0.85em; margin-right: 0.5rem;">Quiz Name:</span>
-                            @if (editingQuizId == quiz.Id)
-                            {
-                                <input type="text" class="form-control d-inline-block" style="width: auto; font-size: 0.85em;" @bind="quiz.Name" />
-                                <button class="btn btn-sm btn-primary ms-2" @onclick="() => SaveQuizName(quiz)">Save</button>
-                                <button class="btn btn-sm btn-secondary ms-1" @onclick="CancelEdit">Cancel</button>
-                            }
-                            else
-                            {
-                                <a href="#" @onclick="() => ResumeQuiz(quiz.Id)" class="text-decoration-none fw-bold" style="font-size: 0.85em;">
-                                    @quiz.Name
-                                </a>
-                                <button class="btn btn-sm text-primary mb-1 border-0 bg-transparent" title="Edit" @onclick="() => EditQuiz(quiz.Id)">
-                                    <i class="bi bi-pencil fs-6"></i>
-                                </button>
-                            }
-                        </div>
-
-                        <!-- Score Badge -->
-                        <span class="badge bg-primary rounded-pill mt-2 mt-md-0">@($"{quiz.Score:F0}%")</span>
-
-                        <!-- Buttons under Quiz Name -->
-                        <div class="d-flex gap-2 mt-2">
-                            <button class="btn btn-sm text-primary mb-1 border-0 bg-transparent" title="Resume" @onclick="() => ResumeQuiz(quiz.Id)">
-                                <i class="bi bi-play-fill fs-5"></i>
-                            </button>
-
-                            <button class="btn btn-sm text-success mb-1 border-0 bg-transparent" title="Start Fresh" @onclick="() => StartFresh(quiz.Id)">
-                                <i class="bi bi-arrow-clockwise fs-5"></i>
-                            </button>
-
-                            <button class="btn btn-sm text-primary border-0 bg-transparent" title="Delete" @onclick="() => ConfirmDelete(quiz.Id)">
-                                <i class="bi bi-trash fs-6"></i>
-                            </button>
+                            </div>
+                            <div class="ms-md-auto mt-2 mt-md-0">
+                                <span class="badge bg-primary rounded-pill">@($"{quiz.Score:F0}%")</span>
+                            </div>
                         </div>
                     </li>
                 }
@@ -159,7 +159,6 @@
         }
     </div>
 
-    <!-- Call-to-Action Section -->
     <div class="text-center mt-5">
         <a class="btn btn-success btn-lg" href="/pickatopic">Take a New Quiz</a>
     </div>
@@ -187,34 +186,25 @@
 }
 
 @code {
-    private int? editingQuizId = null; // Tracks the quiz being edited
+    private int? editingQuizId = null;
+    private DashboardSummaryDto? Summary;
+    private bool IsGenerating = false;
+    private int? quizToDeleteId = null;
 
-    private void EditQuiz(int quizId)
-    {
-        editingQuizId = quizId; // Set the quiz ID to enable editing
-    }
-
-    private void CancelEdit()
-    {
-        editingQuizId = null; // Cancel editing mode
-    }
+    private void EditQuiz(int quizId) => editingQuizId = quizId;
+    private void CancelEdit() => editingQuizId = null;
 
     private async Task SaveQuizName(RecentQuizDto quiz)
     {
-        // Save the updated quiz name to the database using the new method
         await QuizRepository.UpdateQuizNameAsync(quiz.Id, quiz.Name);
-
-        editingQuizId = null; // Exit editing mode
+        editingQuizId = null;
     }
 
     private async Task DeleteQuiz(int quizId)
     {
         try
         {
-            // Call the repository to delete the quiz
             await QuizRepository.DeleteAsync(quizId);
-
-            // Remove the deleted quiz from the UI
             var quizToRemove = Summary?.RecentQuizzes?.FirstOrDefault(q => q.Id == quizId);
             if (quizToRemove != null)
             {
@@ -226,9 +216,6 @@
             Console.WriteLine($"Error deleting quiz: {ex.Message}");
         }
     }
-
-    private DashboardSummaryDto? Summary;
-    private bool IsGenerating = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -247,28 +234,25 @@
     private async Task ResumeQuiz(int quizId)
     {
         IsGenerating = true;
-
         try
         {
             var selectedQuiz = await QuizRepository.GetByIdAsync(quizId);
-
             if (selectedQuiz != null)
             {
                 QuizState.CurrentQuiz = new Quiz
-                {
-                    Id = selectedQuiz.Id,
-                    Name = selectedQuiz.Name,
-                    Questions = selectedQuiz.Questions,
-                    UserName = selectedQuiz.UserName,
-                    User = selectedQuiz.User,
-                    Type = selectedQuiz.Type,
-                    Topic = selectedQuiz.Topic,
-                    TopicId = selectedQuiz.TopicId,
-                    Prompt = selectedQuiz.Prompt,
-                    Description = selectedQuiz.Description,
-                    Difficulty = selectedQuiz.Difficulty
-                };
-
+                    {
+                        Id = selectedQuiz.Id,
+                        Name = selectedQuiz.Name,
+                        Questions = selectedQuiz.Questions,
+                        UserName = selectedQuiz.UserName,
+                        User = selectedQuiz.User,
+                        Type = selectedQuiz.Type,
+                        Topic = selectedQuiz.Topic,
+                        TopicId = selectedQuiz.TopicId,
+                        Prompt = selectedQuiz.Prompt,
+                        Description = selectedQuiz.Description,
+                        Difficulty = selectedQuiz.Difficulty
+                    };
                 NavManager.NavigateTo("/TakeQuiz");
             }
             else
@@ -289,33 +273,29 @@
     private async Task StartFresh(int quizId)
     {
         IsGenerating = true;
-
         try
         {
             var selectedQuiz = await QuizRepository.GetByIdAsync(quizId);
-
             if (selectedQuiz != null)
             {
                 QuizState.CurrentQuiz = new Quiz
-                {
-                    Id = selectedQuiz.Id,
-                    Name = selectedQuiz.Name,
-                    Questions = selectedQuiz.Questions,
-                    UserName = selectedQuiz.UserName,
-                    User = selectedQuiz.User,
-                    Type = selectedQuiz.Type,
-                    Topic = selectedQuiz.Topic,
-                    TopicId = selectedQuiz.TopicId,
-                    Prompt = selectedQuiz.Prompt,
-                    Description = selectedQuiz.Description,
-                    Difficulty = selectedQuiz.Difficulty
-                };
-
+                    {
+                        Id = selectedQuiz.Id,
+                        Name = selectedQuiz.Name,
+                        Questions = selectedQuiz.Questions,
+                        UserName = selectedQuiz.UserName,
+                        User = selectedQuiz.User,
+                        Type = selectedQuiz.Type,
+                        Topic = selectedQuiz.Topic,
+                        TopicId = selectedQuiz.TopicId,
+                        Prompt = selectedQuiz.Prompt,
+                        Description = selectedQuiz.Description,
+                        Difficulty = selectedQuiz.Difficulty
+                    };
                 foreach (var question in QuizState.CurrentQuiz.Questions)
                 {
                     question.UserAnswer = null;
                 }
-
                 NavManager.NavigateTo("/TakeQuiz");
             }
             else
@@ -333,17 +313,8 @@
         }
     }
 
-    private int? quizToDeleteId = null;
-
-    private void ConfirmDelete(int quizId)
-    {
-        quizToDeleteId = quizId;
-    }
-
-    private void CancelDelete()
-    {
-        quizToDeleteId = null;
-    }
+    private void ConfirmDelete(int quizId) => quizToDeleteId = quizId;
+    private void CancelDelete() => quizToDeleteId = null;
 
     private async Task ConfirmedDelete()
     {
@@ -352,7 +323,6 @@
             try
             {
                 await QuizRepository.DeleteAsync(quizToDeleteId.Value);
-
                 var quizToRemove = Summary?.RecentQuizzes?.FirstOrDefault(q => q.Id == quizToDeleteId.Value);
                 if (quizToRemove != null)
                 {

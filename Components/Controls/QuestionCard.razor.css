@@ -22,13 +22,31 @@
 }
 
 .btn-correct {
-    background-color: #a5d6a7 !important; /* Soft green */
+    /*background-color: #a5d6a7 !important;*/ /* Soft green */
     color: #1b5e20 !important;
-    border: 1px solid #1b5e20 !important;
+    border: 2px solid #1b5e20 !important;
 }
 
 .btn-incorrect {
-    background-color: #ef9a9a !important; /* Soft red */
+    /*background-color: #ef9a9a !important;*/ /* Soft red */
     color: #b71c1c !important;
-    border: 1px solid #b71c1c !important;
+    border: 2px solid #b71c1c !important;
+}
+
+.question-card {
+    color: #f1f1f1; /* Light text */
+    background-color: #1a1a1a; /* Dark card background */
+    padding: 1rem;
+    border-radius: 12px;
+}
+
+    .question-card h4,
+    .question-card p {
+        font-size: 1.05rem;
+        line-height: 1.5;
+    }
+
+.btn-correct,
+.btn-incorrect {
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
 }

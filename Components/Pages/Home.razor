@@ -58,7 +58,14 @@
             <ul class="list-group list-unstyled">
                 @foreach (var quiz in Summary?.RecentQuizzes ?? new List<RecentQuizDto>())
                 {
-                    var scoreClass = quiz.Score >= 80 ? "score-high" : quiz.Score >= 50 ? "score-mid" : "score-low";
+                    var scoreClass = quiz.Score switch
+                    {
+                        >= 90 => "score-high", // Green
+                        >= 75 => "score-low",  // Yellow
+                        >= 50 => "score-mid",  // Orange
+                        _ => "score-bad"   // Red
+                    };
+
                     <li class="list-group-item quiz-card">
                         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
                             <div class="flex-grow-1">
@@ -68,13 +75,13 @@
                                 {
                                     <span class="badge bg-orange text-dark fw-bold">Prompt:</span>
                                     <span class="ms-1">@quiz.Prompt</span>
-                                    <span class="badge rounded-pill ms-2 score-pill @scoreClass" style="margin-bottom: 2px;">@($"{quiz.Score:F0}%")</span>
+                                    <span class="badge rounded-pill ms-2 score-pill @scoreClass" style="margin-bottom: 2px;">@($"{quiz.Score:F0}% Complete")</span>
                                 }
                                 else if (!string.IsNullOrWhiteSpace(quiz.Topic))
                                 {
                                     <span class="badge bg-info text-dark fw-bold">Topic:</span>
                                     <span class="ms-1">@quiz.Topic</span>
-                                    <span class="badge rounded-pill ms-2 score-pill @scoreClass" style="margin-bottom: 2px;">@($"{quiz.Score:F0}%")</span>
+                                    <span class="badge rounded-pill ms-2 score-pill @scoreClass" style="margin-bottom: 2px;">@($"{quiz.Score:F0}% Complete")</span>
                                 }
 
                                 @if (!string.IsNullOrWhiteSpace(quiz.Description))
@@ -96,9 +103,9 @@
                                         else
                                         {
                                             <div class="d-inline-flex align-items-center gap-1 flex-nowrap">
-                                                <a href="#" @onclick="() => ResumeQuiz(quiz.Id)" class="text-decoration-none fw-bold" style="font-size: 0.85em; white-space: nowrap;">
+                                                <span class="fw-bold" style="font-size: 0.85em; white-space: nowrap;">
                                                     @quiz.Name
-                                                </a>
+                                                </span>
                                                 <button class="btn btn-sm text-primary border-0 bg-transparent" title="Edit" @onclick="() => EditQuiz(quiz.Id)">
                                                     <i class="bi bi-pencil fs-6"></i>
                                                 </button>
@@ -110,13 +117,13 @@
                                     {
                                         <div class="btn-toolbar mt-1" role="toolbar">
                                             <div class="btn-group me-2 gap-2" role="group">
-                                                <button class="btn btn-sm text-primary border-0 bg-transparent" title="Resume" @onclick="() => ResumeQuiz(quiz.Id)">
+                                                <button class="btn btn-sm text-primary border-0 bg-transparent" title="Resume Quiz where you left off." @onclick="() => ResumeQuiz(quiz.Id)">
                                                     <i class="bi bi-play-fill fs-6"></i>
                                                 </button>
-                                                <button class="btn btn-sm text-success border-0 bg-transparent" title="Start Fresh" @onclick="() => StartFresh(quiz.Id)">
+                                                <button class="btn btn-sm text-success border-0 bg-transparent" title="Take the quiz with previous answers removed." @onclick="() => StartFresh(quiz.Id)">
                                                     <i class="bi bi-arrow-clockwise fs-6"></i>
                                                 </button>
-                                                <button class="btn btn-sm text-secondary border-0 bg-transparent" title="Delete" @onclick="() => ConfirmDelete(quiz.Id)">
+                                                <button class="btn btn-sm text-secondary border-0 bg-transparent" title="Delete this quiz." @onclick="() => ConfirmDelete(quiz.Id)">
                                                     <i class="bi bi-trash fs-6"></i>
                                                 </button>
                                             </div>
@@ -131,7 +138,12 @@
         }
         else
         {
-            <p>No quizzes taken yet. Start your learning journey now!</p>
+            <div class="alert alert-info mt-3" role="alert">
+                <h5 class="alert-heading">Welcome to Wise Up Dude!</h5>
+                <p>It looks like you haven’t taken any quizzes yet. This is your place to learn new things, challenge yourself, and have fun while doing it.</p>
+                <hr />
+                <p class="mb-0">Click the button below to get started with your first quiz!</p>
+            </div>
         }
     </div>
 

@@ -60,17 +60,22 @@ h1 {
 }
 
 .score-high {
-    background: linear-gradient(to right, #28a745, #218838);
+    background: linear-gradient(to right, #28a745, #218838); /* Green */
     color: #fff;
 }
 
-.score-mid {
-    background: linear-gradient(to right, #ffc107, #e0a800);
+.score-low {
+    background: linear-gradient(to right, #ffc107, #ffcd39); /* Yellow */
     color: #212529;
 }
 
-.score-low {
-    background: linear-gradient(to right, #dc3545, #c82333);
+.score-mid {
+    background: linear-gradient(to right, #fd7e14, #e8590c); /* Orange */
+    color: #fff;
+}
+
+.score-bad {
+    background: linear-gradient(to right, #dc3545, #c82333); /* Red */
     color: #fff;
 }
 

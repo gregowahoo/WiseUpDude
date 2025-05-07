@@ -16,6 +16,36 @@
 
 @rendermode InteractiveServer
 
+<style>
+    .tooltip-container {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+        .tooltip-container .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 5px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position above the element */
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+</style>
+
 <h1 class="text-center mt-4">Welcome to Wise Up Dude!</h1>
 
 <div class="container mt-5">
@@ -93,14 +123,45 @@
                             }
                             else
                             {
-                                <a href="#" @onclick="() => TakeQuiz(quiz.Id)" class="text-decoration-none fw-bold" style="font-size: 0.85em;">
+                                <a href="#" @onclick="() => ResumeQuiz(quiz.Id)" class="text-decoration-none fw-bold" style="font-size: 0.85em;">
                                     @quiz.Name
                                 </a>
-                                <button class="btn btn-sm btn-link text-decoration-none ms-2" @onclick="() => StartEditing(quiz.Id)">Edit</button>
-                                <a href="#" @onclick="() => ConfirmDelete(quiz.Id)" class="btn btn-sm btn-link text-decoration-none ms-1 text-danger">Delete</a>
+                                <button class="btn btn-sm text-primary mb-1 border-0 bg-transparent" title="Edit" @onclick="() => EditQuiz(quiz.Id)">
+                                    <i class="bi bi-pencil fs-6"></i>
+                                </button>
                             }
                         </div>
-                        <span class="badge bg-primary rounded-pill align-self-md-center mt-2 mt-md-0">@($"{quiz.Score:F0}%")</span>
+                        <div class="d-flex flex-column align-items-end ms-3">
+                            <span class="badge bg-primary rounded-pill mt-2 mt-md-0">@($"{quiz.Score:F0}%")</span>
+
+                            <button class="btn btn-sm text-primary mb-1 border-0 bg-transparent" title="Resume" @onclick="() => ResumeQuiz(quiz.Id)">
+                                <i class="bi bi-play-fill fs-5"></i>
+                            </button>
+
+                            <button class="btn btn-sm text-success mb-1 border-0 bg-transparent" title="Start Fresh" @onclick="() => StartFresh(quiz.Id)">
+                                <i class="bi bi-arrow-clockwise fs-5"></i>
+                            </button>
+
+                            <button class="btn btn-sm text-primary border-0 bg-transparent" title="Delete" @onclick="() => ConfirmDelete(quiz.Id)">
+                                <i class="bi bi-trash fs-6"></i>
+                            </button>
+                        </div>
+
+@*                         <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary rounded-pill mt-2 mt-md-0">@($"{quiz.Score:F0}%")</span>
+                            <div class="tooltip-container">
+                                <button class="btn btn-sm btn-outline-primary mb-1" @onclick="() => ResumeQuiz(quiz.Id)">
+                                    <i class="bi bi-play-fill"></i> Resume
+                                </button>
+                                <span class="tooltip-text">Continue quiz with your previous answers</span>
+                            </div>
+                            <div class="tooltip-container">
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartFresh(quiz.Id)">
+                                    <i class="bi bi-arrow-repeat"></i> Start Over
+                                </button>
+                                <span class="tooltip-text">Start this quiz over with no answers</span>
+                            </div>
+                        </div> *@
                     </li>
                 }
             </ul>
@@ -141,7 +202,7 @@
 @code {
     private int? editingQuizId = null; // Tracks the quiz being edited
 
-    private void StartEditing(int quizId)
+    private void EditQuiz(int quizId)
     {
         editingQuizId = quizId; // Set the quiz ID to enable editing
     }
@@ -198,7 +259,7 @@
         }
     }
 
-    private async Task TakeQuiz(int quizId)
+    private async Task ResumeQuiz(int quizId)
     {
         IsGenerating = true;
 
@@ -224,6 +285,57 @@
                         Description = selectedQuiz.Description,
                         Difficulty = selectedQuiz.Difficulty
                     };
+
+                NavManager.NavigateTo("/TakeQuiz");
+            }
+            else
+            {
+                // If no quiz is found, log or handle the case (e.g., show a message)
+                Console.WriteLine("🚫 No quiz found for the selected ID.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during quiz fetch: {ex.Message}");
+        }
+        finally
+        {
+            IsGenerating = false;
+        }
+    }
+    
+    private async Task StartFresh(int quizId)
+    {
+        IsGenerating = true;
+
+        try
+        {
+            // Fetch the quiz for the selected quiz ID using the repository method
+            var selectedQuiz = await QuizRepository.GetByIdAsync(quizId);
+
+            if (selectedQuiz != null)
+            {
+                // Set the fetched quiz as the current quiz
+                QuizState.CurrentQuiz = new Quiz
+                    {
+                        Id = selectedQuiz.Id,
+                        Name = selectedQuiz.Name,
+                        Questions = selectedQuiz.Questions,
+                        UserName = selectedQuiz.UserName,
+                        User = selectedQuiz.User,
+                        Type = selectedQuiz.Type,
+                        Topic = selectedQuiz.Topic,
+                        TopicId = selectedQuiz.TopicId,
+                        Prompt = selectedQuiz.Prompt,
+                        Description = selectedQuiz.Description,
+                        Difficulty = selectedQuiz.Difficulty
+                    };
+
+                // Clear all previous answers
+                foreach (var question in QuizState.CurrentQuiz.Questions)
+                {
+                    question.UserAnswer = null;
+                }
 
                 NavManager.NavigateTo("/TakeQuiz");
             }

@@ -11,7 +11,7 @@
 
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
-@inject IUserRepository<Quiz> QuizRepository
+@inject IUserQuizRepository<Quiz> UserQuizRepository
 @inject QuizStateService QuizState
 @inject IJSRuntime JS
 
@@ -194,7 +194,7 @@
                 Difficulty = QuizState.CurrentQuiz.Difficulty // Save quiz-level difficulty
             };
 
-            await QuizRepository.AddAsync(newQuiz);
+            await UserQuizRepository.AddAsync(newQuiz);
             saveMessage = "Quiz saved successfully!";
         }
         else

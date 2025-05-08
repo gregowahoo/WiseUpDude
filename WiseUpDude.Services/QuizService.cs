@@ -9,9 +9,9 @@ namespace WiseUpDude.Services
 {
     public class QuizService
     {
-        private readonly IUserRepository<Data.Entities.Quiz> _quizRepository;
+        private readonly IUserQuizRepository<Data.Entities.Quiz> _quizRepository;
 
-        public QuizService(IUserRepository<Data.Entities.Quiz> quizRepository)
+        public QuizService(IUserQuizRepository<Data.Entities.Quiz> quizRepository)
         {
             _quizRepository = quizRepository;
         }
@@ -39,8 +39,14 @@ namespace WiseUpDude.Services
                 Topic = e.Topic?.Name, // Extract the Topic's Name
                 Prompt = e.Prompt,
                 Description = e.Description,
-                Difficulty = e.Difficulty // Include quiz-level difficulty
+                Difficulty = e.Difficulty, // Include quiz-level difficulty
+                //LearnMode = e.LearnMode // Include LearnMode
             }).ToList();
+        }
+
+        public async Task UpdateLearnModeAsync(int quizId, bool learnMode)
+        {
+            await _quizRepository.UpdateLearnModeAsync(quizId, learnMode);
         }
     }
 }

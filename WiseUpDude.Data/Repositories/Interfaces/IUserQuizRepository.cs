@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace WiseUpDude.Data.Repositories.Interfaces
 {
-    public interface IUserRepository<T> where T : class
+    public interface IUserQuizRepository<T> where T : class
     {
         Task<IEnumerable<T>> GetAllAsync();
         Task<T> GetByIdAsync(int id);
@@ -11,5 +11,8 @@ namespace WiseUpDude.Data.Repositories.Interfaces
         Task UpdateAsync(T entity);
         Task DeleteAsync(int id);
         Task UpdateQuizNameAsync(int id, string newName);
+        
+        // New method to update LearnMode
+        Task UpdateLearnModeAsync(int id, bool learnMode);
     }
 }

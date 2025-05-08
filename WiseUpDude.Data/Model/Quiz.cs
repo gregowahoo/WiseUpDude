@@ -33,6 +33,9 @@ namespace WiseUpDude.Model
 
         // Add CreationDate to match UserQuiz
         public DateTime CreationDate { get; set; }
+
+        // New field for Learn Mode
+        public bool LearnMode { get; set; }
     }
 
 }

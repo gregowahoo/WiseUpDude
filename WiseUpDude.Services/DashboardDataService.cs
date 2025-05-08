@@ -50,7 +50,8 @@ namespace WiseUpDude.Services
                     Type = q.Type,
                     Topic = q.Topic,
                     Prompt = q.Prompt,
-                    Description = q.Description
+                    Description = q.Description,
+                    LearnMode = q.LearnMode
                 })
                 .ToList();
 

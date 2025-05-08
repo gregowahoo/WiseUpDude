@@ -11,7 +11,7 @@
 @inject DashboardDataService DashboardData
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavManager
-@inject IUserRepository<Quiz> QuizRepository
+@inject IUserQuizRepository<Quiz> QuizRepository
 @inject QuizStateService QuizState
 
 @rendermode InteractiveServer
@@ -91,11 +91,11 @@
 
 
                             <div class="card-body">
-                                @if (!string.IsNullOrWhiteSpace(quiz.Prompt))
+                                @if (quiz.Type == "Prompt")
                                 {
                                     <p><span class="badge bg-warning">Prompt:</span> @quiz.Prompt</p>
                                 }
-                                else if (!string.IsNullOrWhiteSpace(quiz.Topic))
+                                else if (quiz.Type == "Topic")
                                 {
                                     <p><span class="badge bg-info">Topic:</span> @quiz.Topic</p>
                                 }
@@ -121,6 +121,16 @@
                                         </a>
                                         <a class="text-secondary mx-2" title="Edit Quiz Name" @onclick="() => EditQuiz(quiz.Id)">
                                             <i class="bi bi-pencil fs-5"></i>
+                                        </a>
+@*                                         <a class="@((quiz.LearnMode == true) ? "text-info" : "text-success") mx-2" 
+                                           title="@((quiz.LearnMode == true) ? "Learn Mode Enabled" : "Enter Learn Mode")" 
+                                           @onclick="() => StartLearnMode(quiz.Id)">
+                                            <i class="bi bi-mortarboard fs-5"></i>
+                                        </a> *@
+                                        <a class="@GetLearnModeIconClass(quiz.LearnMode) mx-2"
+                                           title="@GetLearnModeTooltip(quiz.LearnMode)"
+                                           @onclick="() => ToggleLearnMode(quiz.Id)">
+                                            <i class="@GetLearnModeIconType(quiz.LearnMode) fs-5"></i>
                                         </a>
                                     </div>
                                 </nav>
@@ -233,6 +243,40 @@
         }
     }
 
+    private async Task ToggleLearnMode(int quizId)
+    {
+        IsGenerating = true;
+        try
+        {
+            // Toggle LearnMode in the UserQuiz table
+            var quiz = Summary?.RecentQuizzes?.FirstOrDefault(q => q.Id == quizId);
+            if (quiz != null)
+            {
+                await QuizRepository.UpdateLearnModeAsync(quizId, !quiz.LearnMode);
+            }
+
+            // Refresh the Summary object to reflect the updated LearnMode
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                var userId = user.FindFirst(c => c.Type == "sub" || c.Type.EndsWith("nameidentifier"))?.Value;
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    Summary = await DashboardData.GetDashboardSummaryAsync(userId);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error toggling learn mode: {ex.Message}");
+        }
+        finally
+        {
+            IsGenerating = false;
+        }
+    }
+
     private async Task StartOver(int quizId)
     {
         IsGenerating = true;
@@ -269,5 +313,21 @@
             await DeleteQuiz(quizToDeleteId.Value);
             quizToDeleteId = null;
         }
+    }
+}
+
+@code {
+    private string GetLearnModeIconClass(bool isActive) =>
+        isActive ? "text-info learn-active" : "text-success";
+
+    private string GetLearnModeIconType(bool isActive) =>
+        isActive ? "bi bi-mortarboard-fill" : "bi bi-mortarboard";
+
+    private string GetLearnModeTooltip(bool isActive) =>
+        isActive ? "Learn Mode is ON" : "Enable Learn Mode";
+
+    private void ToggleLearnMode(Guid quizId)
+    {
+        // Toggle logic goes here...
     }
 }

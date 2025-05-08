@@ -8,7 +8,7 @@ using WiseUpDude.Model;
 
 namespace WiseUpDude.Data.Repositories
 {
-    public class UserQuizRepository : IUserRepository<WiseUpDude.Model.Quiz>
+    public class UserQuizRepository : IUserQuizRepository<WiseUpDude.Model.Quiz>
     {
         private readonly ApplicationDbContext _context;
 
@@ -49,7 +49,8 @@ namespace WiseUpDude.Data.Repositories
                 Topic = uq.Topic,
                 Prompt = uq.Prompt,
                 Description = uq.Description,
-                Difficulty = uq.Difficulty // Include quiz-level difficulty
+                Difficulty = uq.Difficulty, // Include quiz-level difficulty
+                LearnMode = uq.LearnMode // Include LearnMode
             });
         }
 
@@ -88,7 +89,8 @@ namespace WiseUpDude.Data.Repositories
                 Topic = userQuiz.Topic,
                 Prompt = userQuiz.Prompt,
                 Description = userQuiz.Description,
-                Difficulty = userQuiz.Difficulty // Include quiz-level difficulty
+                Difficulty = userQuiz.Difficulty, // Include quiz-level difficulty
+                LearnMode = userQuiz.LearnMode // Include LearnMode
             };
         }
 
@@ -108,6 +110,7 @@ namespace WiseUpDude.Data.Repositories
                 Prompt = quiz.Prompt,
                 Description = quiz.Description,
                 Difficulty = quiz.Difficulty, // Save quiz-level difficulty
+                LearnMode = quiz.LearnMode, // Save LearnMode
                 Questions = quiz.Questions.Select(q => new UserQuizQuestion
                 {
                     Question = q.Question,
@@ -146,6 +149,7 @@ namespace WiseUpDude.Data.Repositories
             userQuiz.Prompt = quiz.Prompt;
             userQuiz.Description = quiz.Description;
             userQuiz.Difficulty = quiz.Difficulty; // Update quiz-level difficulty
+            userQuiz.LearnMode = quiz.LearnMode; // Update LearnMode
 
             // Update questions
             userQuiz.Questions.Clear();
@@ -177,6 +181,18 @@ namespace WiseUpDude.Data.Repositories
             userQuiz.Name = newName;
 
             // Save changes to the database
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateLearnModeAsync(int id, bool learnMode)
+        {
+            var userQuiz = await _context.UserQuizzes.FirstOrDefaultAsync(uq => uq.Id == id);
+
+            if (userQuiz == null)
+                throw new KeyNotFoundException($"UserQuiz with Id {id} not found.");
+
+            userQuiz.LearnMode = learnMode;
+
             await _context.SaveChangesAsync();
         }
 
@@ -222,6 +238,7 @@ namespace WiseUpDude.Data.Repositories
                 Prompt = uq.Prompt,
                 Description = uq.Description,
                 Difficulty = uq.Difficulty,
+                LearnMode = uq.LearnMode, // Include LearnMode
                 //TopicId = uq.TopicId // Assuming TopicId exists in the entity
                 User = new ApplicationUser
                 {
@@ -250,7 +267,8 @@ namespace WiseUpDude.Data.Repositories
                 Type = uq.Type,
                 Topic = uq.Topic,
                 Prompt = uq.Prompt,
-                Description = uq.Description
+                Description = uq.Description,
+                LearnMode = uq.LearnMode // Include LearnMode
             }).ToList();
         }
         private double CalculateScore(UserQuiz userQuiz)

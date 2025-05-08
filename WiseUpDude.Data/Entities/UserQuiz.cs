@@ -38,5 +38,8 @@ namespace WiseUpDude.Data.Entities
         public string Difficulty { get; set; } = string.Empty;
 
         public DateTime CreationDate { get; set; }
+
+        // Change LearnMode to non-nullable
+        public bool LearnMode { get; set; }
     }
 }

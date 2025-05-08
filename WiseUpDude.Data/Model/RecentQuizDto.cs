@@ -9,5 +9,8 @@ namespace WiseUpDude.Model
         public string? Topic { get; set; }
         public string? Prompt { get; set; }
         public string? Description { get; set; }
+
+        // New property for LearnMode
+        public bool LearnMode { get; set; }
     }
 }

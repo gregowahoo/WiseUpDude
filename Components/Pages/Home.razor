@@ -122,20 +122,12 @@
                                         <a class="text-secondary mx-2" title="Edit Quiz Name" @onclick="() => EditQuiz(quiz.Id)">
                                             <i class="bi bi-pencil fs-5"></i>
                                         </a>
-@*                                         <a class="@((quiz.LearnMode == true) ? "text-info" : "text-success") mx-2" 
-                                           title="@((quiz.LearnMode == true) ? "Learn Mode Enabled" : "Enter Learn Mode")" 
-                                           @onclick="() => StartLearnMode(quiz.Id)">
-                                            <i class="bi bi-mortarboard fs-5"></i>
-                                        </a> *@
-                                        <a class="@GetLearnModeIconClass(quiz.LearnMode) mx-2"
-                                           title="@GetLearnModeTooltip(quiz.LearnMode)"
-                                           @onclick="() => ToggleLearnMode(quiz.Id)">
+                                        <a class="@GetLearnModeIconClass(quiz.LearnMode) mx-2" title="@GetLearnModeTooltip(quiz.LearnMode)" @onclick="() => ToggleLearnMode(quiz.Id)">
                                             <i class="@GetLearnModeIconType(quiz.LearnMode) fs-5"></i>
                                         </a>
                                     </div>
                                 </nav>
                             </div>
-
                         </div>
                     </div>
                 }

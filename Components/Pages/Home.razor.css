@@ -1,9 +1,9 @@
-﻿.card {
+﻿/*.card {
     background-color: #ffffff;
     border-radius: 8px;
     padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
+    box-shadow: none;*/ /* Remove the shadow */
+/*}*/
 
 .list-group-item {
     font-size: 1.1rem;
@@ -90,3 +90,20 @@ h1 {
     margin-left: 0.5rem;
     white-space: nowrap;
 }
+
+.list-group {
+    border: none; /* Remove border around the list group */
+    padding: 0; /* Remove padding around the list group */
+}
+
+.list-group-item {
+    border: none; /* Remove border around each list group item */
+    padding: 0; /* Remove padding around each list group item */
+}
+
+.card-header h5 {
+    font-size: 1rem; /* Adjust the font size to make it smaller */
+    line-height: 1.2; /* Optional: Adjust line height for better spacing */
+    white-space: normal; /* Allow wrapping if needed */
+}
+

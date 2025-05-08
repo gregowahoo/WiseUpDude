@@ -16,26 +16,25 @@
 
 @rendermode InteractiveServer
 
-<h1 class="text-center">Welcome to Wise Up Dude!</h1>
+<h1 class="text-center mb-4">Welcome to Wise Up Dude!</h1>
 
-<div class="container mt-3">
-    <div class="row">
+<div class="container">
+    <!-- Dashboard Summary -->
+    <div class="row text-center mb-4">
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm text-center p-4">
+            <div class="card shadow-sm p-3">
                 <h5>Total Quizzes Taken</h5>
                 <p class="display-4">@Summary?.TotalQuizzesTaken</p>
             </div>
         </div>
-
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm text-center p-4">
+            <div class="card shadow-sm p-3">
                 <h5>Average Score</h5>
                 <p class="display-4">@($"{Summary?.AverageScore:F0}%")</p>
             </div>
         </div>
-
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm text-center p-4">
+            <div class="card shadow-sm p-3">
                 <h5>Best Quiz</h5>
                 <p>@(Summary?.BestQuizName ?? "N/A")</p>
                 <p class="text-success">Score: @($"{Summary?.BestQuizScore ?? 0:F0}%")</p>
@@ -43,7 +42,8 @@
         </div>
     </div>
 
-    <div class="mt-4">
+    <!-- Saved Quizzes -->
+    <div>
         <h3>Your Saved Quizzes</h3>
         @if (IsGenerating)
         {
@@ -55,90 +55,90 @@
         }
         else if (Summary.RecentQuizzes?.Any() == true)
         {
-            <ul class="list-group list-unstyled">
-                @foreach (var quiz in Summary?.RecentQuizzes ?? new List<RecentQuizDto>())
+            <div class="row">
+                @foreach (var quiz in Summary.RecentQuizzes)
                 {
                     var scoreClass = quiz.Score switch
                     {
-                        >= 90 => "score-high", // Green
-                        >= 75 => "score-low",  // Yellow
-                        >= 50 => "score-mid",  // Orange
-                        _ => "score-bad"   // Red
+                        >= 90 => "score-high",
+                        >= 75 => "score-low",
+                        >= 50 => "score-mid",
+                        _ => "score-bad"
                     };
 
-                    <li class="list-group-item quiz-card">
-                        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
-                            <div class="flex-grow-1">
-                                <input type="hidden" value="@quiz.Id" />
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card shadow-sm h-100">
 
-                                @if (quiz.Type == "Prompt" && !string.IsNullOrWhiteSpace(quiz.Prompt))
+                            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                                @if (editingQuizId == quiz.Id)
                                 {
-                                    <span class="badge bg-orange text-dark fw-bold">Prompt:</span>
-                                    <span class="ms-1">@quiz.Prompt</span>
-                                    <span class="badge rounded-pill ms-2 score-pill @scoreClass" style="margin-bottom: 2px;">@($"{quiz.Score:F0}% Complete")</span>
+                                    <input type="text" class="form-control form-control-sm w-75" @bind="quiz.Name" />
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-light" @onclick="() => SaveQuizName(quiz)">Save</button>
+                                        <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="d-flex align-items-center justify-content-between w-100">
+                                        <h5 class="mb-0 text-truncate">@quiz.Name</h5>
+@*                                         <button class="btn btn-sm text-white border-0 bg-transparent ms-2" title="Edit" @onclick="() => EditQuiz(quiz.Id)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button> *@
+                                        <span class="badge rounded-pill @scoreClass ms-2" title="@($"{quiz.Score:F0}% Complete")">
+                                            @($"{quiz.Score:F0}%")
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+
+
+                            <div class="card-body">
+                                @if (!string.IsNullOrWhiteSpace(quiz.Prompt))
+                                {
+                                    <p><span class="badge bg-warning">Prompt:</span> @quiz.Prompt</p>
                                 }
                                 else if (!string.IsNullOrWhiteSpace(quiz.Topic))
                                 {
-                                    <span class="badge bg-info text-dark fw-bold">Topic:</span>
-                                    <span class="ms-1">@quiz.Topic</span>
-                                    <span class="badge rounded-pill ms-2 score-pill @scoreClass" style="margin-bottom: 2px;">@($"{quiz.Score:F0}% Complete")</span>
+                                    <p><span class="badge bg-info">Topic:</span> @quiz.Topic</p>
                                 }
 
                                 @if (!string.IsNullOrWhiteSpace(quiz.Description))
                                 {
-                                    <div class="text-muted" style="font-size: 0.85em; max-width: 100%; word-break: break-word;">
-                                        @quiz.Description
-                                    </div>
+                                    <p class="text-muted small">@quiz.Description</p>
                                 }
 
-                                <div class="d-flex flex-column gap-2 mt-1">
-                                    <div class="d-flex align-items-center flex-wrap gap-2">
-                                        <span style="font-size: 0.85em; white-space: nowrap;">Quiz Name:</span>
-                                        @if (editingQuizId == quiz.Id)
-                                        {
-                                            <input type="text" class="form-control form-control-sm" style="width: auto; font-size: 0.85em;" @bind="quiz.Name" />
-                                            <button class="btn btn-sm btn-primary" @onclick="() => SaveQuizName(quiz)">Save</button>
-                                            <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button>
-                                        }
-                                        else
-                                        {
-                                            <div class="d-inline-flex align-items-center gap-1 flex-nowrap">
-                                                <span class="fw-bold" style="font-size: 0.85em; white-space: nowrap;">
-                                                    @quiz.Name
-                                                </span>
-                                                <button class="btn btn-sm text-primary border-0 bg-transparent" title="Edit" @onclick="() => EditQuiz(quiz.Id)">
-                                                    <i class="bi bi-pencil fs-6"></i>
-                                                </button>
-                                            </div>
-                                        }
-                                    </div>
+                                @* <span class="badge rounded-pill @scoreClass">@($"{quiz.Score:F0}%")</span> *@
 
-                                    @if (editingQuizId != quiz.Id)
-                                    {
-                                        <div class="btn-toolbar mt-1" role="toolbar">
-                                            <div class="btn-group me-2 gap-2" role="group">
-                                                <button class="btn btn-sm text-primary border-0 bg-transparent" title="Resume Quiz where you left off." @onclick="() => ResumeQuiz(quiz.Id)">
-                                                    <i class="bi bi-play-fill fs-6"></i>
-                                                </button>
-                                                <button class="btn btn-sm text-success border-0 bg-transparent" title="Take the quiz with previous answers removed." @onclick="() => StartFresh(quiz.Id)">
-                                                    <i class="bi bi-arrow-clockwise fs-6"></i>
-                                                </button>
-                                                <button class="btn btn-sm text-secondary border-0 bg-transparent" title="Delete this quiz." @onclick="() => ConfirmDelete(quiz.Id)">
-                                                    <i class="bi bi-trash fs-6"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
                             </div>
+
+                            <div class="card-footer p-0">
+                                <nav class="navbar navbar-expand bg-light">
+                                    <div class="container-fluid justify-content-around">
+                                        <a class="text-primary mx-2" title="Resume Quiz" @onclick="() => ResumeQuiz(quiz.Id)">
+                                            <i class="bi bi-play-fill fs-5"></i>
+                                        </a>
+                                        <a class="text-success mx-2" title="Start Over" @onclick="() => StartOver(quiz.Id)">
+                                            <i class="bi bi-arrow-clockwise fs-5"></i>
+                                        </a>
+                                        <a class="text-danger mx-2" title="Delete Quiz" @onclick="() => ConfirmDelete(quiz.Id)">
+                                            <i class="bi bi-trash fs-5"></i>
+                                        </a>
+                                        <a class="text-secondary mx-2" title="Edit Quiz Name" @onclick="() => EditQuiz(quiz.Id)">
+                                            <i class="bi bi-pencil fs-5"></i>
+                                        </a>
+                                    </div>
+                                </nav>
+                            </div>
+
                         </div>
-                    </li>
+                    </div>
                 }
-            </ul>
+            </div>
         }
         else
         {
-            <div class="alert alert-info mt-3" role="alert">
+            <div class="alert alert-info mt-3">
                 <h5 class="alert-heading">Welcome to Wise Up Dude!</h5>
                 <p>It looks like you haven’t taken any quizzes yet. This is your place to learn new things, challenge yourself, and have fun while doing it.</p>
                 <hr />
@@ -147,6 +147,7 @@
         }
     </div>
 
+    <!-- Take New Quiz Button -->
     <div class="text-center mt-4">
         <a class="btn btn-success btn-lg" href="/pickatopic">Take a New Quiz</a>
     </div>
@@ -193,11 +194,7 @@
         try
         {
             await QuizRepository.DeleteAsync(quizId);
-            var quizToRemove = Summary?.RecentQuizzes?.FirstOrDefault(q => q.Id == quizId);
-            if (quizToRemove != null)
-            {
-                Summary.RecentQuizzes.Remove(quizToRemove);
-            }
+            Summary?.RecentQuizzes?.RemoveAll(q => q.Id == quizId);
         }
         catch (Exception ex)
         {
@@ -227,30 +224,13 @@
             var selectedQuiz = await QuizRepository.GetByIdAsync(quizId);
             if (selectedQuiz != null)
             {
-                QuizState.CurrentQuiz = new Quiz
-                    {
-                        Id = selectedQuiz.Id,
-                        Name = selectedQuiz.Name,
-                        Questions = selectedQuiz.Questions,
-                        UserName = selectedQuiz.UserName,
-                        User = selectedQuiz.User,
-                        Type = selectedQuiz.Type,
-                        Topic = selectedQuiz.Topic,
-                        TopicId = selectedQuiz.TopicId,
-                        Prompt = selectedQuiz.Prompt,
-                        Description = selectedQuiz.Description,
-                        Difficulty = selectedQuiz.Difficulty
-                    };
+                QuizState.CurrentQuiz = selectedQuiz;
                 NavManager.NavigateTo("/TakeQuiz");
-            }
-            else
-            {
-                Console.WriteLine("🛛 No quiz found for the selected ID.");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error during quiz fetch: {ex.Message}");
+            Console.WriteLine($"Error resuming quiz: {ex.Message}");
         }
         finally
         {
@@ -258,7 +238,7 @@
         }
     }
 
-    private async Task StartFresh(int quizId)
+    private async Task StartOver(int quizId)
     {
         IsGenerating = true;
         try
@@ -266,34 +246,17 @@
             var selectedQuiz = await QuizRepository.GetByIdAsync(quizId);
             if (selectedQuiz != null)
             {
-                QuizState.CurrentQuiz = new Quiz
-                    {
-                        Id = selectedQuiz.Id,
-                        Name = selectedQuiz.Name,
-                        Questions = selectedQuiz.Questions,
-                        UserName = selectedQuiz.UserName,
-                        User = selectedQuiz.User,
-                        Type = selectedQuiz.Type,
-                        Topic = selectedQuiz.Topic,
-                        TopicId = selectedQuiz.TopicId,
-                        Prompt = selectedQuiz.Prompt,
-                        Description = selectedQuiz.Description,
-                        Difficulty = selectedQuiz.Difficulty
-                    };
+                QuizState.CurrentQuiz = selectedQuiz;
                 foreach (var question in QuizState.CurrentQuiz.Questions)
                 {
                     question.UserAnswer = null;
                 }
                 NavManager.NavigateTo("/TakeQuiz");
             }
-            else
-            {
-                Console.WriteLine("🛛 No quiz found for the selected ID.");
-            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error during quiz fetch: {ex.Message}");
+            Console.WriteLine($"Error starting fresh: {ex.Message}");
         }
         finally
         {
@@ -308,23 +271,8 @@
     {
         if (quizToDeleteId.HasValue)
         {
-            try
-            {
-                await QuizRepository.DeleteAsync(quizToDeleteId.Value);
-                var quizToRemove = Summary?.RecentQuizzes?.FirstOrDefault(q => q.Id == quizToDeleteId.Value);
-                if (quizToRemove != null)
-                {
-                    Summary.RecentQuizzes.Remove(quizToRemove);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error deleting quiz: {ex.Message}");
-            }
-            finally
-            {
-                quizToDeleteId = null;
-            }
+            await DeleteQuiz(quizToDeleteId.Value);
+            quizToDeleteId = null;
         }
     }
 }

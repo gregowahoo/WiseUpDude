@@ -11,18 +11,22 @@
   <ItemGroup>
     <Compile Remove="WiseUpDude.Data\**" />
     <Compile Remove="WiseUpDude.Functions\**" />
+    <Compile Remove="WiseUpDude.Model\**" />
     <Compile Remove="WiseUpDude.Services\**" />
     <Compile Remove="WiseUpDude.Tests\**" />
     <Content Remove="WiseUpDude.Data\**" />
     <Content Remove="WiseUpDude.Functions\**" />
+    <Content Remove="WiseUpDude.Model\**" />
     <Content Remove="WiseUpDude.Services\**" />
     <Content Remove="WiseUpDude.Tests\**" />
     <EmbeddedResource Remove="WiseUpDude.Data\**" />
     <EmbeddedResource Remove="WiseUpDude.Functions\**" />
+    <EmbeddedResource Remove="WiseUpDude.Model\**" />
     <EmbeddedResource Remove="WiseUpDude.Services\**" />
     <EmbeddedResource Remove="WiseUpDude.Tests\**" />
     <None Remove="WiseUpDude.Data\**" />
     <None Remove="WiseUpDude.Functions\**" />
+    <None Remove="WiseUpDude.Model\**" />
     <None Remove="WiseUpDude.Services\**" />
     <None Remove="WiseUpDude.Tests\**" />
   </ItemGroup>
@@ -92,10 +96,6 @@
   <ItemGroup>
     <ProjectReference Include="WiseUpDude.Data\WiseUpDude.Data.csproj" />
     <ProjectReference Include="WiseUpDude.Services\WiseUpDude.Services.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="WiseUpDude.Model\" />
   </ItemGroup>
 
 </Project>

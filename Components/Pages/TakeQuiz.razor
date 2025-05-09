@@ -73,6 +73,13 @@
                 <i class="bi @(muteSound ? "bi-volume-mute-fill" : "bi-volume-up-fill") me-1"></i>
                 @(muteSound ? "Muted" : "Sound On")
             </button>
+
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                    @onclick="ToggleLearnMode">
+                <i class="bi @(learnMode ? "bi-mortarboard-fill" : "bi-mortarboard") me-1"></i>
+                @(learnMode ? "Learn Mode On" : "Learn Mode Off")
+            </button>
         </div>
 
         <!-- Quiz Content -->
@@ -132,6 +139,7 @@
         if (QuizState.CurrentQuiz?.Questions != null)
         {
             totalQuestions = QuizState.CurrentQuiz.Questions.Count;
+            learnMode = QuizState.CurrentQuiz.LearnMode; // Initialize LearnMode state
         }
     }
 
@@ -200,6 +208,28 @@
         else
         {
             saveMessage = "Failed to save quiz. Please make sure you're signed in and have a quiz loaded.";
+        }
+    }
+}
+
+@code{
+    private bool learnMode = false; // State for LearnMode
+
+    private async Task ToggleLearnMode()
+    {
+        if (QuizState.CurrentQuiz is not null)
+        {
+            learnMode = !learnMode;
+            QuizState.CurrentQuiz.LearnMode = learnMode; // Update the state in QuizState
+
+            // Update the database
+            await UserQuizRepository.UpdateLearnModeAsync(QuizState.CurrentQuiz.Id, learnMode);
+
+            saveMessage = learnMode ? "Learn Mode enabled!" : "Learn Mode disabled!";
+        }
+        else
+        {
+            saveMessage = "No quiz loaded to toggle Learn Mode.";
         }
     }
 }

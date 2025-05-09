@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WiseUpDude.Data;
 
@@ -11,9 +12,11 @@ using WiseUpDude.Data;
 namespace WiseUpDude.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250509121052_AddUserQuizAttemptEntities_2")]
+    partial class AddUserQuizAttemptEntities_2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -499,6 +502,9 @@ namespace WiseUpDude.Data.Migrations
                     b.Property<bool>("IsCorrect")
                         .HasColumnType("bit");
 
+                    b.Property<int>("QuizQuestionId")
+                        .HasColumnType("int");
+
                     b.Property<double?>("TimeTakenSeconds")
                         .HasColumnType("float");
 
@@ -509,14 +515,11 @@ namespace WiseUpDude.Data.Migrations
                     b.Property<int>("UserQuizAttemptId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserQuizQuestionId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserQuizAttemptId");
+                    b.HasIndex("QuizQuestionId");
 
-                    b.HasIndex("UserQuizQuestionId");
+                    b.HasIndex("UserQuizAttemptId");
 
                     b.ToTable("UserQuizAttemptQuestion");
                 });
@@ -691,21 +694,21 @@ namespace WiseUpDude.Data.Migrations
 
             modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizAttemptQuestion", b =>
                 {
+                    b.HasOne("WiseUpDude.Data.Entities.QuizQuestion", "QuizQuestion")
+                        .WithMany()
+                        .HasForeignKey("QuizQuestionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("WiseUpDude.Data.Entities.UserQuizAttempt", "UserQuizAttempt")
                         .WithMany("AttemptQuestions")
                         .HasForeignKey("UserQuizAttemptId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("WiseUpDude.Data.Entities.UserQuizQuestion", "UserQuizQuestion")
-                        .WithMany()
-                        .HasForeignKey("UserQuizQuestionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.Navigation("QuizQuestion");
 
                     b.Navigation("UserQuizAttempt");
-
-                    b.Navigation("UserQuizQuestion");
                 });
 
             modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizQuestion", b =>

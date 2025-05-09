@@ -14,10 +14,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<QuizQuestion> QuizQuestions { get; set; }
     public DbSet<Topic> Topics { get; set; }
     public DbSet<TopicCreationRun> TopicCreationRuns { get; set; }
-    public DbSet<Category> Categories{ get; set; }
+    public DbSet<Category> Categories { get; set; }
 
     public DbSet<UserQuiz> UserQuizzes { get; set; }
     public DbSet<UserQuizQuestion> UserQuizQuestions { get; set; }
+
+    public DbSet<UserQuizAttempt> UserQuizAttempt { get; set; }
+    public DbSet<UserQuizAttemptQuestion> UserQuizAttemptQuestion { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -64,5 +67,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany(t => t.Quizzes)
             .HasForeignKey(q => q.TopicId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Fix cascade delete issue
+        modelBuilder.Entity<UserQuizAttemptQuestion>()
+            .HasOne(uqaq => uqaq.UserQuizAttempt)
+            .WithMany(uqa => uqa.AttemptQuestions)
+            .HasForeignKey(uqaq => uqaq.UserQuizAttemptId)
+            .OnDelete(DeleteBehavior.Restrict);  // <-- set to Restrict instead of Cascade
+
+        modelBuilder.Entity<UserQuizAttemptQuestion>()
+            .HasOne(aq => aq.UserQuizQuestion)
+            .WithMany()
+            .HasForeignKey(aq => aq.UserQuizQuestionId)
+            .OnDelete(DeleteBehavior.Restrict); // Protect frozen data
     }
 }

@@ -12,15 +12,15 @@ namespace WiseUpDude.Data.Migrations
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_UserQuizAttemptQuestion_QuizQuestions_QuizQuestionId",
-                table: "UserQuizAttemptQuestion");
+                table: "UserQuizAttemptQuestions");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_UserQuizAttemptQuestion_UserQuizAttempt_UserQuizAttemptId",
-                table: "UserQuizAttemptQuestion");
+                table: "UserQuizAttemptQuestions");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_UserQuizAttemptQuestion_QuizQuestions_QuizQuestionId",
-                table: "UserQuizAttemptQuestion",
+                table: "UserQuizAttemptQuestions",
                 column: "QuizQuestionId",
                 principalTable: "QuizQuestions",
                 principalColumn: "Id",
@@ -28,9 +28,9 @@ namespace WiseUpDude.Data.Migrations
 
             migrationBuilder.AddForeignKey(
                 name: "FK_UserQuizAttemptQuestion_UserQuizAttempt_UserQuizAttemptId",
-                table: "UserQuizAttemptQuestion",
+                table: "UserQuizAttemptQuestions",
                 column: "UserQuizAttemptId",
-                principalTable: "UserQuizAttempt",
+                principalTable: "UserQuizAttempts",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
         }
@@ -40,15 +40,15 @@ namespace WiseUpDude.Data.Migrations
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_UserQuizAttemptQuestion_QuizQuestions_QuizQuestionId",
-                table: "UserQuizAttemptQuestion");
+                table: "UserQuizAttemptQuestions");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_UserQuizAttemptQuestion_UserQuizAttempt_UserQuizAttemptId",
-                table: "UserQuizAttemptQuestion");
+                table: "UserQuizAttemptQuestions");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_UserQuizAttemptQuestion_QuizQuestions_QuizQuestionId",
-                table: "UserQuizAttemptQuestion",
+                table: "UserQuizAttemptQuestions",
                 column: "QuizQuestionId",
                 principalTable: "QuizQuestions",
                 principalColumn: "Id",
@@ -56,9 +56,9 @@ namespace WiseUpDude.Data.Migrations
 
             migrationBuilder.AddForeignKey(
                 name: "FK_UserQuizAttemptQuestion_UserQuizAttempt_UserQuizAttemptId",
-                table: "UserQuizAttemptQuestion",
+                table: "UserQuizAttemptQuestions",
                 column: "UserQuizAttemptId",
-                principalTable: "UserQuizAttempt",
+                principalTable: "UserQuizAttempts",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
         }

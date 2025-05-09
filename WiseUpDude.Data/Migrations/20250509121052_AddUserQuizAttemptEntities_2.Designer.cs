@@ -464,7 +464,7 @@ namespace WiseUpDude.Data.Migrations
                     b.ToTable("UserQuizzes");
                 });
 
-            modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizAttempt", b =>
+            modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizAttempts", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -488,10 +488,10 @@ namespace WiseUpDude.Data.Migrations
 
                     b.HasIndex("UserQuizId");
 
-                    b.ToTable("UserQuizAttempt");
+                    b.ToTable("UserQuizAttempts");
                 });
 
-            modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizAttemptQuestion", b =>
+            modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizAttemptQuestions", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -521,7 +521,7 @@ namespace WiseUpDude.Data.Migrations
 
                     b.HasIndex("UserQuizAttemptId");
 
-                    b.ToTable("UserQuizAttemptQuestion");
+                    b.ToTable("UserQuizAttemptQuestions");
                 });
 
             modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizQuestion", b =>
@@ -681,7 +681,7 @@ namespace WiseUpDude.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizAttempt", b =>
+            modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizAttempts", b =>
                 {
                     b.HasOne("WiseUpDude.Data.Entities.UserQuiz", "UserQuiz")
                         .WithMany()
@@ -692,7 +692,7 @@ namespace WiseUpDude.Data.Migrations
                     b.Navigation("UserQuiz");
                 });
 
-            modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizAttemptQuestion", b =>
+            modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizAttemptQuestions", b =>
                 {
                     b.HasOne("WiseUpDude.Data.Entities.QuizQuestion", "QuizQuestion")
                         .WithMany()
@@ -700,7 +700,7 @@ namespace WiseUpDude.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("WiseUpDude.Data.Entities.UserQuizAttempt", "UserQuizAttempt")
+                    b.HasOne("WiseUpDude.Data.Entities.UserQuizAttempts", "UserQuizAttempts")
                         .WithMany("AttemptQuestions")
                         .HasForeignKey("UserQuizAttemptId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -708,7 +708,7 @@ namespace WiseUpDude.Data.Migrations
 
                     b.Navigation("QuizQuestion");
 
-                    b.Navigation("UserQuizAttempt");
+                    b.Navigation("UserQuizAttempts");
                 });
 
             modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizQuestion", b =>
@@ -747,7 +747,7 @@ namespace WiseUpDude.Data.Migrations
                     b.Navigation("Questions");
                 });
 
-            modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizAttempt", b =>
+            modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizAttempts", b =>
                 {
                     b.Navigation("AttemptQuestions");
                 });

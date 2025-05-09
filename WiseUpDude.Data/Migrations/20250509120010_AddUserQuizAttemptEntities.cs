@@ -12,7 +12,7 @@ namespace WiseUpDude.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "UserQuizAttempt",
+                name: "UserQuizAttempts",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -34,7 +34,7 @@ namespace WiseUpDude.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserQuizAttemptQuestion",
+                name: "UserQuizAttemptQuestions",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -57,24 +57,24 @@ namespace WiseUpDude.Data.Migrations
                     table.ForeignKey(
                         name: "FK_UserQuizAttemptQuestion_UserQuizAttempt_UserQuizAttemptId",
                         column: x => x.UserQuizAttemptId,
-                        principalTable: "UserQuizAttempt",
+                        principalTable: "UserQuizAttempts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserQuizAttempt_UserQuizId",
-                table: "UserQuizAttempt",
+                table: "UserQuizAttempts",
                 column: "UserQuizId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserQuizAttemptQuestion_QuizQuestionId",
-                table: "UserQuizAttemptQuestion",
+                table: "UserQuizAttemptQuestions",
                 column: "QuizQuestionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserQuizAttemptQuestion_UserQuizAttemptId",
-                table: "UserQuizAttemptQuestion",
+                table: "UserQuizAttemptQuestions",
                 column: "UserQuizAttemptId");
         }
 
@@ -82,10 +82,10 @@ namespace WiseUpDude.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "UserQuizAttemptQuestion");
+                name: "UserQuizAttemptQuestions");
 
             migrationBuilder.DropTable(
-                name: "UserQuizAttempt");
+                name: "UserQuizAttempts");
         }
     }
 }

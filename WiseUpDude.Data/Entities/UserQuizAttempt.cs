@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WiseUpDude.Data.Entities
+﻿namespace WiseUpDude.Data.Entities
 {
     public class UserQuizAttempt
     {

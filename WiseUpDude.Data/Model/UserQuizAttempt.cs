@@ -1,4 +1,4 @@
-namespace WiseUpDude.Models
+namespace WiseUpDude.Data.Model
 {
     public class UserQuizAttempt
     {

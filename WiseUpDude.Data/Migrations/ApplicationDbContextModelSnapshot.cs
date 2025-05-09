@@ -485,7 +485,7 @@ namespace WiseUpDude.Data.Migrations
 
                     b.HasIndex("UserQuizId");
 
-                    b.ToTable("UserQuizAttempt");
+                    b.ToTable("UserQuizAttempts");
                 });
 
             modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizAttemptQuestion", b =>
@@ -518,7 +518,7 @@ namespace WiseUpDude.Data.Migrations
 
                     b.HasIndex("UserQuizQuestionId");
 
-                    b.ToTable("UserQuizAttemptQuestion");
+                    b.ToTable("UserQuizAttemptQuestions");
                 });
 
             modelBuilder.Entity("WiseUpDude.Data.Entities.UserQuizQuestion", b =>

@@ -12,21 +12,21 @@ namespace WiseUpDude.Data.Migrations
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_UserQuizAttemptQuestion_QuizQuestions_QuizQuestionId",
-                table: "UserQuizAttemptQuestion");
+                table: "UserQuizAttemptQuestions");
 
             migrationBuilder.RenameColumn(
                 name: "QuizQuestionId",
-                table: "UserQuizAttemptQuestion",
+                table: "UserQuizAttemptQuestions",
                 newName: "UserQuizQuestionId");
 
             migrationBuilder.RenameIndex(
                 name: "IX_UserQuizAttemptQuestion_QuizQuestionId",
-                table: "UserQuizAttemptQuestion",
+                table: "UserQuizAttemptQuestions",
                 newName: "IX_UserQuizAttemptQuestion_UserQuizQuestionId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_UserQuizAttemptQuestion_UserQuizQuestions_UserQuizQuestionId",
-                table: "UserQuizAttemptQuestion",
+                table: "UserQuizAttemptQuestions",
                 column: "UserQuizQuestionId",
                 principalTable: "UserQuizQuestions",
                 principalColumn: "Id",
@@ -38,21 +38,21 @@ namespace WiseUpDude.Data.Migrations
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_UserQuizAttemptQuestion_UserQuizQuestions_UserQuizQuestionId",
-                table: "UserQuizAttemptQuestion");
+                table: "UserQuizAttemptQuestions");
 
             migrationBuilder.RenameColumn(
                 name: "UserQuizQuestionId",
-                table: "UserQuizAttemptQuestion",
+                table: "UserQuizAttemptQuestions",
                 newName: "QuizQuestionId");
 
             migrationBuilder.RenameIndex(
                 name: "IX_UserQuizAttemptQuestion_UserQuizQuestionId",
-                table: "UserQuizAttemptQuestion",
+                table: "UserQuizAttemptQuestions",
                 newName: "IX_UserQuizAttemptQuestion_QuizQuestionId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_UserQuizAttemptQuestion_QuizQuestions_QuizQuestionId",
-                table: "UserQuizAttemptQuestion",
+                table: "UserQuizAttemptQuestions",
                 column: "QuizQuestionId",
                 principalTable: "QuizQuestions",
                 principalColumn: "Id",

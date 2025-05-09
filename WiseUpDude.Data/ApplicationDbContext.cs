@@ -19,8 +19,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<UserQuiz> UserQuizzes { get; set; }
     public DbSet<UserQuizQuestion> UserQuizQuestions { get; set; }
 
-    public DbSet<UserQuizAttempt> UserQuizAttempt { get; set; }
-    public DbSet<UserQuizAttemptQuestion> UserQuizAttemptQuestion { get; set; }
+    public DbSet<UserQuizAttempt> UserQuizAttempts { get; set; }
+    public DbSet<UserQuizAttemptQuestion> UserQuizAttemptQuestions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

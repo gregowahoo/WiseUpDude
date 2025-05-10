@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using WiseUpDude.Data.Repositories.Interfaces;
+using WiseUpDude.Model;
 //using WiseUpDude.Data.Model;
 
 namespace WiseUpDude.Data.Repositories
 {
-    public class UserQuizAttemptQuestionRepository : IUserQuizAttemptQuestionRepository
+    public class UserQuizAttemptQuestionRepository : IUserQuizAttemptQuestionRepository<UserQuizAttemptQuestion>
     {
         private readonly ApplicationDbContext _context;
 

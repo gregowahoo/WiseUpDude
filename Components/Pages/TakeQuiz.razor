@@ -15,6 +15,9 @@
 @inject IUserQuizRepository<Quiz> UserQuizRepository
 @inject IUserQuizQuestionRepository<QuizQuestion> UserQuizQuestionRepository
 
+@inject IUserQuizAttemptRepository<UserQuizAttempt> UserQuizAttemptRepository
+@inject IUserQuizAttemptQuestionRepository<UserQuizAttemptQuestion> UserQuizAttemptQuestionRepository
+
 @inject QuizStateService QuizState
 @inject IJSRuntime JS
 

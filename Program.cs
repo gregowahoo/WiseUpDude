@@ -106,6 +106,9 @@ builder.Services.AddScoped<ITopicRepository<Topic>, TopicRepository>();
 builder.Services.AddScoped<IUserQuizRepository<Quiz>, UserQuizRepository>();
 builder.Services.AddScoped<IUserQuizQuestionRepository<QuizQuestion>, UserQuizQuestionRepository>();
 
+builder.Services.AddScoped<IUserQuizAttemptRepository<UserQuizAttempt>, UserQuizAttemptRepository>();
+builder.Services.AddScoped<IUserQuizAttemptQuestionRepository<UserQuizAttemptQuestion>, UserQuizAttemptQuestionRepository>();
+
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<TopicService>();
 builder.Services.AddScoped<QuizFromTopicService>();

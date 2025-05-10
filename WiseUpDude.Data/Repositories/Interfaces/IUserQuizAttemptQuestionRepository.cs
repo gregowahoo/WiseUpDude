@@ -1,8 +1,8 @@
-using WiseUpDude.Data.Model;
+using WiseUpDude.Model;
 
 namespace WiseUpDude.Data.Repositories.Interfaces
 {
-    public interface IUserQuizAttemptQuestionRepository
+    public interface IUserQuizAttemptQuestionRepository<T> where T : class
     {
         Task<UserQuizAttemptQuestion?> GetByIdAsync(int id);
         Task<IEnumerable<UserQuizAttemptQuestion>> GetByAttemptIdAsync(int attemptId);

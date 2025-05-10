@@ -112,7 +112,7 @@
                 var selectedQuiz = quizzes.First();
                 QuizState.CurrentQuiz = new Quiz
                 {
-                    Id = selectedQuiz.Id,
+                    Id = -1,        //This signifies a DB entry does not exist, yet.
                     Name = selectedQuiz.Name,
                     Questions = selectedQuiz.Questions,
                     UserName = selectedQuiz.UserName,

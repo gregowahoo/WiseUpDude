@@ -1,0 +1,14 @@
+﻿.score-tracker {
+    position: sticky;
+    top: 1rem;
+    right: 1rem;
+    background-color: #f8f9fa;
+    color: #212529;
+    padding: 0.5rem 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    font-weight: bold;
+    z-index: 1000;
+    margin-bottom: 1rem; /* Added space below the score area */
+}

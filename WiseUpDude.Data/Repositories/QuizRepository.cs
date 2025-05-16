@@ -1,0 +1,255 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using WiseUpDude.Data.Entities;
+using WiseUpDude.Data;
+using WiseUpDude.Model;
+using System.Text.Json;
+using WiseUpDude.Data.Repositories.Interfaces;
+
+namespace WiseUpDude.Data.Repositories
+{
+    public class QuizRepository : IRepository<WiseUpDude.Model.Quiz>
+    {
+        private readonly ApplicationDbContext _context;
+
+        public QuizRepository(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<IEnumerable<WiseUpDude.Model.Quiz>> GetAllAsync()
+        {
+            var entities = await _context.Quizzes
+                .Include(q => q.Questions)
+                .Include(q => q.User) // Include the User to access UserName
+                .Include(q => q.Topic) // Include the Topic
+                .ToListAsync();
+
+            return entities.Select(e => new WiseUpDude.Model.Quiz
+            {
+                Id = e.Id,
+                Name = e.Name,
+                UserName = e.User?.UserName ?? "Unknown User", // Handle possible null reference
+                UserId = e.User?.Id ?? "Unknown User Id",
+                Questions = e.Questions.Select(q => new WiseUpDude.Model.QuizQuestion
+                {
+                    Id = q.Id,
+                    Question = q.Question,
+                    Answer = q.Answer,
+                    Difficulty = q.Difficulty // Include question-level difficulty
+                }).ToList(),
+                Type = e.Type,
+                Topic = e.Topic?.Name, // Use the Topic's Name
+                TopicId = e.TopicId, // Map TopicId
+                Description = e.Description,
+                Difficulty = e.Difficulty // Include quiz-level difficulty
+            });
+        }
+
+        public async Task<WiseUpDude.Model.Quiz> GetByIdAsync(int id)
+        {
+            var entity = await _context.Quizzes
+                .Include(q => q.Questions)
+                .Include(q => q.User) // Include the User to access UserName
+                .Include(q => q.Topic) // Include the Topic
+                .FirstOrDefaultAsync(q => q.Id == id);
+
+            if (entity == null)
+                throw new KeyNotFoundException($"Quiz with Id {id} not found.");
+
+            return new WiseUpDude.Model.Quiz
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                UserName = entity.User?.UserName ?? "Unknown User", // Handle possible null reference
+                UserId = entity.User?.Id ?? "Unknown User Id",
+                Questions = entity.Questions.Select(q => new WiseUpDude.Model.QuizQuestion
+                {
+                    Id = q.Id,
+                    Question = q.Question,
+                    Options = q.OptionsJson != null ? JsonSerializer.Deserialize<List<string>>(q.OptionsJson) : null,
+                    Answer = q.Answer,
+                    Explanation = q.Explanation,
+                    QuestionType = (WiseUpDude.Model.QuizQuestionType)q.QuestionType,
+                    Difficulty = q.Difficulty
+                }).ToList(),
+                Type = entity.Type,
+                Topic = entity.Topic?.Name, // Use the Topic's Name
+                TopicId = entity.TopicId, // Map TopicId
+                Description = entity.Description,
+                Difficulty = entity.Difficulty // Include quiz-level difficulty
+            };
+        }
+
+        public async Task<IEnumerable<WiseUpDude.Model.Quiz>> GetQuizzesByTopicIdAsync(int topicId)
+        {
+            var quizzes = await _context.Quizzes
+                .Include(q => q.Questions)
+                .Include(q => q.User) // Include User for UserName
+                .Include(q => q.Topic) // Include Topic for Topic details
+                .Where(q => q.TopicId == topicId) // Filter by TopicId
+                .ToListAsync();
+
+            return quizzes.Select(q => new WiseUpDude.Model.Quiz
+            {
+                Id = q.Id,
+                Name = q.Name,
+                Questions = q.Questions.Select(qq => new WiseUpDude.Model.QuizQuestion
+                {
+                    Id = qq.Id,
+                    Question = qq.Question,
+                    Options = qq.OptionsJson != null ? JsonSerializer.Deserialize<List<string>>(qq.OptionsJson) : null,
+                    Answer = qq.Answer,
+                    Explanation = qq.Explanation,
+                    QuestionType = (WiseUpDude.Model.QuizQuestionType)qq.QuestionType,
+                    Difficulty = qq.Difficulty
+                }).ToList(),
+                UserName = q.User?.UserName ?? "Unknown User",
+                UserId = q.User?.Id ?? "Unknown User",
+                Type = q.Type,
+                Topic = q.Topic?.Name,
+                TopicId = q.TopicId,
+                Prompt = q.Prompt,
+                Description = q.Description,
+                Difficulty = q.Difficulty
+            });
+        }
+
+
+        public async Task AddAsync(WiseUpDude.Model.Quiz quiz)
+        {
+            // Create a new Quiz entity
+            var entity = new Entities.Quiz
+            {
+                Name = quiz.Name,
+                UserId = quiz.UserId,
+                Type = quiz.Type,
+                TopicId = quiz.TopicId, // Use TopicId directly
+                Description = quiz.Description,
+                Difficulty = quiz.Difficulty // Save quiz-level difficulty
+            };
+
+            // Add the Quiz to the database first to generate its ID
+            _context.Quizzes.Add(entity);
+            await _context.SaveChangesAsync();
+
+            // Add Questions with the Quiz reference
+            entity.Questions = quiz.Questions.Select(q => new Entities.QuizQuestion
+            {
+                Question = q.Question,
+                QuestionType = (Entities.QuizQuestionType)q.QuestionType,
+                OptionsJson = q.Options != null ? System.Text.Json.JsonSerializer.Serialize(q.Options) : null,
+                Answer = q.Answer,
+                Explanation = q.Explanation,
+                UserAnswer = q.UserAnswer,
+                QuizId = entity.Id, // Set the QuizId
+                Quiz = entity, // Set the required Quiz property
+                Difficulty = q.Difficulty // Save question-level difficulty
+            }).ToList();
+
+            // Update the Quiz entity with its questions
+            _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            quiz.Id = entity.Id;
+        }
+
+        public async Task AddQuizAsync(QuizResponse quizResponse, string userName = "greg.ohlsen@gmail.com")
+        {
+            var quizName = string.IsNullOrWhiteSpace(quizResponse.Topic)
+                ? $"Quiz_{DateTime.UtcNow:yyyyMMdd_HHmmss}"
+                : quizResponse.Topic;
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == userName);
+            if (user == null)
+            {
+                throw new InvalidOperationException($"User with UserName '{userName}' not found.");
+            }
+
+            // Find the Topic by its Name
+            var topic = await _context.Topics.FirstOrDefaultAsync(t => t.Name == quizResponse.Topic);
+            if (topic == null)
+                throw new KeyNotFoundException($"Topic with Name '{quizResponse.Topic}' not found.");
+
+            var quiz = new Entities.Quiz
+            {
+                Name = quizName,
+                UserId = user.Id,
+                Type = quizResponse.Type,
+                TopicId = topic.Id, // Set the TopicId
+                Description = quizResponse.Description,
+                Difficulty = quizResponse.Difficulty // Save quiz-level difficulty
+            };
+
+            // Add the Quiz to the database first to generate its ID
+            _context.Quizzes.Add(quiz);
+            await _context.SaveChangesAsync();
+
+            // Add Questions with the Quiz reference
+            quiz.Questions = quizResponse.Questions.Select(q => new Entities.QuizQuestion
+            {
+                Question = q.Question,
+                QuestionType = (Entities.QuizQuestionType)q.QuestionType,
+                OptionsJson = System.Text.Json.JsonSerializer.Serialize(q.Options),
+                Answer = q.Answer,
+                Explanation = q.Explanation,
+                QuizId = quiz.Id, // Set the QuizId
+                Quiz = quiz, // Set the required Quiz property
+                Difficulty = q.Difficulty // Save question-level difficulty
+            }).ToList();
+
+            // Update the Quiz entity with its questions
+            _context.Entry(quiz).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(WiseUpDude.Model.Quiz model)
+        {
+            var entity = await _context.Quizzes
+                .Include(q => q.Questions)
+                .FirstOrDefaultAsync(q => q.Id == model.Id);
+
+            if (entity == null)
+                throw new KeyNotFoundException($"Quiz with Id {model.Id} not found.");
+
+            entity.Name = model.Name;
+            entity.Type = model.Type;
+            entity.TopicId = model.TopicId; // Update TopicId
+            entity.Description = model.Description;
+            entity.Difficulty = model.Difficulty; // Update quiz-level difficulty
+
+            // Update Questions with the Quiz reference
+            entity.Questions = model.Questions.Select(q => new Entities.QuizQuestion
+            {
+                Id = q.Id,
+                Question = q.Question,
+                Answer = q.Answer,
+                QuizId = entity.Id, // Set the QuizId
+                Quiz = entity, // Set the required Quiz property
+                Difficulty = q.Difficulty // Update question-level difficulty
+            }).ToList();
+
+            _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            // Find the quiz by its ID
+            var quiz = await _context.Quizzes
+                .FirstOrDefaultAsync(q => q.Id == id);
+
+            if (quiz != null)
+            {
+                // Remove the quiz
+                _context.Quizzes.Remove(quiz);
+
+                // Save changes to the database
+                await _context.SaveChangesAsync();
+            }
+        }
+
+    }
+}

@@ -1,0 +1,126 @@
+﻿/*.card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: none;*/ /* Remove the shadow */
+/*}*/
+
+.list-group-item {
+    font-size: 1.1rem;
+}
+
+.badge {
+    padding: 0.25em 0.5em; /* Add padding for better spacing */
+    border-radius: 0.25rem; /* Rounded corners for consistency */
+    font-weight: 700; /* Ensure text is bold */
+    display: inline-block; /* Ensure proper rendering */
+}
+
+.bg-orange {
+    background-color: #FFA500; /* Orange color */
+    color: #000; /* Black text for contrast */
+    font-weight: 700; /* Make text bold */
+}
+
+.bg-info {
+    background-color: #17a2b8; /* Blue color */
+    color: #fff; /* White text for contrast */
+    font-weight: 700; /* Make text bold */
+}
+
+h1 {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.navbar {
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.25rem !important;
+}
+
+.list-group-item {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.quiz-card {
+    background-color: #fff;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 .125rem .25rem rgba(0, 0, 0, 0.075);
+}
+
+.badge {
+    vertical-align: middle;
+    line-height: 1.2;
+    padding: 0.35em 0.6em;
+    font-size: 0.75rem;
+    display: inline-block;
+}
+
+.score-high {
+    background: linear-gradient(to right, #28a745, #218838); /* Green */
+    color: #fff;
+}
+
+.score-low {
+    background: linear-gradient(to right, #ffc107, #ffcd39); /* Yellow */
+    color: #212529;
+}
+
+.score-mid {
+    background: linear-gradient(to right, #fd7e14, #e8590c); /* Orange */
+    color: #fff;
+}
+
+.score-bad {
+    background: linear-gradient(to right, #dc3545, #c82333); /* Red */
+    color: #fff;
+}
+
+.score-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.5em;
+    font-size: 0.75rem;
+    padding: 0 0.6em;
+    margin-top: -2px;
+    margin-left: 0.5rem;
+    white-space: nowrap;
+}
+
+.list-group {
+    border: none; /* Remove border around the list group */
+    padding: 0; /* Remove padding around the list group */
+}
+
+.list-group-item {
+    border: none; /* Remove border around each list group item */
+    padding: 0; /* Remove padding around each list group item */
+}
+
+.card-header h5 {
+    font-size: 1rem; /* Adjust the font size to make it smaller */
+    line-height: 1.2; /* Optional: Adjust line height for better spacing */
+    white-space: normal; /* Allow wrapping if needed */
+}
+
+.learn-active {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}

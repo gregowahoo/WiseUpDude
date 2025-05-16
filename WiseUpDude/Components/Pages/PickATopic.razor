@@ -1,0 +1,153 @@
+﻿@page "/pickatopic"
+
+@using Microsoft.AspNetCore.Authorization
+@using WiseUpDude.Data.Repositories
+@using WiseUpDude.Data.Repositories.Interfaces
+@using WiseUpDude.Model
+@using WiseUpDude.Services
+@using WiseUpDude.Services.Interfaces
+
+@inject QuizStateService QuizState
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+@inject ITopicRepository<Topic> TopicRepository
+@inject IRepository<Quiz> QuizRepository
+@inject ICategoryRepository CategoryRepository
+
+@inject ITopicsCacheService<Topic> TopicsCacheService
+@* @inject QuizFromTopicService QuizQuestionsFromTopic *@
+
+@inject IConfiguration Configuration
+
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+@if (IsGenerating)
+{
+    <p class="text-center mt-3 text-muted">🧠 Generating your quiz...</p>
+}
+
+<div class="container py-5">
+
+    <!-- Header Section -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary">🤩 Choose Your Quiz Adventure!</h1>
+        <p class="lead text-muted">Filter by category and dive into a topic that excites you! 🚀</p>
+    </div>
+
+    <!-- Category Filter Buttons -->
+    <div class="mb-4 text-center">
+        <button class="btn @(selectedCategory == null ? "btn-primary" : "btn-outline-primary") m-1"
+                @onclick="() => FilterByCategory(null)">
+            All
+        </button>
+        @foreach (var category in Categories)
+        {
+            <button class="btn @(selectedCategory == category ? "btn-primary" : "btn-outline-primary") m-1"
+                    @onclick="() => FilterByCategory(category)">
+                @category.Name
+            </button>
+        }
+    </div>
+
+    <!-- Topics Grid -->
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var topic in FilteredTopics)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm topic-card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">@topic.Name</h5>
+                        <p class="card-text text-secondary">@topic.Description</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0 text-center">
+                        <button class="btn btn-success" @onclick="() => GetQuiz(topic.Id)">
+                            Let's Go! 🎯
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
+
+@code {
+    private Category? selectedCategory;
+
+    private List<Category> Categories = new();
+    private List<Topic> FilteredTopics = new();
+
+    private bool IsGenerating = false;
+
+    async Task FilterByCategory(Category? category)
+    {
+        selectedCategory = category;
+
+        if (category == null)
+        {
+            // Load all topics if no category is selected
+            FilteredTopics = (await TopicRepository.GetAllAsync()).ToList();
+        }
+        else
+        {
+            // Load topics filtered by the selected category
+            FilteredTopics = (await TopicRepository.GetTopicsByCategoryAsync(category.Id)).ToList();
+        }
+    }
+
+    private async Task GetQuiz(int topicId)
+    {
+        IsGenerating = true;
+
+        try
+        {
+            // Fetch quizzes for the selected topic using the repository method
+            var quizzes = await QuizRepository.GetQuizzesByTopicIdAsync(topicId);
+
+            if (quizzes.Any())
+            {
+                // If quizzes exist, set the first quiz as the current quiz
+                var selectedQuiz = quizzes.First();
+                // QuizState.CurrentQuiz = new Quiz
+                // {
+                //     Id = -1,        //This signifies a DB entry does not exist, yet.
+                //     Name = selectedQuiz.Name,
+                //     Questions = selectedQuiz.Questions,
+                //     UserName = selectedQuiz.UserName,
+                //     UserId = selectedQuiz.UserId,
+                //     Type = selectedQuiz.Type,
+                //     Topic = selectedQuiz.Topic,
+                //     TopicId = selectedQuiz.TopicId,
+                //     Prompt = selectedQuiz.Prompt,
+                //     Description = selectedQuiz.Description,
+                //     Difficulty = selectedQuiz.Difficulty
+                // };
+
+                // NavigationManager.NavigateTo("/TakeQuiz");
+
+                NavigationManager.NavigateTo($"/TakeAQuiz/{selectedQuiz.Id}");
+            }
+            else
+            {
+                // If no quizzes exist, log or handle the case (e.g., show a message)
+                Console.WriteLine("🚫 No quizzes found for the selected topic. Consider generating one via AI.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during quiz generation or fetch: {ex.Message}");
+        }
+        finally
+        {
+            IsGenerating = false;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Categories = (await CategoryRepository.GetAllAsync()).ToList(); // Load categories
+        FilteredTopics = (await TopicRepository.GetAllAsync()).ToList(); // Load all topics initially
+    }
+}

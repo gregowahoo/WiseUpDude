@@ -1,0 +1,311 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using WiseUpDude.Data.Entities;
+using WiseUpDude.Data.Repositories.Interfaces;
+using WiseUpDude.Model;
+
+namespace WiseUpDude.Data.Repositories
+{
+    public class UserQuizRepository : IUserQuizRepository<WiseUpDude.Model.Quiz>
+    {
+        private readonly ApplicationDbContext _context;
+
+        public UserQuizRepository(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<IEnumerable<WiseUpDude.Model.Quiz>> GetAllAsync()
+        {
+            var userQuizzes = await _context.UserQuizzes
+                .Include(uq => uq.Questions)
+                .Include(uq => uq.User)
+                .ToListAsync();
+
+            return userQuizzes.Select(uq => new WiseUpDude.Model.Quiz
+            {
+                Id = uq.Id,
+                Name = uq.Name,
+                UserName = uq.User?.UserName ?? "Unknown User", // Handle possible null reference
+                UserId = uq.User?.Id ?? "Unknown User Id",
+                Questions = uq.Questions.Select(q => new WiseUpDude.Model.QuizQuestion
+                {
+                    Id = q.Id,
+                    Question = q.Question,
+                    Answer = q.Answer,
+                    Explanation = q.Explanation,
+                    QuestionType = (WiseUpDude.Model.QuizQuestionType)q.QuestionType,
+                    Options = string.IsNullOrEmpty(q.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson),
+                    UserAnswer = q.UserAnswer,
+                    Difficulty = q.Difficulty // Include question-level difficulty
+                }).ToList(),
+                Type = uq.Type,
+                Topic = uq.Topic,
+                Prompt = uq.Prompt,
+                Description = uq.Description,
+                Difficulty = uq.Difficulty, // Include quiz-level difficulty
+                LearnMode = uq.LearnMode // Include LearnMode
+            });
+        }
+
+        public async Task<WiseUpDude.Model.Quiz> GetByIdAsync(int id)
+        {
+            var userQuiz = await _context.UserQuizzes
+                .Include(uq => uq.Questions)
+                .Include(uq => uq.User)
+                .FirstOrDefaultAsync(uq => uq.Id == id);
+
+            if (userQuiz == null)
+                throw new KeyNotFoundException($"UserQuiz with Id {id} not found.");
+
+            return new WiseUpDude.Model.Quiz
+            {
+                Id = userQuiz.Id,
+                Name = userQuiz.Name,
+                UserName = userQuiz.User?.UserName ?? "Unknown User", // Handle possible null reference
+                UserId = userQuiz.User?.Id ?? "Unknown User Id",
+                Questions = userQuiz.Questions.Select(q => new WiseUpDude.Model.QuizQuestion
+                {
+                    Id = q.Id,
+                    Question = q.Question,
+                    Answer = q.Answer,
+                    Explanation = q.Explanation,
+                    QuestionType = (WiseUpDude.Model.QuizQuestionType)q.QuestionType,
+                    Options = string.IsNullOrEmpty(q.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson),
+                    UserAnswer = q.UserAnswer,
+                    Difficulty = q.Difficulty // Include question-level difficulty
+                }).ToList(),
+                Type = userQuiz.Type,
+                Topic = userQuiz.Topic,
+                Prompt = userQuiz.Prompt,
+                Description = userQuiz.Description,
+                Difficulty = userQuiz.Difficulty, // Include quiz-level difficulty
+                LearnMode = userQuiz.LearnMode // Include LearnMode
+            };
+        }
+
+        //public Task<IEnumerable<Model.Topic>> GetTopicsAsync(int count)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        public async Task AddAsync(WiseUpDude.Model.Quiz quiz)
+        {
+            var userQuiz = new UserQuiz
+            {
+                Name = quiz.Name,
+                UserId = quiz.UserId,
+                Type = quiz.Type,
+                Topic = quiz.Topic,
+                Prompt = quiz.Prompt,
+                Description = quiz.Description,
+                Difficulty = quiz.Difficulty, // Save quiz-level difficulty
+                LearnMode = quiz.LearnMode, // Save LearnMode
+                Questions = quiz.Questions.Select(q => new UserQuizQuestion
+                {
+                    Question = q.Question,
+                    Answer = q.Answer,
+                    Explanation = q.Explanation,
+                    QuestionType = (UserQuizQuestionType)q.QuestionType,
+                    OptionsJson = q.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(q.Options),
+                    UserAnswer = q.UserAnswer,
+                    Difficulty = q.Difficulty, // Save question-level difficulty
+                    Quiz = null // Will be set before saving
+                }).ToList()
+            };
+
+            // Set the Quiz property for each question before saving
+            foreach (var question in userQuiz.Questions)
+            {
+                question.Quiz = userQuiz;
+            }
+
+            _context.UserQuizzes.Add(userQuiz);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> AddAsyncGetId(Model.Quiz quiz)
+        {
+            var userQuiz = new UserQuiz
+            {
+                Name = quiz.Name,
+                UserId = quiz.UserId,
+                Type = quiz.Type,
+                Topic = quiz.Topic,
+                Prompt = quiz.Prompt,
+                Description = quiz.Description,
+                Difficulty = quiz.Difficulty, // Save quiz-level difficulty
+                LearnMode = quiz.LearnMode, // Save LearnMode
+                Questions = quiz.Questions.Select(q => new UserQuizQuestion
+                {
+                    Question = q.Question,
+                    Answer = q.Answer,
+                    Explanation = q.Explanation,
+                    QuestionType = (UserQuizQuestionType)q.QuestionType,
+                    OptionsJson = q.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(q.Options),
+                    UserAnswer = q.UserAnswer,
+                    Difficulty = q.Difficulty, // Save question-level difficulty
+                    Quiz = null // Will be set before saving
+                }).ToList()
+            };
+
+            // Set the Quiz property for each question before saving
+            foreach (var question in userQuiz.Questions)
+            {
+                question.Quiz = userQuiz;
+            }
+
+            _context.UserQuizzes.Add(userQuiz);
+            await _context.SaveChangesAsync();
+
+            return userQuiz.Id;
+        }
+
+        public async Task UpdateAsync(WiseUpDude.Model.Quiz quiz)
+        {
+            var userQuiz = await _context.UserQuizzes
+                .Include(uq => uq.Questions)
+                .FirstOrDefaultAsync(uq => uq.Id == quiz.Id);
+
+            if (userQuiz == null)
+                throw new KeyNotFoundException($"UserQuiz with Id {quiz.Id} not found.");
+
+            userQuiz.Name = quiz.Name;
+            userQuiz.Type = quiz.Type;
+            userQuiz.Topic = quiz.Topic;
+            userQuiz.Prompt = quiz.Prompt;
+            userQuiz.Description = quiz.Description;
+            userQuiz.Difficulty = quiz.Difficulty; // Update quiz-level difficulty
+            userQuiz.LearnMode = quiz.LearnMode; // Update LearnMode
+
+            // Update questions
+            userQuiz.Questions.Clear();
+            userQuiz.Questions.AddRange(quiz.Questions.Select(q => new UserQuizQuestion
+            {
+                Question = q.Question,
+                Answer = q.Answer,
+                Explanation = q.Explanation,
+                QuestionType = (UserQuizQuestionType)q.QuestionType,
+                OptionsJson = q.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(q.Options),
+                UserAnswer = q.UserAnswer,
+                Difficulty = q.Difficulty, // Update question-level difficulty
+                Quiz = userQuiz // Set the Quiz property
+            }));
+
+            _context.UserQuizzes.Update(userQuiz);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateQuizNameAsync(int id, string newName)
+        {
+            // Find the UserQuiz by ID
+            var userQuiz = await _context.UserQuizzes.FirstOrDefaultAsync(uq => uq.Id == id);
+
+            if (userQuiz == null)
+                throw new KeyNotFoundException($"UserQuiz with Id {id} not found.");
+
+            // Update the name
+            userQuiz.Name = newName;
+
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateLearnModeAsync(int id, bool learnMode)
+        {
+            var userQuiz = await _context.UserQuizzes.FirstOrDefaultAsync(uq => uq.Id == id);
+
+            if (userQuiz == null)
+                throw new KeyNotFoundException($"UserQuiz with Id {id} not found.");
+
+            userQuiz.LearnMode = learnMode;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            var userQuiz = await _context.UserQuizzes.FindAsync(id);
+            if (userQuiz == null)
+                throw new KeyNotFoundException($"UserQuiz with Id {id} not found.");
+
+            _context.UserQuizzes.Remove(userQuiz);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<WiseUpDude.Model.Quiz>> GetUserQuizzesAsync(string userId)
+        {
+            var userQuizzes = await _context.UserQuizzes
+                .Include(q => q.Questions)
+                .Include(q => q.User) // Eagerly load the User property
+                .Where(q => q.UserId == userId)
+                .OrderByDescending(q => q.CreationDate)
+                .ToListAsync();
+
+            return userQuizzes.Select(uq => new WiseUpDude.Model.Quiz
+            {
+                Id = uq.Id,
+                Name = uq.Name,
+                UserName = uq.UserId, // Assuming UserId maps to UserName in the model
+                Questions = uq.Questions.Select(q => new WiseUpDude.Model.QuizQuestion
+                {
+                    Id = q.Id,
+                    Question = q.Question,
+                    Answer = q.Answer,
+                    Explanation = q.Explanation,
+                    QuestionType = (WiseUpDude.Model.QuizQuestionType)q.QuestionType,
+                    Options = string.IsNullOrEmpty(q.OptionsJson)
+                        ? new List<string>()
+                        : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson),
+                    UserAnswer = q.UserAnswer,
+                    Difficulty = q.Difficulty
+                }).ToList(),
+                Type = uq.Type,
+                Topic = uq.Topic,
+                Prompt = uq.Prompt,
+                Description = uq.Description,
+                Difficulty = uq.Difficulty,
+                LearnMode = uq.LearnMode, // Include LearnMode
+                                          //TopicId = uq.TopicId // Assuming TopicId exists in the entity
+                UserId = uq.User?.Id ?? "Unknown User Id",
+            }).ToList();
+        }
+
+
+        // Helper to get recent quizzes (e.g., last 5)
+        public async Task<List<RecentQuizDto>> GetRecentUserQuizzesAsync(string userId, int count = 5)
+        {
+            var userQuizzes = await _context.UserQuizzes
+                .Include(q => q.Questions)
+                .Where(q => q.UserId == userId)
+                .OrderByDescending(q => q.CreationDate)
+                .Take(count)
+                .ToListAsync();
+
+            return userQuizzes.Select(uq => new RecentQuizDto
+            {
+                Id = uq.Id, // Populate the Id
+                Name = uq.Name,
+                Score = CalculateScore(uq),
+                Type = uq.Type,
+                Topic = uq.Topic,
+                Prompt = uq.Prompt,
+                Description = uq.Description,
+                LearnMode = uq.LearnMode // Include LearnMode
+            }).ToList();
+        }
+        private double CalculateScore(UserQuiz userQuiz)
+        {
+            if (userQuiz.Questions == null || userQuiz.Questions.Count == 0)
+                return 0;
+
+            int totalQuestions = userQuiz.Questions.Count;
+            int correctAnswers = userQuiz.Questions.Count(q => q.UserAnswer == q.Answer);
+
+            return (double)correctAnswers / totalQuestions * 100;
+        }
+
+    }
+}

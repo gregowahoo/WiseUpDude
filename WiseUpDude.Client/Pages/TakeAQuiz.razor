@@ -1,0 +1,228 @@
+﻿@page "/TakeAQuiz/{QuizId:int}"
+@rendermode InteractiveAuto
+@* @rendermode InteractiveWebAssembly *@
+
+
+@* @using Microsoft.AspNetCore.Authorization *@
+@* @using WiseUpDude.Services
+@using WiseUpDude.Services.Interfaces *@
+@using WiseUpDude.Model
+
+@using WiseUpDude.Client.Pages
+@using WiseUpDude.Client.Services
+
+@inject HttpClient HttpClient
+@* @inject QuizApiService QuizApiService *@
+
+@* @inject WiseUpDude.Client.Services.QuizApiService QuizApiService *@
+
+@inject IJSRuntime JS
+
+
+<h3>TakeAQuiz</h3>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="mb-0">
+                🧠 Take Quiz - 
+                @(Quiz?.Type == "Topic"
+                    ? Quiz?.Topic
+                    : Quiz?.Prompt)
+            </h3>
+            <p class="mb-0">Select an answer for each question to see if you're correct.</p>
+            @if (!string.IsNullOrWhiteSpace(Quiz?.Difficulty))
+            {
+                <p class="text-muted mb-0">Quiz Difficulty: <strong>@Quiz.Difficulty</strong></p>
+            }
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Score Tracker -->
+        <ScoreTracker TotalQuestions="@totalQuestions" CorrectAnswers="@correctAnswers" />
+
+        <!-- Final Message -->
+        @if (showFinalMessage)
+        {
+            @if ((double)correctAnswers / totalAnswered >= 0.8)
+            {
+                <div class="alert alert-success mt-4 fs-5 text-center fw-bold">
+                    🎉 You Wise’d Up! Final Score: @correctAnswers / @totalAnswered
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-danger mt-4 fs-5 text-center fw-bold">
+                    😬 You’ve got work to do, wise guy. Final Score: @correctAnswers / @totalAnswered
+                </div>
+            }
+        }
+
+        <!-- Quiz Controls -->
+        <div class="d-flex align-items-center gap-4 mb-3">
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                    @onclick="ToggleAutoSubmit">
+                <i class="bi @(autoSubmit ? "bi-lightning-fill" : "bi-lightning") me-1"></i>
+                @(autoSubmit ? "Auto-Submit On" : "Auto-Submit Off")
+            </button>
+
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                    @onclick="ToggleMute">
+                <i class="bi @(muteSound ? "bi-volume-mute-fill" : "bi-volume-up-fill") me-1"></i>
+                @(muteSound ? "Muted" : "Sound On")
+            </button>
+
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                    @onclick="ToggleLearnMode">
+                <i class="bi @(learnMode ? "bi-mortarboard-fill" : "bi-mortarboard") me-1"></i>
+                @(learnMode ? "Learn Mode On" : "Learn Mode Off")
+            </button>
+        </div>
+
+        <!-- Quiz Content -->
+        @if (Quiz == null || Quiz.Questions.Count == 0)
+        {
+            <div class="alert alert-warning">
+                No quiz questions found. Please go to Home and generate a quiz first.
+            </div>
+        }
+        else
+        {
+            @for (int i = 0; i < Quiz.Questions.Count; i++)
+            {
+                var question = Quiz.Questions[i];
+                <div class="mb-4">
+                    <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p>
+                    <QuestionCard Question="question"
+                                  QuestionIndex="i"
+                                  AutoSubmit="autoSubmit"
+                                  MuteSound="muteSound"
+                                  OnAnswerSubmitted="HandleAnswerSubmitted" />
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(saveMessage))
+            {
+                <div class="alert alert-info mt-3">@saveMessage</div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int QuizId { get; set; }
+
+    // [Inject]
+    // public QuizApiService QuizApiService { get; set; } = default!;
+
+    private QuizApiService QuizApiService;
+    private Quiz? Quiz;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Set the base address for this HttpClient instance
+        HttpClient.BaseAddress = new Uri("https://localhost:7199");
+
+        QuizApiService = new QuizApiService(HttpClient);
+        Quiz = await QuizApiService.GetQuizByIdAsync(QuizId);
+
+        if (Quiz?.Questions != null)
+        {
+            totalQuestions = Quiz.Questions.Count;
+            learnMode = Quiz.LearnMode;
+        }
+
+        // QuizState.OnQuizUpdated += HandleQuizUpdated;
+    }
+}
+
+@code {
+    private bool autoSubmit = true;
+    private string? saveMessage;
+
+    private int totalQuestions;
+    private int totalAnswered;
+    private int correctAnswers;
+
+    private bool showFinalMessage = false;
+    private bool muteSound = false;
+    private bool learnMode = false;
+
+    protected override void OnInitialized()
+    {
+        // if (QuizState.CurrentQuiz?.Questions != null)
+        // {
+        //     totalQuestions = QuizState.CurrentQuiz.Questions.Count;
+        //     learnMode = QuizState.CurrentQuiz.LearnMode;
+        // }
+        // QuizState.OnQuizUpdated += HandleQuizUpdated;
+    }
+
+    private void HandleQuizUpdated()
+    {
+        StateHasChanged();
+    }
+
+    private void ToggleAutoSubmit()
+    {
+        autoSubmit = !autoSubmit;
+    }
+
+    private void ToggleMute()
+    {
+        muteSound = !muteSound;
+    }
+
+    private async Task ToggleLearnMode()
+    {
+        if (Quiz is not null)
+        {
+            learnMode = !learnMode;
+            Quiz.LearnMode = learnMode;
+            saveMessage = learnMode ? "Learn Mode enabled!" : "Learn Mode disabled!";
+            await JS.InvokeVoidAsync("console.log", saveMessage);
+        }
+        else
+        {
+            saveMessage = "No quiz loaded to toggle Learn Mode.";
+        }
+    }
+
+    private async Task HandleAnswerSubmitted((bool isCorrect, int questionIndex) args)
+    {
+        var (isCorrect, questionIndex) = args;
+
+        totalAnswered++;
+
+        if (isCorrect)
+        {
+            correctAnswers++;
+        }
+
+        if (Quiz?.Questions != null && totalAnswered >= Quiz.Questions.Count)
+        {
+            await JS.InvokeVoidAsync("scrollToTopSmooth");
+            double scorePercent = (double)correctAnswers / totalAnswered;
+
+            if (scorePercent >= 0.8)
+            {
+                await JS.InvokeVoidAsync("playSound", "/sounds/applause.mp3");
+                await JS.InvokeVoidAsync("launchConfetti");
+            }
+
+            showFinalMessage = true;
+        }
+
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        // QuizState.OnQuizUpdated -= HandleQuizUpdated;
+    }
+}
+

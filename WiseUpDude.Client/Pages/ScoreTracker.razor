@@ -1,0 +1,8 @@
+﻿@code {
+    [Parameter] public int TotalQuestions { get; set; }
+    [Parameter] public int CorrectAnswers { get; set; }
+}
+
+<div class="score-tracker">
+    Score: @CorrectAnswers / @TotalQuestions
+</div>

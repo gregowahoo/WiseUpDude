@@ -1,0 +1,326 @@
+﻿@page "/"
+@* @page "/home" *@
+
+@layout WiseUpDude.Components.Layout.MainLayout
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using WiseUpDude.Model
+@using WiseUpDude.Services
+@using WiseUpDude.Data.Repositories
+@using WiseUpDude.Data.Repositories.Interfaces
+
+@inject DashboardDataService DashboardData
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavManager
+@inject IUserQuizRepository<Quiz> QuizRepository
+@inject QuizStateService QuizState
+
+@rendermode InteractiveServer
+
+<h1 class="text-center mb-4">Welcome to Wise Up Dude!</h1>
+
+<div class="container">
+    <!-- Dashboard Summary -->
+    <div class="row text-center mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm p-3">
+                <h5>Total Quizzes Taken</h5>
+                <p class="display-4">@Summary?.TotalQuizzesTaken</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm p-3">
+                <h5>Average Score</h5>
+                <p class="display-4">@($"{Summary?.AverageScore:F0}%")</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm p-3">
+                <h5>Best Quiz</h5>
+                <p>@(Summary?.BestQuizName ?? "N/A")</p>
+                <p class="text-success">Score: @($"{Summary?.BestQuizScore ?? 0:F0}%")</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saved Quizzes -->
+    <div>
+        <h3>Your Saved Quizzes</h3>
+        @if (IsGenerating)
+        {
+            <p class="text-center text-muted">🦖 Generating your quiz...</p>
+        }
+        else if (Summary == null)
+        {
+            <p>Loading...</p>
+        }
+        else if (Summary.RecentQuizzes?.Any() == true)
+        {
+            <div class="row">
+                @foreach (var quiz in Summary.RecentQuizzes)
+                {
+                    var scoreClass = quiz.Score switch
+                    {
+                        >= 90 => "score-high",
+                        >= 75 => "score-low",
+                        >= 50 => "score-mid",
+                        _ => "score-bad"
+                    };
+
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card shadow-sm h-100">
+
+                            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                                @if (editingQuizId == quiz.Id)
+                                {
+                                    <input type="text" class="form-control form-control-sm w-75" @bind="quiz.Name" />
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-light" @onclick="() => SaveQuizName(quiz)">Save</button>
+                                        <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="d-flex align-items-center justify-content-between w-100">
+                                        <h5 class="mb-0 text-truncate">@quiz.Name</h5>
+                                        <span class="badge rounded-pill @scoreClass ms-2" title="@($"{quiz.Score:F0}% Complete")">
+                                            @($"{quiz.Score:F0}%")
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+
+
+                            <div class="card-body">
+                                @if (quiz.Type == "Prompt")
+                                {
+                                    <p><span class="badge bg-warning">Prompt:</span> @quiz.Prompt</p>
+                                }
+                                else if (quiz.Type == "Topic")
+                                {
+                                    <p><span class="badge bg-info">Topic:</span> @quiz.Topic</p>
+                                }
+
+                                @if (!string.IsNullOrWhiteSpace(quiz.Description))
+                                {
+                                    <p class="text-muted small">@quiz.Description</p>
+                                }
+
+                            </div>
+
+                            <div class="card-footer p-0">
+                                <nav class="navbar navbar-expand bg-light">
+                                    <div class="container-fluid justify-content-around">
+                                        <a class="text-primary mx-2" title="Resume Quiz" @onclick="() => ResumeQuiz(quiz.Id)">
+                                            <i class="bi bi-play-fill fs-5"></i>
+                                        </a>
+                                        <a class="text-success mx-2" title="Start Over" @onclick="() => StartOver(quiz.Id)">
+                                            <i class="bi bi-arrow-clockwise fs-5"></i>
+                                        </a>
+                                        <a class="text-danger mx-2" title="Delete Quiz" @onclick="() => ConfirmDelete(quiz.Id)">
+                                            <i class="bi bi-trash fs-5"></i>
+                                        </a>
+                                        <a class="text-secondary mx-2" title="Edit Quiz Name" @onclick="() => EditQuiz(quiz.Id)">
+                                            <i class="bi bi-pencil fs-5"></i>
+                                        </a>
+                                        <a class="@GetLearnModeIconClass(quiz.LearnMode) mx-2" title="@GetLearnModeTooltip(quiz.LearnMode)" @onclick="() => ToggleLearnMode(quiz.Id)">
+                                            <i class="@GetLearnModeIconType(quiz.LearnMode) fs-5"></i>
+                                        </a>
+                                    </div>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info mt-3">
+                <h5 class="alert-heading">Welcome to Wise Up Dude!</h5>
+                <p>It looks like you haven’t taken any quizzes yet. This is your place to learn new things, challenge yourself, and have fun while doing it.</p>
+                <hr />
+                <p class="mb-0">Click the button below to get started with your first quiz!</p>
+            </div>
+        }
+    </div>
+
+    <!-- Take New Quiz Button -->
+    <div class="text-center mt-4">
+        <a class="btn btn-success btn-lg" href="/pickatopic">Take a New Quiz</a>
+    </div>
+</div>
+
+@if (quizToDeleteId.HasValue)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" @onclick="CancelDelete"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this quiz?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
+                    <button class="btn btn-danger" @onclick="ConfirmedDelete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private int? editingQuizId = null;
+    private DashboardSummaryDto? Summary;
+    private bool IsGenerating = false;
+    private int? quizToDeleteId = null;
+
+    private void EditQuiz(int quizId) => editingQuizId = quizId;
+    private void CancelEdit() => editingQuizId = null;
+
+    private async Task SaveQuizName(RecentQuizDto quiz)
+    {
+        await QuizRepository.UpdateQuizNameAsync(quiz.Id, quiz.Name);
+        editingQuizId = null;
+    }
+
+    private async Task DeleteQuiz(int quizId)
+    {
+        try
+        {
+            await QuizRepository.DeleteAsync(quizId);
+            Summary?.RecentQuizzes?.RemoveAll(q => q.Id == quizId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting quiz: {ex.Message}");
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var userId = user.FindFirst(c => c.Type == "sub" || c.Type.EndsWith("nameidentifier"))?.Value;
+            if (!string.IsNullOrEmpty(userId))
+            {
+                Summary = await DashboardData.GetDashboardSummaryAsync(userId);
+            }
+        }
+    }
+
+    private async Task ResumeQuiz(int quizId)
+    {
+        IsGenerating = true;
+        try
+        {
+            var selectedQuiz = await QuizRepository.GetByIdAsync(quizId);
+            if (selectedQuiz != null)
+            {
+                QuizState.CurrentQuiz = selectedQuiz;
+                NavManager.NavigateTo("/TakeQuiz");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error resuming quiz: {ex.Message}");
+        }
+        finally
+        {
+            IsGenerating = false;
+        }
+    }
+
+    private async Task ToggleLearnMode(int quizId)
+    {
+        IsGenerating = true;
+        try
+        {
+            // Toggle LearnMode in the UserQuiz table
+            var quiz = Summary?.RecentQuizzes?.FirstOrDefault(q => q.Id == quizId);
+            if (quiz != null)
+            {
+                await QuizRepository.UpdateLearnModeAsync(quizId, !quiz.LearnMode);
+            }
+
+            // Refresh the Summary object to reflect the updated LearnMode
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                var userId = user.FindFirst(c => c.Type == "sub" || c.Type.EndsWith("nameidentifier"))?.Value;
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    Summary = await DashboardData.GetDashboardSummaryAsync(userId);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error toggling learn mode: {ex.Message}");
+        }
+        finally
+        {
+            IsGenerating = false;
+        }
+    }
+
+    private async Task StartOver(int quizId)
+    {
+        IsGenerating = true;
+        try
+        {
+            var selectedQuiz = await QuizRepository.GetByIdAsync(quizId);
+            if (selectedQuiz != null)
+            {
+                QuizState.CurrentQuiz = selectedQuiz;
+                foreach (var question in QuizState.CurrentQuiz.Questions)
+                {
+                    question.UserAnswer = null;
+                }
+                NavManager.NavigateTo("/TakeQuiz");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error starting fresh: {ex.Message}");
+        }
+        finally
+        {
+            IsGenerating = false;
+        }
+    }
+
+    private void ConfirmDelete(int quizId) => quizToDeleteId = quizId;
+    private void CancelDelete() => quizToDeleteId = null;
+
+    private async Task ConfirmedDelete()
+    {
+        if (quizToDeleteId.HasValue)
+        {
+            await DeleteQuiz(quizToDeleteId.Value);
+            quizToDeleteId = null;
+        }
+    }
+}
+
+@code {
+    private string GetLearnModeIconClass(bool isActive) =>
+        isActive ? "text-info learn-active" : "text-success";
+
+    private string GetLearnModeIconType(bool isActive) =>
+        isActive ? "bi bi-mortarboard-fill" : "bi bi-mortarboard";
+
+    private string GetLearnModeTooltip(bool isActive) =>
+        isActive ? "Learn Mode is ON" : "Enable Learn Mode";
+
+    private void ToggleLearnMode(Guid quizId)
+    {
+        // Toggle logic goes here...
+    }
+}

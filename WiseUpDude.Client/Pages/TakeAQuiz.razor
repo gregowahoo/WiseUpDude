@@ -9,18 +9,15 @@
 @using WiseUpDude.Model
 
 @using WiseUpDude.Client.Pages
-@using WiseUpDude.Client.Services
+@using WiseUpDude.Shared.Services
 
 @inject IConfiguration Configuration
 @inject ILogger<TakeAQuiz> Logger
 
 @inject HttpClient HttpClient
 @inject ILogger<QuizApiService> QuizApiLogger
-@* @inject QuizApiService? QuizApiService *@
 
-@* @inject QuizApiService QuizApiService *@
-
-@* @inject WiseUpDude.Client.Services.QuizApiService QuizApiService *@
+@inject QuizApiService? QuizApiService
 
 @inject IJSRuntime JS
 
@@ -128,10 +125,6 @@
     @code {
         protected override async Task OnInitializedAsync()
         {
-            // Fix for CS1526: Ensure the constructor for QuizApiService is called with valid arguments.
-            var QuizApiService = new QuizApiService(HttpClient, QuizApiLogger);
-
-            // Use the initialized QuizApiService to fetch the quiz.
             Quiz = await QuizApiService.GetQuizByIdAsync(QuizId);
 
             if (Quiz?.Questions != null)

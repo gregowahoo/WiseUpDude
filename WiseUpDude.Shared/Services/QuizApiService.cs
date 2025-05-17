@@ -1,10 +1,8 @@
 using Microsoft.Extensions.Logging;
-using System.Net.Http;
 using System.Net.Http.Json;
 using WiseUpDude.Model;
-using Microsoft.Extensions.Configuration;
 
-namespace WiseUpDude.Client.Services
+namespace WiseUpDude.Shared.Services
 {
     public class QuizApiService
     {

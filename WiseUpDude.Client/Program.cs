@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using WiseUpDude.Client.Services;
 using Microsoft.Extensions.DependencyInjection; // Add this using directive for AddHttpClient extension method
+using WiseUpDude.Shared.Services;
 
 using Microsoft.Extensions.Logging;
 
@@ -15,8 +15,11 @@ builder.Services.AddAuthenticationStateDeserialization();
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
 //builder.Logging.AddConsole();
 
-builder.Services.AddScoped<QuizApiService>();
+var apiBaseAddress = builder.Configuration["ApiBaseAddress"];
+if (string.IsNullOrWhiteSpace(apiBaseAddress))
+    throw new InvalidOperationException("ApiBaseAddress is not configured.");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration["ApiBaseAddress"]) });
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseAddress) });
+builder.Services.AddScoped<QuizApiService>();
 
 await builder.Build().RunAsync();

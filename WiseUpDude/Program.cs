@@ -12,6 +12,7 @@ using WiseUpDude.Data.Repositories;
 using WiseUpDude.Data.Repositories.Interfaces;
 using WiseUpDude.Services;
 using WiseUpDude.Services.Interfaces;
+using WiseUpDude.Shared.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -121,18 +122,12 @@ builder.Services.AddScoped<DashboardDataService>();
 #endregion
 
 
+var apiBaseAddress = builder.Configuration["ApiBaseAddress"];
+if (string.IsNullOrWhiteSpace(apiBaseAddress))
+    throw new InvalidOperationException("ApiBaseAddress is not configured.");
 
-
-
-
-//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7199") });
-//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-
-//builder.Services.AddScoped<QuizApiService>();
-
-
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration["ApiBaseAddress"]) });
-
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseAddress) });
+builder.Services.AddScoped<QuizApiService>();
 
 
 var app = builder.Build();

@@ -2,14 +2,12 @@
 @rendermode InteractiveAuto
 @* @rendermode InteractiveWebAssembly *@
 
-
 @* @using Microsoft.AspNetCore.Authorization *@
-@* @using WiseUpDude.Services
-@using WiseUpDude.Services.Interfaces *@
 @using WiseUpDude.Model
 
 @using WiseUpDude.Client.Pages
 @using WiseUpDude.Shared.Services
+@using WiseUpDude.Shared.State
 
 @inject IConfiguration Configuration
 @inject ILogger<TakeAQuiz> Logger
@@ -18,20 +16,19 @@
 @inject ILogger<QuizApiService> QuizApiLogger
 
 @inject QuizApiService? QuizApiService
+@inject QuizState QuizState
 
 @inject IJSRuntime JS
 
-
-<h3>TakeAQuiz</h3>
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <div>
             <h3 class="mb-0">
-                🧠 Take Quiz - 
+                🧠 Take Quiz -
                 @(Quiz?.Type == "Topic"
-                    ? Quiz?.Topic
-                    : Quiz?.Prompt)
+                                ? Quiz?.Topic
+                                : Quiz?.Prompt)
             </h3>
             <p class="mb-0">Select an answer for each question to see if you're correct.</p>
             @if (!string.IsNullOrWhiteSpace(Quiz?.Difficulty))
@@ -119,19 +116,21 @@
     [Parameter]
     public int QuizId { get; set; }
 
-    // private QuizApiService QuizApiService;
     private Quiz? Quiz;
 
-    @code {
-        protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
+    {
+        // Only fetch if QuizState is not already hydrated
+        if (QuizState.Quiz == null)
         {
-            Quiz = await QuizApiService.GetQuizByIdAsync(QuizId);
+            QuizState.Quiz = await QuizApiService.GetQuizByIdAsync(QuizId);
+        }
+        Quiz = QuizState.Quiz;
 
-            if (Quiz?.Questions != null)
-            {
-                totalQuestions = Quiz.Questions.Count;
-                learnMode = Quiz.LearnMode;
-            }
+        if (Quiz?.Questions != null)
+        {
+            totalQuestions = Quiz.Questions.Count;
+            learnMode = Quiz.LearnMode;
         }
     }
 }
@@ -214,11 +213,6 @@
         }
 
         StateHasChanged();
-    }
-
-    public void Dispose()
-    {
-        // QuizState.OnQuizUpdated -= HandleQuizUpdated;
     }
 }
 

@@ -7,12 +7,13 @@ using WiseUpDude.Client.Pages;
 using WiseUpDude.Components;
 using WiseUpDude.Components.Account;
 using WiseUpDude.Data;
-using WiseUpDude.Model;
 using WiseUpDude.Data.Repositories;
 using WiseUpDude.Data.Repositories.Interfaces;
+using WiseUpDude.Model;
 using WiseUpDude.Services;
 using WiseUpDude.Services.Interfaces;
 using WiseUpDude.Shared.Services;
+using WiseUpDude.Shared.State;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -128,7 +129,8 @@ if (string.IsNullOrWhiteSpace(apiBaseAddress))
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseAddress) });
 builder.Services.AddScoped<QuizApiService>();
-
+// In both Server and WASM Program.cs
+builder.Services.AddScoped<QuizState>();
 
 var app = builder.Build();
 

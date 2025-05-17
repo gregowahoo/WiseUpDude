@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection; // Add this using directive for AddHttpClient extension method
-using WiseUpDude.Shared.Services;
-
 using Microsoft.Extensions.Logging;
+using WiseUpDude.Shared.Services;
+using WiseUpDude.Shared.State;
 
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -21,5 +21,8 @@ if (string.IsNullOrWhiteSpace(apiBaseAddress))
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseAddress) });
 builder.Services.AddScoped<QuizApiService>();
+
+// In both Server and WASM Program.cs
+builder.Services.AddScoped<QuizState>();
 
 await builder.Build().RunAsync();

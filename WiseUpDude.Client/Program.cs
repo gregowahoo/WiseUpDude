@@ -13,18 +13,10 @@ builder.Services.AddAuthenticationStateDeserialization();
 
 // Set up logging: log everything to the browser console
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
-builder.Logging.AddConsole();
+//builder.Logging.AddConsole();
 
-//builder.Services.AddScoped<QuizApiService>();
+builder.Services.AddScoped<QuizApiService>();
 
-//builder.Services.AddHttpClient<QuizApiService>(client =>
-//{
-//    //client.BaseAddress = new Uri("https://localhost:7201");
-//    builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7150/") });
-//});
-
-
-//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7199") });
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration["ApiBaseAddress"]) });
 
 await builder.Build().RunAsync();

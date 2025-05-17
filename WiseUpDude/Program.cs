@@ -131,8 +131,7 @@ builder.Services.AddScoped<DashboardDataService>();
 //builder.Services.AddScoped<QuizApiService>();
 
 
-
-
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration["ApiBaseAddress"]) });
 
 
 

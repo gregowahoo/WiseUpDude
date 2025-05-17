@@ -1,19 +1,26 @@
+using Microsoft.Extensions.Logging;
+using System.Net.Http;
 using System.Net.Http.Json;
 using WiseUpDude.Model;
+using Microsoft.Extensions.Configuration;
 
 namespace WiseUpDude.Client.Services
 {
     public class QuizApiService
     {
+        private readonly ILogger<QuizApiService> _logger;
         private readonly HttpClient _httpClient;
 
-        public QuizApiService(HttpClient httpClient)
+        public QuizApiService(HttpClient httpClient, ILogger<QuizApiService> logger)
         {
             _httpClient = httpClient;
+            _logger = logger;
         }
 
         public async Task<Quiz?> GetQuizByIdAsync(int quizId)
         {
+            _logger.LogTrace("Fetching quiz with ID {QuizId}", quizId);
+
             var response = await _httpClient.GetAsync($"api/Quizzes/{quizId}");
             var content = await response.Content.ReadAsStringAsync(); // For debugging
             Console.WriteLine($"Status: {response.StatusCode}, Content: {content}");

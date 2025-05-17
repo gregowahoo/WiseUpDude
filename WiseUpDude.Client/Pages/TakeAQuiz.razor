@@ -11,8 +11,12 @@
 @using WiseUpDude.Client.Pages
 @using WiseUpDude.Client.Services
 
-@inject HttpClient HttpClient
 @inject IConfiguration Configuration
+@inject ILogger<TakeAQuiz> Logger
+
+@inject HttpClient HttpClient
+@inject ILogger<QuizApiService> QuizApiLogger
+@* @inject QuizApiService? QuizApiService *@
 
 @* @inject QuizApiService QuizApiService *@
 
@@ -118,24 +122,23 @@
     [Parameter]
     public int QuizId { get; set; }
 
-    private QuizApiService QuizApiService;
+    // private QuizApiService QuizApiService;
     private Quiz? Quiz;
 
-    protected override async Task OnInitializedAsync()
-    {
-        var baseAddress = Configuration["ApiBaseAddress"];
-        if (!string.IsNullOrWhiteSpace(baseAddress))
-            HttpClient.BaseAddress = new Uri(baseAddress);
-        else
-            throw new InvalidOperationException("ApiBaseAddress is not configured.");
-
-        QuizApiService = new QuizApiService(HttpClient);
-        Quiz = await QuizApiService.GetQuizByIdAsync(QuizId);
-
-        if (Quiz?.Questions != null)
+    @code {
+        protected override async Task OnInitializedAsync()
         {
-            totalQuestions = Quiz.Questions.Count;
-            learnMode = Quiz.LearnMode;
+            // Fix for CS1526: Ensure the constructor for QuizApiService is called with valid arguments.
+            var QuizApiService = new QuizApiService(HttpClient, QuizApiLogger);
+
+            // Use the initialized QuizApiService to fetch the quiz.
+            Quiz = await QuizApiService.GetQuizByIdAsync(QuizId);
+
+            if (Quiz?.Questions != null)
+            {
+                totalQuestions = Quiz.Questions.Count;
+                learnMode = Quiz.LearnMode;
+            }
         }
     }
 }
@@ -154,12 +157,12 @@
 
     protected override void OnInitialized()
     {
-        // if (QuizState.CurrentQuiz?.Questions != null)
-        // {
-        //     totalQuestions = QuizState.CurrentQuiz.Questions.Count;
-        //     learnMode = QuizState.CurrentQuiz.LearnMode;
-        // }
-        // QuizState.OnQuizUpdated += HandleQuizUpdated;
+        Logger.LogTrace("Trace log: TakeAQuiz initialized");
+        Logger.LogDebug("Debug log: TakeAQuiz initialized");
+        Logger.LogInformation("Info log: TakeAQuiz initialized");
+        Logger.LogWarning("Warning log: TakeAQuiz initialized");
+        Logger.LogError("Error log: TakeAQuiz initialized");
+        Logger.LogCritical("Critical log: TakeAQuiz initialized");
     }
 
     private void HandleQuizUpdated()

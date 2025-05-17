@@ -4,7 +4,6 @@
 @using WiseUpDude.Model
 @using WiseUpDude.Client.Pages
 @using WiseUpDude.Shared.Services
-@using WiseUpDude.Shared.State
 
 @inject IConfiguration Configuration
 @inject ILogger<TakeAQuiz> Logger
@@ -13,7 +12,6 @@
 @inject ILogger<QuizApiService> QuizApiLogger
 
 @inject QuizApiService? QuizApiService
-@inject QuizState QuizState
 
 @inject IJSRuntime JS
 
@@ -116,20 +114,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Logger.LogTrace("OnInitializedAsync: Start for QuizId={QuizId}", QuizId);
+        Logger.LogTrace("OnInitializedAsync: Fetching quiz for QuizId={QuizId}", QuizId);
 
-        if (QuizState.Quiz == null)
-        {
-            Logger.LogTrace("OnInitializedAsync: QuizState.Quiz is null, fetching from API.");
-            QuizState.Quiz = await QuizApiService.GetQuizByIdAsync(QuizId);
-            Logger.LogTrace("OnInitializedAsync: Quiz fetched and stored in QuizState.");
-        }
-        else
-        {
-            Logger.LogTrace("OnInitializedAsync: QuizState.Quiz already populated, using cached value.");
-        }
-
-        Quiz = QuizState.Quiz;
+        Quiz = await QuizApiService.GetQuizByIdAsync(QuizId);
 
         if (Quiz?.Questions != null)
         {

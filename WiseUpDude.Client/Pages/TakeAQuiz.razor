@@ -12,6 +12,8 @@
 @using WiseUpDude.Client.Services
 
 @inject HttpClient HttpClient
+@inject IConfiguration Configuration
+
 @* @inject QuizApiService QuizApiService *@
 
 @* @inject WiseUpDude.Client.Services.QuizApiService QuizApiService *@
@@ -116,16 +118,16 @@
     [Parameter]
     public int QuizId { get; set; }
 
-    // [Inject]
-    // public QuizApiService QuizApiService { get; set; } = default!;
-
     private QuizApiService QuizApiService;
     private Quiz? Quiz;
 
     protected override async Task OnInitializedAsync()
     {
-        // Set the base address for this HttpClient instance
-        HttpClient.BaseAddress = new Uri("https://localhost:7199");
+        var baseAddress = Configuration["ApiBaseAddress"];
+        if (!string.IsNullOrWhiteSpace(baseAddress))
+            HttpClient.BaseAddress = new Uri(baseAddress);
+        else
+            throw new InvalidOperationException("ApiBaseAddress is not configured.");
 
         QuizApiService = new QuizApiService(HttpClient);
         Quiz = await QuizApiService.GetQuizByIdAsync(QuizId);
@@ -135,8 +137,6 @@
             totalQuestions = Quiz.Questions.Count;
             learnMode = Quiz.LearnMode;
         }
-
-        // QuizState.OnQuizUpdated += HandleQuizUpdated;
     }
 }
 

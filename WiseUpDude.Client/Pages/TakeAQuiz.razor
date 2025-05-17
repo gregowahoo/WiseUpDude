@@ -1,10 +1,7 @@
 ﻿@page "/TakeAQuiz/{QuizId:int}"
 @rendermode InteractiveAuto
-@* @rendermode InteractiveWebAssembly *@
 
-@* @using Microsoft.AspNetCore.Authorization *@
 @using WiseUpDude.Model
-
 @using WiseUpDude.Client.Pages
 @using WiseUpDude.Shared.Services
 @using WiseUpDude.Shared.State
@@ -19,7 +16,6 @@
 @inject QuizState QuizState
 
 @inject IJSRuntime JS
-
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -120,17 +116,30 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Only fetch if QuizState is not already hydrated
+        Logger.LogTrace("OnInitializedAsync: Start for QuizId={QuizId}", QuizId);
+
         if (QuizState.Quiz == null)
         {
+            Logger.LogTrace("OnInitializedAsync: QuizState.Quiz is null, fetching from API.");
             QuizState.Quiz = await QuizApiService.GetQuizByIdAsync(QuizId);
+            Logger.LogTrace("OnInitializedAsync: Quiz fetched and stored in QuizState.");
         }
+        else
+        {
+            Logger.LogTrace("OnInitializedAsync: QuizState.Quiz already populated, using cached value.");
+        }
+
         Quiz = QuizState.Quiz;
 
         if (Quiz?.Questions != null)
         {
+            Logger.LogTrace("OnInitializedAsync: Quiz has {Count} questions.", Quiz.Questions.Count);
             totalQuestions = Quiz.Questions.Count;
             learnMode = Quiz.LearnMode;
+        }
+        else
+        {
+            Logger.LogTrace("OnInitializedAsync: Quiz or Quiz.Questions is null.");
         }
     }
 }
@@ -149,27 +158,25 @@
 
     protected override void OnInitialized()
     {
-        Logger.LogTrace("Trace log: TakeAQuiz initialized");
-        Logger.LogDebug("Debug log: TakeAQuiz initialized");
-        Logger.LogInformation("Info log: TakeAQuiz initialized");
-        Logger.LogWarning("Warning log: TakeAQuiz initialized");
-        Logger.LogError("Error log: TakeAQuiz initialized");
-        Logger.LogCritical("Critical log: TakeAQuiz initialized");
+        Logger.LogTrace("OnInitialized: TakeAQuiz component initialized.");
     }
 
     private void HandleQuizUpdated()
     {
+        Logger.LogTrace("HandleQuizUpdated: StateHasChanged called.");
         StateHasChanged();
     }
 
     private void ToggleAutoSubmit()
     {
         autoSubmit = !autoSubmit;
+        Logger.LogTrace("ToggleAutoSubmit: autoSubmit is now {AutoSubmit}", autoSubmit);
     }
 
     private void ToggleMute()
     {
         muteSound = !muteSound;
+        Logger.LogTrace("ToggleMute: muteSound is now {MuteSound}", muteSound);
     }
 
     private async Task ToggleLearnMode()
@@ -179,11 +186,13 @@
             learnMode = !learnMode;
             Quiz.LearnMode = learnMode;
             saveMessage = learnMode ? "Learn Mode enabled!" : "Learn Mode disabled!";
+            Logger.LogTrace("ToggleLearnMode: LearnMode is now {LearnMode}", learnMode);
             await JS.InvokeVoidAsync("console.log", saveMessage);
         }
         else
         {
             saveMessage = "No quiz loaded to toggle Learn Mode.";
+            Logger.LogTrace("ToggleLearnMode: No quiz loaded.");
         }
     }
 
@@ -192,19 +201,23 @@
         var (isCorrect, questionIndex) = args;
 
         totalAnswered++;
+        Logger.LogTrace("HandleAnswerSubmitted: Answer submitted for question {QuestionIndex}, isCorrect={IsCorrect}, totalAnswered={TotalAnswered}", questionIndex, isCorrect, totalAnswered);
 
         if (isCorrect)
         {
             correctAnswers++;
+            Logger.LogTrace("HandleAnswerSubmitted: correctAnswers incremented to {CorrectAnswers}", correctAnswers);
         }
 
         if (Quiz?.Questions != null && totalAnswered >= Quiz.Questions.Count)
         {
+            Logger.LogTrace("HandleAnswerSubmitted: All questions answered. Final score: {CorrectAnswers}/{TotalAnswered}", correctAnswers, totalAnswered);
             await JS.InvokeVoidAsync("scrollToTopSmooth");
             double scorePercent = (double)correctAnswers / totalAnswered;
 
             if (scorePercent >= 0.8)
             {
+                Logger.LogTrace("HandleAnswerSubmitted: Score >= 80%, playing applause and launching confetti.");
                 await JS.InvokeVoidAsync("playSound", "/sounds/applause.mp3");
                 await JS.InvokeVoidAsync("launchConfetti");
             }
@@ -215,4 +228,3 @@
         StateHasChanged();
     }
 }
-

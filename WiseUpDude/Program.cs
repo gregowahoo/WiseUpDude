@@ -129,8 +129,26 @@ if (string.IsNullOrWhiteSpace(apiBaseAddress))
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseAddress) });
 builder.Services.AddScoped<QuizApiService>();
+
 // In both Server and WASM Program.cs
 builder.Services.AddScoped<QuizState>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowClient", policy =>
+        policy.WithOrigins("https://wiseupdude-fzauhwdug7cma9fb.centralus-01.azurewebsites.net/", "https://localhost:7199")
+              .AllowAnyMethod()
+              .AllowAnyHeader());
+});
+
+
+
+
+
+
+
+
+
 
 var app = builder.Build();
 
@@ -167,5 +185,7 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+app.UseCors("AllowClient");
 
 app.Run();

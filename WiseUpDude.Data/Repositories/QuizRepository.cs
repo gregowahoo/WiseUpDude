@@ -37,8 +37,11 @@ namespace WiseUpDude.Data.Repositories
                 {
                     Id = q.Id,
                     Question = q.Question,
+                    Options = q.OptionsJson != null ? JsonSerializer.Deserialize<List<string>>(q.OptionsJson) : null,
                     Answer = q.Answer,
-                    Difficulty = q.Difficulty // Include question-level difficulty
+                    Explanation = q.Explanation,
+                    QuestionType = (WiseUpDude.Model.QuizQuestionType)q.QuestionType,
+                    Difficulty = q.Difficulty
                 }).ToList(),
                 Type = e.Type,
                 Topic = e.Topic?.Name, // Use the Topic's Name

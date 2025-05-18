@@ -48,8 +48,8 @@ builder.Logging.AddAzureWebAppDiagnostics();
 
 // Add services to the container.
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+//builder.Services.AddEndpointsApiExplorer();
+//builder.Services.AddSwaggerGen();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -139,9 +139,6 @@ if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
     app.UseMigrationsEndPoint();
-
-    app.UseSwagger();
-    app.UseSwaggerUI();
 }
 else
 {
@@ -150,6 +147,11 @@ else
     app.UseHsts();
 }
 
+//if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+//{
+    //app.UseSwagger();
+    //app.UseSwaggerUI();
+//}
 
 app.UseHttpsRedirection();
 

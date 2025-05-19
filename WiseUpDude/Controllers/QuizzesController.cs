@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using WiseUpDude.Data.Repositories;
 using WiseUpDude.Model;
 
@@ -18,6 +19,7 @@ namespace WiseUpDude.Controllers
 
         // GET: api/Quizzes
         [HttpGet]
+        [OutputCache(Duration = 10)]
         public async Task<ActionResult<IEnumerable<Quiz>>> GetQuizzes()
         {
             var quizzes = await _quizRepository.GetAllAsync();
@@ -26,6 +28,7 @@ namespace WiseUpDude.Controllers
 
         // GET: api/Quizzes/5
         [HttpGet("{id}")]
+        [OutputCache(Duration = 10)]
         public async Task<ActionResult<Quiz>> GetQuiz(int id)
         {
             try

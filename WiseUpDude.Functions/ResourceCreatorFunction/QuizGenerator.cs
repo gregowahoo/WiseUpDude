@@ -40,7 +40,11 @@ namespace ResourceCreatorFunction
             _logger.LogInformation($"QuizGenerator function executed at: {DateTime.Now}");
 
             // Fetch topics without questions
+            _logger.LogInformation("Fetching topics without questions...");
             var topicsWithoutQuestions = await _topicRepository.GetTopicsWithoutQuestionsAsync();
+            var topicCount = topicsWithoutQuestions.Count();
+            _logger.LogInformation($"Found {topicCount} topic(s) without questions.");
+
             if (!topicsWithoutQuestions.Any())
             {
                 _logger.LogInformation("No topics found without questions.");
@@ -49,6 +53,8 @@ namespace ResourceCreatorFunction
 
             foreach (var topic in topicsWithoutQuestions)
             {
+                _logger.LogInformation($"Processing topic: Id={topic.Id}, Name={topic.Name}");
+
                 try
                 {
                     // Generate quiz for the topic
@@ -58,10 +64,13 @@ namespace ResourceCreatorFunction
                         Difficulty = "Medium" // Set quiz-level difficulty
                     };
 
+                    _logger.LogInformation($"Generating quiz for topic '{topic.Name}'...");
                     var quizResponse = await _quizQuestionsFromTopic.GenerateQuizAsync(criteria);
 
                     if (quizResponse != null)
                     {
+                        _logger.LogInformation($"Quiz generated for topic '{topic.Name}'. Preparing to save...");
+
                         quizResponse.Type = "Topic";
                         quizResponse.Topic = topic.Name;
                         quizResponse.Difficulty = criteria.Difficulty; // Set quiz-level difficulty
@@ -72,18 +81,19 @@ namespace ResourceCreatorFunction
                             question.Difficulty = criteria.Difficulty; // Set question-level difficulty
                         }
 
+                        _logger.LogInformation($"Saving quiz for topic '{topic.Name}'...");
                         await _quizRepository.AddQuizAsync(quizResponse);
-                        _logger.LogInformation($"Quiz successfully created for topic: {topic.Name}");
+                        _logger.LogInformation($"Quiz successfully created and saved for topic: {topic.Name}");
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Quiz generation returned null for topic: {topic.Name}");
                     }
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError($"Failed to generate quiz for topic {topic.Name}: {ex.Message}");
                 }
-
-                //// Pause for 1 minute to avoid hitting API rate limits
-                //_logger.LogInformation("Pausing for 5 minutes before processing the next topic...");
-                //await Task.Delay(TimeSpan.FromMinutes(5));
             }
         }
     }

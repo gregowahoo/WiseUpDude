@@ -50,4 +50,9 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="9.0.5" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Content Include="..\WiseUpDude.Client\wwwroot\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+	</ItemGroup>
+
+
 </Project>

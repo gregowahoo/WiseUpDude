@@ -1,0 +1,36 @@
+﻿@using Microsoft.AspNetCore.Components
+
+<!--
+  This is a plain HTML form (inside a Razor component) that submits via POST to the
+  Identity external login endpoint. (The Identity endpoints are registered via MapAdditionalIdentityEndpoints().)
+-->
+<form action="/Identity/Account/ExternalLogin" method="post" class="d-inline">
+    <!-- Hidden field to pass the ReturnUrl -->
+    <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+
+    <!-- The pill‑shaped button that posts the provider -->
+    <button type="submit" name="provider" value="@Provider" class="google-pill-button" aria-label="Sign in with @Provider">
+        <img src="@LogoUrl" alt="@Provider logo" class="google-signin-logo" />
+        Sign in with @Provider
+    </button>
+</form>
+
+@code {
+    /// <summary>
+    /// The URL to redirect the user after a successful external login.
+    /// </summary>
+    [Parameter]
+    public string ReturnUrl { get; set; } = "/";
+
+    /// <summary>
+    /// The name of the external authentication provider.
+    /// </summary>
+    [Parameter]
+    public string Provider { get; set; } = "Google";
+
+    /// <summary>
+    /// The URL of the provider's logo image.
+    /// </summary>
+    [Parameter]
+    public string LogoUrl { get; set; } = "https://developers.google.com/identity/images/g-logo.png";
+}

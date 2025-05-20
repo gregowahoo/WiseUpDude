@@ -174,7 +174,7 @@ builder.Services.AddScoped<QuizState>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowClient", policy =>
-        policy.WithOrigins("https://wiseupdude-fzauhwdug7cma9fb.centralus-01.azurewebsites.net/", "https://localhost:7199")
+        policy.WithOrigins("https://wiseupdude-fzauhwdug7cma9fb.centralus-01.azurewebsites.net/", "https://localhost:7150")
               .AllowAnyMethod()
               .AllowAnyHeader());
 });

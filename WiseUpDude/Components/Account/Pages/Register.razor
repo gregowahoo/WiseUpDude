@@ -1,5 +1,7 @@
 ﻿@page "/Account/Register"
 
+@layout AccountLayout
+
 @using System.ComponentModel.DataAnnotations
 @using System.Text
 @using System.Text.Encodings.Web
@@ -60,8 +62,23 @@
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
+    private string? _returnUrl;
+
     [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; }
+    private string? ReturnUrl
+    {
+        get
+        {
+            Console.WriteLine($"[GET] ReturnUrl in Register: {_returnUrl}");
+            return _returnUrl;
+        }
+        set
+        {
+            Console.WriteLine($"[SET] ReturnUrl in Register: {value}");
+            _returnUrl = string.Empty;
+        }
+    }
+
 
     private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
 

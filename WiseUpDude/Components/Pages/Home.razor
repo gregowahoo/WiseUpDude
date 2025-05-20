@@ -2,7 +2,7 @@
 @page "/home"
 
 @* @layout WiseUpDude.Components.Layout.MainLayout *@
-@* @layout WiseUpDude.Components.Layout.MinimalLayout *@
+@layout WiseUpDude.Components.Layout.MinimalLayout
 
 @using Microsoft.AspNetCore.Components.Authorization
 @using WiseUpDude.Model
@@ -17,6 +17,7 @@
 @inject QuizStateService QuizState
 
 @rendermode InteractiveServer
+@attribute [Authorize]
 
 <h1 class="text-center mb-4">Welcome to Wise Up Dude!</h1>
 
@@ -172,6 +173,7 @@
         </div>
     </div>
 }
+
 
 @code {
     private int? editingQuizId = null;

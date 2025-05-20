@@ -1,0 +1,24 @@
+﻿/* OptionButton.css */
+.option-button-label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    margin: 5px 0;
+}
+
+.option-button-label .form-check-input {
+    width: 22px;
+    height: 22px;
+    margin-right: 10px;
+    border: 1.5px solid #5a5a5a;  Slightly darker border 
+    background-color: #ffffff;  White background 
+}
+
+/*.option-button-label .form-check-input:checked {
+    background-color: #5a5a5a;  Slightly darker blue when checked 
+}*/
+
+.option-button-label .form-check-label {
+    font-weight: normal;
+    font-size: 15px;  Slightly larger text 
+}

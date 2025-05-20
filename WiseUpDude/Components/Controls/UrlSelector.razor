@@ -1,0 +1,61 @@
+﻿<div class="mb-3">
+    <label for="quizURL" class="form-label">Enter a URL you'd like a quiz generated from:</label>
+@*     <input type="text"
+           class="form-control"
+           id="quizURL"
+           placeholder="https://example.com"
+           @bind="SelectedUrl"
+           @bind:event="oninput" /> *@
+
+    <input type="text"
+           class="form-control"
+           id="quizURL"
+           placeholder="https://example.com"
+           value="@SelectedUrl"
+           @oninput="OnInputChanged" />
+
+</div>
+
+<div class="mb-3">
+    <label for="urlSelect" class="form-label">Or choose from these example URLs:</label>
+    <select class="form-select"
+            id="urlSelect"
+            @onchange="OnDropdownChanged">
+        <option selected disabled value="">Select a URL</option>
+        @foreach (var url in UrlList)
+        {
+            <option value="@url">@url</option>
+        }
+    </select>
+</div>
+
+@code {
+
+    [Parameter]
+    public string SelectedUrl { get; set; } = string.Empty;                             /// Holds the current URL typed or selected.
+
+    [Parameter]
+    public EventCallback<string> SelectedUrlChanged { get; set; }                       /// Notifies parent component when the SelectedUrl changes (two-way binding support).
+
+    [Parameter]
+    public List<string> UrlList { get; set; } = new List<string>();                     /// The list of predefined URLs shown in the dropdown.
+
+    [Parameter]
+    public EventCallback<string> OnGenerateQuiz { get; set; }                           /// The callback invoked when the user clicks "Generate Quiz_Orig". The parent is responsible for actually generating the quiz.
+
+    private async void OnDropdownChanged(ChangeEventArgs e)
+    {
+        // Update the bound property
+        SelectedUrl = e.Value?.ToString() ?? string.Empty;
+        // Notify the parent component
+        await SelectedUrlChanged.InvokeAsync(SelectedUrl);
+    }
+
+    private async Task OnInputChanged(ChangeEventArgs e)
+    {
+        // Update the bound property
+        SelectedUrl = e.Value?.ToString() ?? string.Empty;
+        // Notify the parent component
+        await SelectedUrlChanged.InvokeAsync(SelectedUrl);
+    }
+}

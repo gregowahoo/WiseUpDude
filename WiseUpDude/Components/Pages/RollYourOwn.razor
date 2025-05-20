@@ -1,0 +1,110 @@
+﻿@page "/rollyourown"
+
+@using Microsoft.AspNetCore.Authorization
+@using WiseUpDude.Services
+@using WiseUpDude.Services.Interfaces
+@using WiseUpDude.Model
+
+@inject QuizStateService QuizState
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject IQuizFromPromptService QuizGenerationService
+@inject ILogger<RollYourOwn> Logger
+
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+@if (IsGenerating)
+{
+    <p class="text-center mt-3 text-muted">🧠 Generating your quiz...</p>
+}
+
+<div class="container mt-5">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">🎲 Roll Your Own Quiz!</h2>
+        <p class="text-muted">Enter a custom prompt to generate a quiz tailored to your needs.</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <label for="promptInput" class="form-label fw-semibold">Enter your custom prompt:</label>
+            <InputText id="promptInput" @bind-Value="UserPrompt" class="form-control form-control-lg mb-3"
+                       placeholder="e.g. Create a quiz about the history of space exploration." />
+            <br />
+
+            <div class="text-center">
+                <button class="btn btn-success btn-lg px-5" @onclick="GenerateQuiz">
+                    🚀 Generate Quiz
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <p class="text-danger mt-3">@ErrorMessage</p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? UserPrompt { get; set; }
+    private bool IsGenerating = false;
+    private string? ErrorMessage;
+
+    private async Task GenerateQuiz()
+    {
+        if (string.IsNullOrWhiteSpace(UserPrompt))
+        {
+            ErrorMessage = "Please enter a valid prompt.";
+            return;
+        }
+
+        IsGenerating = true;
+        ErrorMessage = null;
+
+        try
+        {
+            Logger.LogInformation("Sending prompt to QuizGenerationService: {UserPrompt}", UserPrompt);
+
+            // Call the AI API to generate a quiz based on the user's prompt
+            var generatedQuiz = await QuizGenerationService.GenerateQuizFromPromptAsync(UserPrompt);
+
+            if (generatedQuiz != null)
+            {
+                Logger.LogInformation("Quiz successfully generated. Description: {Description}", generatedQuiz.Description);
+
+                // Map the generated quiz to a new Quiz object
+                var newQuiz = new Quiz
+                {
+                    Name = generatedQuiz.Description ?? "Custom Quiz",
+                    Questions = generatedQuiz.Questions,
+                    UserName = "Anonymous", // Replace with actual user name if available
+                    // User = new ApplicationUser { UserName = "Anonymous" }, // Replace with actual user object if available
+                    UserId = "Anonymous", // Replace with actual user ID if available
+                    Type = "Prompt",
+                    Prompt = UserPrompt,
+                    Description = generatedQuiz.Description,
+                    Difficulty = generatedQuiz.Difficulty,
+                    TopicId = 0 // Set to 0 as this is an ad-hoc quiz
+                };
+
+                QuizState.CurrentQuiz = newQuiz;
+                NavigationManager.NavigateTo("/TakeQuiz");
+            }
+            else
+            {
+                Logger.LogError("QuizGenerationService returned null.");
+                ErrorMessage = "Failed to generate a quiz. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Exception during quiz generation.");
+            ErrorMessage = "An error occurred while generating the quiz. Please try again later.";
+        }
+        finally
+        {
+            IsGenerating = false;
+        }
+    }
+}

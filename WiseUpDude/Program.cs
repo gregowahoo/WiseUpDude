@@ -1,8 +1,11 @@
+using Azure.AI.OpenAI;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
 using Serilog;
 using Serilog.Events;
+using System.ClientModel;
 using WiseUpDude.Client.Pages;
 using WiseUpDude.Components;
 using WiseUpDude.Components.Account;
@@ -57,6 +60,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents()
     .AddAuthenticationStateSerialization();
 
+#region Identity and Login Configuration
+
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -68,6 +73,15 @@ builder.Services.AddAuthentication(options =>
         options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
     })
     .AddIdentityCookies();
+
+//Add Google Authentication
+builder.Services.AddAuthentication()
+    .AddGoogle(googleOptions =>
+    {
+        googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? throw new InvalidOperationException("Missing Google ClientId in configuration.");
+        googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? throw new InvalidOperationException("Missing Google ClientSecret in configuration.");
+        googleOptions.CallbackPath = new PathString("/signin-google");
+    });
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -81,6 +95,30 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
+#endregion
+
+
+
+#region Chat Client Configuration
+
+var innerChatClientAzure = new AzureOpenAIClient(
+    new Uri(builder.Configuration["AI:Endpoint"] ?? throw new InvalidOperationException("Missing AI:Endpoint")),
+    new ApiKeyCredential(builder.Configuration["AI:Key"] ?? throw new InvalidOperationException("Missing AI:Key")))
+    .AsChatClient("gpt-35-turbo");
+
+var innerChatClientGithub = new AzureOpenAIClient(
+    new Uri(builder.Configuration["GithubAI:Endpoint"] ?? throw new InvalidOperationException("Missing GithubAI:Endpoint")),
+    new ApiKeyCredential(builder.Configuration["GithubAI:Key"] ?? throw new InvalidOperationException("Missing GithubAI:Key")))
+    .AsChatClient("gpt-4o");
+
+var innerChatClientOpenAI = new OpenAI.Chat.ChatClient("gpt-4.1",
+    builder.Configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("Missing OpenAI:ApiKey"))
+    .AsChatClient();
+
+builder.Services.AddChatClient(innerChatClientOpenAI);
+
+#endregion
+
 
 #region MyBits
 
@@ -93,7 +131,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<ContentFetchingService>();
 //builder.Services.AddScoped<QuizBuilderService>();
 builder.Services.AddScoped<QuizStateService>();
-//builder.Services.AddScoped<IQuizFromPromptService, QuizFromPromptService>();
+builder.Services.AddScoped<IQuizFromPromptService, QuizFromPromptService>();
 builder.Services.AddScoped<AnswerRandomizerService>();
 
 

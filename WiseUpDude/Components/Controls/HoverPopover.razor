@@ -1,0 +1,38 @@
+﻿<div @onmouseenter="ShowPopover"
+     @onmouseleave="HidePopover"
+     class="d-inline-block position-relative">
+
+    <button class="btn btn-outline-secondary btn-sm rounded-pill"
+            @onclick="OnClick">
+        @TargetText
+    </button>
+
+    @if (isVisible)
+    {
+        <div class="popover-box">
+            <span class="popover-arrow"></span>
+            @if (ChildContent is not null)
+            {
+                @ChildContent
+            }
+            else if (!string.IsNullOrWhiteSpace(Description))
+            {
+                <span>@Description</span>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool isVisible;
+
+    [Parameter] public string TargetText { get; set; } = string.Empty;
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public int TopicId { get; set; }
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    private void ShowPopover() => isVisible = true;
+    private void HidePopover() => isVisible = false;
+}

@@ -1,0 +1,96 @@
+﻿@page "/"
+
+@layout WiseUpDude.Components.Layout.LandingLayout
+
+@rendermode InteractiveServer
+
+@code {
+    [Inject] NavigationManager NavManager { get; set; } = default!;
+    [Inject] AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
+
+    private bool _isAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            _isAuthenticated = true;
+            await Task.Delay(1); // Ensure rendering completes
+            NavManager.NavigateTo("/home");
+        }
+    }
+}
+
+@if (!_isAuthenticated)
+{
+    <div class="container py-5">
+        <!-- Hero Section -->
+        <section class="text-center mb-5">
+            <h1 class="display-4 fw-bold">Wise Up Dude</h1>
+            <p class="lead text-muted">Learn, quiz, repeat. Master any topic effortlessly through quizzes.</p>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section py-5 bg-light">
+            <div class="container">
+                <h2 class="text-center mb-4">What is Wise Up Dude?</h2>
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm text-center p-4">
+                            <i class="bi bi-person-check fs-1 text-primary mb-3"></i>
+                            <h5>Personalized Learning</h5>
+                            <p>Quizzes tailored specifically to your learning needs and interests.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm text-center p-4">
+                            <i class="bi bi-lightbulb fs-1 text-warning mb-3"></i>
+                            <h5>Adaptive Quizzes</h5>
+                            <p>Practice and reinforce knowledge with quizzes that adapt as you learn.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm text-center p-4">
+                            <i class="bi bi-cpu fs-1 text-success mb-3"></i>
+                            <h5>AI Quiz Prompt</h5>
+                            <p>Instantly generate quizzes by simply entering any topic or idea using AI.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm text-center p-4">
+                            <i class="bi bi-bar-chart-line fs-1 text-danger mb-3"></i>
+                            <h5>Progress Tracking</h5>
+                            <p>Easily track your quiz results and measure your improvement.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm text-center p-4">
+                            <i class="bi bi-mortarboard fs-1 text-primary mb-3"></i>
+                            <h5>Learn Mode</h5>
+                            <p>Master topics with adaptive repetition and progress tracking.</p>
+                        </div>
+                    </div>
+
+                    <!-- Save and Repeat Quizzes Card -->
+                    <div class="col-md-12 mt-4">
+                        <div class="card border-0 shadow-sm text-center p-4">
+                            <i class="bi bi-arrow-repeat fs-1 text-info mb-3"></i>
+                            <h5>Save and Repeat Quizzes</h5>
+                            <p>Your progress is optionally tracked! Wise Up Dude can make sure you know the material.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Call-to-action Section -->
+        <section class="cta-section py-5 bg-primary text-white text-center">
+            <h2>Ready to Learn, Anything?</h2>
+            <p>Register and use Wise Up Dude for free and start mastering any subject! Click Below!</p>
+            <a class="btn btn-light btn-lg mt-3" href="/Account/Login">I Want To Be A Wise Guy!</a>
+        </section>
+    </div>
+}

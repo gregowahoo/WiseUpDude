@@ -1,0 +1,60 @@
+﻿/* Hero Section */
+.hero-section {
+    text-align: center;
+    padding: 50px 0; /* Smaller hero section */
+}
+
+    .hero-section h1 {
+        font-size: 2.5rem; /* Adjusted size for smaller hero */
+    }
+
+    .hero-section p {
+        font-size: 1.2rem;
+        color: #6c757d; /* Muted text color */
+    }
+
+/* Features Section */
+.features-section {
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+
+    .features-section h2 {
+        font-size: 2rem;
+        margin-bottom: 30px;
+    }
+
+    .features-section .card {
+        border-radius: 8px; /* Rounded corners for cards */
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth hover effects */
+    }
+
+        .features-section .card:hover {
+            transform: scale(1.05); /* Slight zoom on hover */
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); /* Shadow effect on hover */
+        }
+
+        .features-section .card h5 {
+            font-size: 1.25rem; /* Slightly larger card titles */
+        }
+
+        .features-section .card p {
+            font-size: 1rem; /* Standard text size for card descriptions */
+        }
+
+/* Call-to-action Section */
+.cta-section {
+    background-color: #007bff; /* Primary blue background */
+    color: white;
+    text-align: center;
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+
+    .cta-section h2 {
+        font-size: 2rem;
+    }
+
+    .cta-section p {
+        font-size: 1.2rem;
+    }

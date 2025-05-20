@@ -1,0 +1,26 @@
+﻿@code {
+    [Parameter] public required string Name { get; set; }
+    [Parameter] public required string Value { get; set; }
+    [Parameter] public required string SelectedValue { get; set; }
+    [Parameter] public EventCallback<string> OnSelect { get; set; }
+
+    private void OnChange(ChangeEventArgs e)
+    {
+        if (e.Value != null)
+        {
+            OnSelect.InvokeAsync(e.Value.ToString());
+        }
+    }
+}
+
+<label class="form-check option-button-label">
+    <input class="form-check-input"
+           type="radio"
+           name="@Name"
+           value="@Value"
+           @onchange="OnChange"
+           checked="@(SelectedValue == Value)" />
+    <span class="form-check-label">
+        @Value
+    </span>
+</label>

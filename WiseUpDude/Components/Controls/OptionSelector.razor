@@ -1,0 +1,76 @@
+﻿@using WiseUpDude.Model
+
+<div>
+    @if (QuestionType == QuizQuestionType.MultipleChoice && Options is not null)
+    {
+        @foreach (var option in Options)
+        {
+            var optionId = $"question-{QuestionIndex}-{option}";
+            <div class="form-check">
+                <input class="form-check-input"
+                       type="radio"
+                       id="@optionId"
+                       name="@($"question-{QuestionIndex}")"
+                       value="@option"
+                       checked="@(SelectedOption == option)"
+                       @onclick="@(async () => await OnOptionSelected(option))" />
+                <label class="form-check-label" for="@optionId">
+                    @option
+                </label>
+            </div>
+        }
+    }
+    else if (QuestionType == QuizQuestionType.TrueFalse)
+    {
+        var trueId = $"question-{QuestionIndex}-true";
+        var falseId = $"question-{QuestionIndex}-false";
+
+        <div class="form-check">
+            <input class="form-check-input"
+                   type="radio"
+                   id="@trueId"
+                   name="@($"question-{QuestionIndex}")"
+                   value="True"
+                   checked="@(SelectedOption == "True")"
+                   @onclick="@(async () => await OnOptionSelected("True"))" />
+            <label class="form-check-label" for="@trueId">
+                True
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input"
+                   type="radio"
+                   id="@falseId"
+                   name="@($"question-{QuestionIndex}")"
+                   value="False"
+                   checked="@(SelectedOption == "False")"
+                   @onclick="@(async () => await OnOptionSelected("False"))" />
+            <label class="form-check-label" for="@falseId">
+                False
+            </label>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public QuizQuestionType QuestionType { get; set; }
+
+    [Parameter]
+    public List<string>? Options { get; set; }
+
+    [Parameter]
+    public string? SelectedOption { get; set; }
+
+    [Parameter]
+    public EventCallback<string> SelectedOptionChanged { get; set; }
+
+    [Parameter]
+    public int QuestionIndex { get; set; }
+
+    private async Task OnOptionSelected(string option)
+    {
+        SelectedOption = option;
+        await SelectedOptionChanged.InvokeAsync(option);
+    }
+}

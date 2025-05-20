@@ -105,7 +105,8 @@ namespace WiseUpDude.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Quiz generation failed for topic: {Topic}, difficulty: {Difficulty}", criteria.Topic, criteria.Difficulty);
+                //_logger.LogError(ex, "Quiz generation failed for topic: {Topic}, difficulty: {Difficulty}", criteria.Topic, criteria.Difficulty);
+                _logger.LogError(ex, "Quiz generation failed for topic: {Topic}, difficulty: {Difficulty}. Exception: {Exception}", criteria.Topic, criteria.Difficulty, ex.ToString());
                 return null;
             }
         }

@@ -50,6 +50,12 @@ var innerChatClientOpenAI = new OpenAI.Chat.ChatClient("gpt-4-0125-preview",
     configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("Missing OpenAI:ApiKey"))
     .AsChatClient();
 
+// Log the value of OpenAI:ApiKey from configuration
+var openAIApiKey = builder.Configuration["OpenAI:ApiKey"];
+builder.Logging.AddConsole();
+var logger = LoggerFactory.Create(logging => logging.AddConsole()).CreateLogger("ConfigLogger");
+logger.LogInformation("OpenAI:ApiKey = {ApiKey}", openAIApiKey);
+
 //Do not remove commentting as may need to change to a different model.
 //builder.Services.AddChatClient(innerChatClientAzure); // Azure-based GPT-3.5
 //builder.Services.AddChatClient(innerChatClientGithub); // Azure-based GPT-3.5

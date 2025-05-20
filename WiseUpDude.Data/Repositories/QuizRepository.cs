@@ -159,7 +159,7 @@ namespace WiseUpDude.Data.Repositories
             quiz.Id = entity.Id;
         }
 
-        public async Task AddQuizAsync(QuizResponse quizResponse, string userName = "greg.ohlsen@gmail.com")
+        public async Task<int> AddQuizAsync(QuizResponse quizResponse, string userName = "greg.ohlsen@gmail.com")
         {
             var quizName = string.IsNullOrWhiteSpace(quizResponse.Topic)
                 ? $"Quiz_{DateTime.UtcNow:yyyyMMdd_HHmmss}"
@@ -206,6 +206,8 @@ namespace WiseUpDude.Data.Repositories
             // Update the Quiz entity with its questions
             _context.Entry(quiz).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+
+            return quiz.Id;
         }
 
         public async Task UpdateAsync(WiseUpDude.Model.Quiz model)

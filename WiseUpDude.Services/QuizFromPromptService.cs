@@ -2,6 +2,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using WiseUpDude.Data.Entities;
+using WiseUpDude.Data.Repositories;
 using WiseUpDude.Model;
 using WiseUpDude.Services.Interfaces;
 
@@ -12,49 +13,56 @@ namespace WiseUpDude.Services
         private readonly IChatClient _chatClient;
         private readonly AnswerRandomizerService _answerRandomizer;
         private readonly ILogger<QuizFromPromptService> _logger;
+        private readonly QuizRepository _quizRepository;
 
-        public QuizFromPromptService(IChatClient chatClient, AnswerRandomizerService answerRandomizer, ILogger<QuizFromPromptService> logger)
+        public QuizFromPromptService(
+            IChatClient chatClient,
+            AnswerRandomizerService answerRandomizer,
+            ILogger<QuizFromPromptService> logger,
+            QuizRepository quizRepository)
         {
             _chatClient = chatClient;
             _answerRandomizer = answerRandomizer;
             _logger = logger;
+            _quizRepository = quizRepository;
         }
 
-        public async Task<QuizResponse?> GenerateQuizFromPromptAsync(string prompt)
+        // Returns the new QuizId after saving to DB
+        public async Task<int?> GenerateQuizFromPromptAndSaveAsync(string prompt, string userName = "greg.ohlsen@gmail.com")
         {
             var aiPrompt = string.Join("\n", new[]
             {
-                    $"Create a quiz based on the following prompt: \"{prompt}\".",
-                    "The quiz should include at least 20 questions.",
-                    "Include both multiple-choice and true/false questions.",
-                    "",
-                    "QUESTION FORMATTING & ANSWER SHUFFLING:",
-                    "For multiple-choice questions:",
-                    "- Always create exactly 4 answer options.",
-                    "- All answer options must be plausible and relevant to the question.",
-                    "- Randomly assign the correct answer to either the 1st, 2nd, 3rd, or 4th position (A, B, C, or D). Do not default to the first position.",
-                    "- In the entire quiz, balance the distribution of correct answer positions as evenly as possible, so the correct answer appears roughly 25% of the time in each position (i.e., if there are 20 questions, about 5 in each slot).",
-                    "- Do NOT put the correct answer in the first position by default.",
-                    "- For the 20 multiple-choice questions, ensure that exactly 5 questions have the correct answer in position 1, 5 in position 2, 5 in position 3, and 5 in position 4. Track and enforce this distribution as you generate the quiz. Do not allow any position to have more than 5 correct answers.",
-                    "",
-                    "For true/false questions:",
-                    "- Always use exactly two answer options: [\"True\", \"False\"], in that order. Never shuffle or reverse these.",
-                    "- Ensure that, across all true/false questions, the correct answer is 'True' about half the time and 'False' about half the time.",
-                    "",
-                    "For all questions:",
-                    "- Ensure the correct answers and explanations are factually accurate and grounded in widely accepted knowledge. If the prompt is about a specific domain, use official or well-regarded sources if applicable.",
-                    "- Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\", and \"QuestionType\".",
-                    "- The \"QuestionType\" must be exactly \"TrueFalse\" or \"MultipleChoice\" (case-sensitive).",
-                    "",
-                    "OUTPUT:",
-                    "- Return only valid JSON in the following format:",
-                    "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"Type\": \"...\", \"Description\": \"...\" }.",
-                    "- Return only the raw JSON, without any code block formatting or prefixes like 'json'.",
-                    "",
-                    "ERROR HANDLING:",
-                    "- If the prompt is too vague, factually impossible, or cannot result in a meaningful quiz, return a JSON object in this format: { \"Error\": \"<reason>\" }.",
-                    "- If the prompt is ambiguous, choose the most likely intended topic based on the text. If still unclear, return the above error object explaining that the prompt was ambiguous."
-                });
+                $"Create a quiz based on the following prompt: \"{prompt}\".",
+                "The quiz should include at least 20 questions.",
+                "Include both multiple-choice and true/false questions.",
+                "",
+                "QUESTION FORMATTING & ANSWER SHUFFLING:",
+                "For multiple-choice questions:",
+                "- Always create exactly 4 answer options.",
+                "- All answer options must be plausible and relevant to the question.",
+                "- Randomly assign the correct answer to either the 1st, 2nd, 3rd, or 4th position (A, B, C, or D). Do not default to the first position.",
+                "- In the entire quiz, balance the distribution of correct answer positions as evenly as possible, so the correct answer appears roughly 25% of the time in each position (i.e., if there are 20 questions, about 5 in each slot).",
+                "- Do NOT put the correct answer in the first position by default.",
+                "- For the 20 multiple-choice questions, ensure that exactly 5 questions have the correct answer in position 1, 5 in position 2, 5 in position 3, and 5 in position 4. Track and enforce this distribution as you generate the quiz. Do not allow any position to have more than 5 correct answers.",
+                "",
+                "For true/false questions:",
+                "- Always use exactly two answer options: [\"True\", \"False\"], in that order. Never shuffle or reverse these.",
+                "- Ensure that, across all true/false questions, the correct answer is 'True' about half the time and 'False' about half the time.",
+                "",
+                "For all questions:",
+                "- Ensure the correct answers and explanations are factually accurate and grounded in widely accepted knowledge. If the prompt is about a specific domain, use official or well-regarded sources if applicable.",
+                "- Each question should be an object with: \"Question\", \"Options\", \"Answer\", \"Explanation\", and \"QuestionType\".",
+                "- The \"QuestionType\" must be exactly \"TrueFalse\" or \"MultipleChoice\" (case-sensitive).",
+                "",
+                "OUTPUT:",
+                "- Return only valid JSON in the following format:",
+                "{ \"Questions\": [ { \"Question\": \"...\", \"Options\": [\"...\"], \"Answer\": \"...\", \"Explanation\": \"...\", \"QuestionType\": \"...\" }, ... ], \"Type\": \"...\", \"Description\": \"...\" }.",
+                "- Return only the raw JSON, without any code block formatting or prefixes like 'json'.",
+                "",
+                "ERROR HANDLING:",
+                "- If the prompt is too vague, factually impossible, or cannot result in a meaningful quiz, return a JSON object in this format: { \"Error\": \"<reason>\" }.",
+                "- If the prompt is ambiguous, choose the most likely intended topic based on the text. If still unclear, return the above error object explaining that the prompt was ambiguous."
+            });
 
             _logger.LogInformation("Sending AI prompt: {AiPrompt}", aiPrompt);
 
@@ -78,15 +86,14 @@ namespace WiseUpDude.Services
                     return null;
                 }
 
-                // Attempt to randomize answers
+                QuizResponse? parsedQuiz = null;
                 try
                 {
-                    QuizResponse? parsedQuiz = JsonSerializer.Deserialize<QuizResponse>(json, options);
+                    parsedQuiz = JsonSerializer.Deserialize<QuizResponse>(json, options);
 
                     if (parsedQuiz != null)
                     {
                         parsedQuiz = _answerRandomizer.RandomizeAnswers(parsedQuiz);
-                        return parsedQuiz; // Return the randomized quiz if successful
                     }
                 }
                 catch (Exception ex)
@@ -94,9 +101,29 @@ namespace WiseUpDude.Services
                     _logger.LogError(ex, "Randomization failed. Proceeding to shuffle answers.");
                 }
 
-                // Call the new method to shuffle answers
-                var shuffledQuiz = await ShuffleQuizAnswersAsync(json, options);
-                return shuffledQuiz;
+                if (parsedQuiz == null)
+                {
+                    // Call the new method to shuffle answers
+                    parsedQuiz = await ShuffleQuizAnswersAsync(json, options);
+                }
+
+                if (parsedQuiz == null)
+                {
+                    _logger.LogError("Quiz generation failed after shuffling/randomizing.");
+                    return null;
+                }
+
+                // Save to DB and return QuizId
+                await _quizRepository.AddQuizAsync(parsedQuiz, userName);
+
+                // Retrieve the saved quiz to get its Id (by name, user, and creation time)
+                // Or, if AddQuizAsync is updated to return the Id, use that instead.
+                var savedQuiz = (await _quizRepository.GetAllAsync())
+                    .Where(q => q.Name == (string.IsNullOrWhiteSpace(parsedQuiz.Topic) ? $"Quiz_{DateTime.UtcNow:yyyyMMdd_HHmmss}" : parsedQuiz.Topic))
+                    .OrderByDescending(q => q.Id)
+                    .FirstOrDefault();
+
+                return savedQuiz?.Id;
             }
             catch (JsonException jex)
             {
@@ -114,14 +141,14 @@ namespace WiseUpDude.Services
         {
             var shufflePrompt = string.Join("\n", new[]
             {
-                    "Here is a JSON object containing quiz questions.",
-                    "For each question of \"QuestionType\": \"MultipleChoice\", RANDOMLY shuffle the order of the \"Options\" array. Update the \"Answer\" field so it matches the new position of the correct answer.",
-                    "For questions of \"QuestionType\": \"TrueFalse\", DO NOT change the order of the options (always [\"True\", \"False\"]). Do not alter their \"Answer\".",
-                    "Return the updated questions in the exact same JSON structure.",
-                    "Return only the JSON, with no other text.",
-                    "- Return only the raw JSON, without any code block formatting or prefixes like 'json'.",
-                    quizJson // Include generated quiz JSON as content!
-                });
+                "Here is a JSON object containing quiz questions.",
+                "For each question of \"QuestionType\": \"MultipleChoice\", RANDOMLY shuffle the order of the \"Options\" array. Update the \"Answer\" field so it matches the new position of the correct answer.",
+                "For questions of \"QuestionType\": \"TrueFalse\", DO NOT change the order of the options (always [\"True\", \"False\"]). Do not alter their \"Answer\".",
+                "Return the updated questions in the exact same JSON structure.",
+                "Return only the JSON, with no other text.",
+                "- Return only the raw JSON, without any code block formatting or prefixes like 'json'.",
+                quizJson // Include generated quiz JSON as content!
+            });
 
             _logger.LogInformation("Shuffling quiz answers...");
 

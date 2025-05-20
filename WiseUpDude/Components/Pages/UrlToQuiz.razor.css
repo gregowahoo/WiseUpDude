@@ -1,0 +1,103 @@
+﻿body {
+}
+
+/* Full-screen overlay */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* semi-transparent dark background */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050; /* ensures it overlays other content */
+}
+
+/* Spinner styling using CSS animations */
+.spinner {
+    border: 8px solid #f3f3f3; /* Light gray */
+    border-top: 8px solid #007bff; /* Bootstrap primary blue */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+/* Text styling */
+.overlay-text {
+    color: #fff;
+    font-size: 1.2rem;
+}
+
+/* Spinner animation keyframes */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Container centers the card and provides overall spacing */
+.container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1rem;
+    display: grid;
+    place-items: center; /* Centers content horizontally and vertically */
+}
+
+/* Card groups the content with a subtle shadow and rounded borders */
+.card {
+    width: 100%;
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Title styling */
+.title {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+    color: #333;
+}
+
+/* Form group spacing */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+/* Input and dropdown styling */
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Button styling */
+.btn {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+    .btn:hover {
+        background-color: #0056b3;
+    }

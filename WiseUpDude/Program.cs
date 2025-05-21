@@ -134,8 +134,9 @@ builder.Services.AddScoped<QuizStateService>();
 builder.Services.AddScoped<IQuizFromPromptService, QuizFromPromptService>();
 builder.Services.AddScoped<AnswerRandomizerService>();
 
-
 builder.Services.AddScoped<IRepository<Quiz>, QuizRepository>();
+builder.Services.AddScoped<QuizRepository>();
+
 builder.Services.AddScoped<UserQuizRepository>();
 
 builder.Services.AddScoped<IQuizQuestionRepository<QuizQuestion>, QuizQuestionRepository>();

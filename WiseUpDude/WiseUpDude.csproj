@@ -54,5 +54,13 @@
 		<Content Include="..\WiseUpDude.Client\wwwroot\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Content Remove="Components\Pages\UrlToQuiz.razor" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="Components\Pages\UrlToQuiz.razor.css" />
+	</ItemGroup>
+
 
 </Project>

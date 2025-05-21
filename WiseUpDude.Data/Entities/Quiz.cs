@@ -39,9 +39,9 @@ namespace WiseUpDude.Data.Entities
         public string Difficulty { get; set; } = string.Empty;
 
         [ForeignKey("Topic")]
-        public int TopicId { get; set; } // Foreign key to Topic
+        public int? TopicId { get; set; } // Now optional
 
-        public Topic Topic { get; set; } = null!; // Navigation property
+        public Topic? Topic { get; set; } // Now nullable
 
         public DateTime CreationDate { get; set; }
     }

@@ -45,7 +45,7 @@ namespace WiseUpDude.Data.Repositories
                 }).ToList(),
                 Type = e.Type,
                 Topic = e.Topic?.Name, // Use the Topic's Name
-                TopicId = e.TopicId, // Map TopicId
+                TopicId = (int)e.TopicId, // Map TopicId
                 Description = e.Description,
                 Difficulty = e.Difficulty // Include quiz-level difficulty
             });
@@ -129,9 +129,10 @@ namespace WiseUpDude.Data.Repositories
                 Name = quiz.Name,
                 UserId = quiz.UserId,
                 Type = quiz.Type,
+                Prompt = quiz.Prompt,
                 TopicId = quiz.TopicId, // Use TopicId directly
                 Description = quiz.Description,
-                Difficulty = quiz.Difficulty // Save quiz-level difficulty
+                Difficulty = quiz.Difficulty
             };
 
             // Add the Quiz to the database first to generate its ID
@@ -159,17 +160,17 @@ namespace WiseUpDude.Data.Repositories
             quiz.Id = entity.Id;
         }
 
-        public async Task<int> AddQuizAsync(QuizResponse quizResponse, string userName = "greg.ohlsen@gmail.com")
+        public async Task<int> AddQuizAsync(QuizResponse quizResponse)
         {
             var quizName = string.IsNullOrWhiteSpace(quizResponse.Topic)
                 ? $"Quiz_{DateTime.UtcNow:yyyyMMdd_HHmmss}"
                 : quizResponse.Topic;
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == userName);
-            if (user == null)
-            {
-                throw new InvalidOperationException($"User with UserName '{userName}' not found.");
-            }
+            //var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == userName);
+            //if (user == null)
+            //{
+            //    throw new InvalidOperationException($"User with UserName '{userName}' not found.");
+            //}
 
             // Find the Topic by its Name
             var topic = await _context.Topics.FirstOrDefaultAsync(t => t.Name == quizResponse.Topic);
@@ -179,7 +180,7 @@ namespace WiseUpDude.Data.Repositories
             var quiz = new Entities.Quiz
             {
                 Name = quizName,
-                UserId = user.Id,
+                UserId = quizResponse.UserId,
                 Type = quizResponse.Type,
                 TopicId = topic.Id, // Set the TopicId
                 Description = quizResponse.Description,

@@ -4,6 +4,6 @@ namespace WiseUpDude.Services.Interfaces
 {
     public interface IQuizFromPromptService
     {
-        Task<int?> GenerateQuizFromPromptAndSaveAsync(string prompt, string userName = "greg.ohlsen@gmail.com");
+        Task<List<QuizQuestion>?> GenerateQuestionsFromPromptAsync(string prompt);
     }
 }

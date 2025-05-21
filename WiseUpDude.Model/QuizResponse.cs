@@ -8,8 +8,7 @@ namespace WiseUpDude.Model
         public string? Prompt { get; set; } // Nullable for topics
         public string? Description { get; set; } // Optional
         public string Difficulty { get; set; } = string.Empty; // Optional
-
-        // Add TopicId to match the Topic entity
         public int TopicId { get; set; }
+        public string? UserId { get; set; } 
     }
 }

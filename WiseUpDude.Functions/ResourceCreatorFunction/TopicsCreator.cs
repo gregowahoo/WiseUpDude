@@ -40,7 +40,7 @@ namespace ResourceCreatorFunction
         }
 
         [Function("TopicsCreator")]
-        public async Task Run([TimerTrigger("0 */45 * * * *")] TimerInfo topicsCreatorTimer)
+        public async Task Run([TimerTrigger("0 */5 * * * *")] TimerInfo topicsCreatorTimer)
         {
             if (topicsCreatorTimer.ScheduleStatus is not null)
             {

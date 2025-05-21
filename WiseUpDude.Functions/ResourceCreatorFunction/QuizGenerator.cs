@@ -15,17 +15,20 @@ namespace ResourceCreatorFunction
         private readonly TopicRepository _topicRepository;
         private readonly QuizRepository _quizRepository;
         private readonly QuizFromTopicService _quizQuestionsFromTopic;
+        private readonly IUserIdLookupService _userIdLookupService;
 
         public QuizGenerator(
             ILogger<QuizGenerator> logger,
             TopicRepository topicRepository,
             QuizRepository quizRepository,
-            QuizFromTopicService quizQuestionsFromTopic)
+            QuizFromTopicService quizQuestionsFromTopic,
+            IUserIdLookupService userIdLookupService) // Added
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _topicRepository = topicRepository;
             _quizRepository = quizRepository;
             _quizQuestionsFromTopic = quizQuestionsFromTopic;
+            _userIdLookupService = userIdLookupService ?? throw new ArgumentNullException(nameof(userIdLookupService)); // Added
         }
 
         [Function("QuizGenerator")]
@@ -75,6 +78,14 @@ namespace ResourceCreatorFunction
                         quizResponse.Topic = topic.Name;
                         quizResponse.Difficulty = criteria.Difficulty; // Set quiz-level difficulty
                         quizResponse.Description = topic.Description;
+
+                        var adminUserId = await _userIdLookupService.GetUserIdByEmailAsync("Admin@WiseUpDude.com");
+                        if (string.IsNullOrEmpty(adminUserId))
+                        {
+                            _logger.LogError("Admin user not found. Cannot assign UserId to quiz.");
+                            continue; // or throw, or handle as appropriate
+                        }
+                        quizResponse.UserId = adminUserId;
 
                         foreach (var question in quizResponse.Questions)
                         {

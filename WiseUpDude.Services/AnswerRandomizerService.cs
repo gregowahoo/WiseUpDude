@@ -5,11 +5,11 @@ namespace WiseUpDude.Services
 {
     public class AnswerRandomizerService
     {
-        public QuizResponse RandomizeAnswers(QuizResponse quizResponse)
+        public Quiz RandomizeAnswers(Quiz quiz)
         {
             var random = new Random();
 
-            foreach (var question in quizResponse.Questions)
+            foreach (var question in quiz.Questions)
             {
                 if (question.Options != null && question.Options.Any())
                 {
@@ -33,7 +33,7 @@ namespace WiseUpDude.Services
                 }
             }
 
-            return quizResponse;
+            return quiz;
         }
     }
 }

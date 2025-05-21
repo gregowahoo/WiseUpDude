@@ -1,15 +1,16 @@
-using Microsoft.Azure.Functions.Worker.Builder;
-using Microsoft.Extensions.Hosting;
 using Azure.AI.OpenAI;
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
-using System.ClientModel;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
-using WiseUpDude.Services;
-using WiseUpDude.Data.Repositories;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System.ClientModel;
 using WiseUpDude.Data;
+using WiseUpDude.Data.Repositories;
+using WiseUpDude.Services;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -64,6 +65,10 @@ builder.Services.AddChatClient(innerChatClientOpenAI); // “gpt-4o-mini” from Ope
 // Register the LLM name as a configuration or service
 builder.Services.AddSingleton(llmName => "gpt-4.1"); // Replace with the actual LLM name being used
 
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
+
 // Add DbContext with SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -78,5 +83,7 @@ builder.Services.AddScoped<TopicRepository>();  // Register TopicRepository
 builder.Services.AddScoped<TopicCreationRunRepository>();  // Register TopicRepository
 builder.Services.AddScoped<QuizFromTopicService>(); // Register QuizFromTopicService
 builder.Services.AddScoped<QuizRepository>(); // Register QuizRepository
+
+builder.Services.AddScoped<IUserIdLookupService, UserIdLookupService>();
 
 builder.Build().Run();

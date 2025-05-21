@@ -4,15 +4,19 @@
 @using WiseUpDude.Services
 @using WiseUpDude.Services.Interfaces
 @using WiseUpDude.Model
+@using WiseUpDude.Data.Repositories
 
-@inject QuizStateService QuizState
+@inject QuizRepository QuizRepository
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject IQuizFromPromptService QuizGenerationService
 @inject ILogger<RollYourOwn> Logger
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 @rendermode InteractiveServer
 @attribute [Authorize]
+
+@* <p>IsGenerating: @IsGenerating, IsSaving: @IsSaving</p> *@
 
 @if (IsGenerating)
 {
@@ -33,8 +37,10 @@
             <br />
 
             <div class="text-center">
-                <button class="btn btn-success btn-lg px-5" @onclick="GenerateQuiz">
-                    🚀 Generate Quiz
+                <button class="btn btn-success btn-lg px-5"
+                        @onclick="SaveQuiz"
+                        disabled="@(IsGenerating || IsSaving || string.IsNullOrWhiteSpace(UserPrompt))">
+                    🚀 Generate & Save Quiz
                 </button>
             </div>
 
@@ -49,9 +55,13 @@
 @code {
     private string? UserPrompt { get; set; }
     private bool IsGenerating = false;
+    private bool IsSaving = false;
     private string? ErrorMessage;
 
-    private async Task GenerateQuiz()
+    private bool CanGenerateAndSave =>
+        !IsGenerating && !IsSaving && !string.IsNullOrWhiteSpace(UserPrompt);
+
+    private async Task SaveQuiz()
     {
         if (string.IsNullOrWhiteSpace(UserPrompt))
         {
@@ -60,51 +70,55 @@
         }
 
         IsGenerating = true;
+        IsSaving = true;
         ErrorMessage = null;
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                   ?? user.FindFirst("sub")?.Value; // fallback for JWT sub claim
 
         try
         {
             Logger.LogInformation("Sending prompt to QuizGenerationService: {UserPrompt}", UserPrompt);
 
-            // Call the AI API to generate a quiz based on the user's prompt
-            var generatedQuiz = await QuizGenerationService.GenerateQuizFromPromptAsync(UserPrompt);
+            var generatedQuestions = await QuizGenerationService.GenerateQuestionsFromPromptAsync(UserPrompt);
 
-            if (generatedQuiz != null)
+            if (generatedQuestions is null || !generatedQuestions.Any())
             {
-                Logger.LogInformation("Quiz successfully generated. Description: {Description}", generatedQuiz.Description);
-
-                // Map the generated quiz to a new Quiz object
-                var newQuiz = new Quiz
-                {
-                    Name = generatedQuiz.Description ?? "Custom Quiz",
-                    Questions = generatedQuiz.Questions,
-                    UserName = "Anonymous", // Replace with actual user name if available
-                    // User = new ApplicationUser { UserName = "Anonymous" }, // Replace with actual user object if available
-                    UserId = "Anonymous", // Replace with actual user ID if available
-                    Type = "Prompt",
-                    Prompt = UserPrompt,
-                    Description = generatedQuiz.Description,
-                    Difficulty = generatedQuiz.Difficulty,
-                    TopicId = 0 // Set to 0 as this is an ad-hoc quiz
-                };
-
-                QuizState.CurrentQuiz = newQuiz;
-                NavigationManager.NavigateTo("/TakeQuiz");
+                Logger.LogError("QuizGenerationService returned no questions.");
+                ErrorMessage = "Failed to generate quiz questions. Please try again.";
+                return;
             }
-            else
+
+            var quiz = new Quiz
             {
-                Logger.LogError("QuizGenerationService returned null.");
-                ErrorMessage = "Failed to generate a quiz. Please try again.";
-            }
+                Name = UserPrompt.Length > 50 ? UserPrompt.Substring(0, 50) : UserPrompt,
+                UserId = userId,
+                Type = "Prompt",
+                Prompt = UserPrompt,
+                Description = null, // You can set this to something else if needed
+                Difficulty = "Medium",
+                LearnMode = false,
+                Topic = null, 
+                Questions = generatedQuestions
+            };
+
+            await QuizRepository.AddAsync(quiz);
+
+            Logger.LogInformation("Quiz successfully saved. QuizId: {QuizId}", quiz.Id);
+
+            NavigationManager.NavigateTo($"/TakeAQuiz/{quiz.Id}");
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Exception during quiz generation.");
-            ErrorMessage = "An error occurred while generating the quiz. Please try again later.";
+            Logger.LogError(ex, "Exception during quiz save.");
+            ErrorMessage = "An error occurred while generating or saving the quiz. Please try again later.";
         }
         finally
         {
             IsGenerating = false;
+            IsSaving = false;
         }
     }
 }

@@ -8,19 +8,19 @@ namespace WiseUpDude.Model
         public int Id { get; set; }
 
         // Use the required modifier to ensure this property is initialized
-        public required string Name { get; set; }
+        public string? Name { get; set; }
 
         public List<QuizQuestion> Questions { get; set; } = new List<QuizQuestion>();
 
         // Use the required modifier to ensure this property is initialized
-        public required string UserName { get; set; }
+        public string? UserName { get; set; }
 
         // Use the required modifier to ensure this property is initialized
         //public required ApplicationUser User { get; set; }
 
-        public required string UserId { get; set; }
+        public string? UserId { get; set; }
 
-        public string Type { get; set; } = string.Empty; // "Topic" or "Prompt"
+        public string? Type { get; set; } // "Topic" or "Prompt"
 
         public string? Topic { get; set; } // Nullable for prompts
 
@@ -28,10 +28,10 @@ namespace WiseUpDude.Model
 
         public string? Description { get; set; } // Optional
 
-        public required string Difficulty { get; set; }
+        public string? Difficulty { get; set; }
 
         // Add TopicId to match Entities.Quiz
-        public int TopicId { get; set; } // Foreign key to Topic
+        public int? TopicId { get; set; } // Foreign key to Topic
 
         // Add CreationDate to match UserQuiz
         public DateTime CreationDate { get; set; }

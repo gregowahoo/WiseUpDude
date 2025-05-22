@@ -134,6 +134,9 @@ else
     public int QuizId { get; set; }
 
     private Quiz? Quiz;
+    private UserQuizAttempt? CurrentAttempt;
+    private int? CurrentAttemptId;
+    private DateTime? AttemptStartTime;
 
     protected override async Task OnInitializedAsync()
     {
@@ -147,6 +150,7 @@ else
             Logger.LogTrace("OnInitializedAsync: Quiz has {Count} questions.", Quiz.Questions.Count);
             totalQuestions = Quiz.Questions.Count;
             learnMode = Quiz.LearnMode;
+            // Do NOT create UserQuizAttempt here!
         }
         else
         {
@@ -220,6 +224,51 @@ else
             Logger.LogTrace("HandleAnswerSubmitted: correctAnswers incremented to {CorrectAnswers}", correctAnswers);
         }
 
+        try
+        {
+            // On first answer, create the UserQuizAttempt
+            if (CurrentAttempt == null)
+            {
+                AttemptStartTime = DateTime.Now;
+                var attempt = new UserQuizAttempt
+                {
+                    UserQuizId = QuizId,
+                    AttemptDate = AttemptStartTime.Value,
+                    Score = (double)correctAnswers / totalAnswered,
+                    Duration = TimeSpan.Zero
+                };
+                var createdAttempt = await UserQuizAttemptApiService.CreateAsync(attempt);
+                if (createdAttempt == null || createdAttempt.Id == 0)
+                {
+                    Logger.LogError("Failed to create UserQuizAttempt or received invalid Id.");
+                    saveMessage = "Error: Could not start quiz attempt.";
+                    return;
+                }
+                CurrentAttempt = createdAttempt;
+                CurrentAttemptId = createdAttempt.Id;
+            }
+            else if (CurrentAttempt != null && AttemptStartTime.HasValue)
+            {
+                // For subsequent answers, update the attempt
+                CurrentAttempt.Score = (double)correctAnswers / totalAnswered;
+                CurrentAttempt.Duration = DateTime.Now - AttemptStartTime.Value;
+                if (CurrentAttempt.Id == 0)
+                {
+                    Logger.LogError("Attempt to update UserQuizAttempt with Id=0. Aborting update.");
+                    saveMessage = "Error: Attempt Id is invalid.";
+                    return;
+                }
+                await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error creating or updating UserQuizAttempt");
+            saveMessage = $"Error: {ex.Message}";
+            StateHasChanged();
+            return;
+        }
+
         if (Quiz?.Questions != null && totalAnswered >= Quiz.Questions.Count)
         {
             Logger.LogTrace("HandleAnswerSubmitted: All questions answered. Final score: {CorrectAnswers}/{TotalAnswered}", correctAnswers, totalAnswered);
@@ -232,8 +281,6 @@ else
                 await JS.InvokeVoidAsync("playSound", "/sounds/applause.mp3");
                 await JS.InvokeVoidAsync("launchConfetti");
             }
-
-            showFinalMessage = true;
         }
 
         StateHasChanged();

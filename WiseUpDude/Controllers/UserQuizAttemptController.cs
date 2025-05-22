@@ -40,6 +40,11 @@ namespace WiseUpDude.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] UserQuizAttempt attempt)
         {
             if (id != attempt.Id) return BadRequest();
+
+            var existing = await _repository.GetByIdAsync(id);
+            if (existing == null)
+                return NotFound();
+
             await _repository.UpdateAsync(attempt);
             return NoContent();
         }

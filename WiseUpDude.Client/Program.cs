@@ -23,6 +23,8 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseA
 
 builder.Services.AddScoped<QuizApiService>();
 builder.Services.AddScoped<UserQuizApiService>();
+builder.Services.AddScoped<UserQuizAttemptApiService>();
+builder.Services.AddScoped<UserQuizAttemptQuestionApiService>();
 
 // In both Server and WASM Program.cs
 builder.Services.AddScoped<QuizState>();

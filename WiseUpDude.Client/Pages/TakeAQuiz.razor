@@ -14,6 +14,7 @@
 @inject ILogger<QuizApiService> QuizApiLogger
 
 @inject QuizApiService? QuizApiService
+@inject UserQuizApiService UserQuizApiService
 
 @inject IJSRuntime JS
 
@@ -135,7 +136,8 @@ else
     {
         Logger.LogTrace("OnInitializedAsync: Fetching quiz for QuizId={QuizId}", QuizId);
 
-        Quiz = await QuizApiService.GetQuizByIdAsync(QuizId);
+        // Use UserQuizApiService to fetch the user quiz by ID
+        Quiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
 
         if (Quiz?.Questions != null)
         {

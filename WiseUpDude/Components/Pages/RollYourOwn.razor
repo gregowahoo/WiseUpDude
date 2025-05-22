@@ -7,6 +7,8 @@
 @using WiseUpDude.Data.Repositories
 
 @inject QuizRepository QuizRepository
+@inject UserQuizRepository UserQuizRepository
+
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject IQuizFromPromptService QuizGenerationService
@@ -38,7 +40,7 @@
 
             <div class="text-center">
                 <button class="btn btn-success btn-lg px-5"
-                        @onclick="SaveQuiz"
+                        @onclick="GenerateAndSaveQuiz"
                         disabled="@(IsGenerating || IsSaving || string.IsNullOrWhiteSpace(UserPrompt))">
                     🚀 Generate & Save Quiz
                 </button>
@@ -61,7 +63,7 @@
     private bool CanGenerateAndSave =>
         !IsGenerating && !IsSaving && !string.IsNullOrWhiteSpace(UserPrompt);
 
-    private async Task SaveQuiz()
+    private async Task GenerateAndSaveQuiz()
     {
         if (string.IsNullOrWhiteSpace(UserPrompt))
         {
@@ -105,10 +107,16 @@
             };
 
             await QuizRepository.AddAsync(quiz);
+            Logger.LogInformation("Quiz successfully saved to the Quiz table. QuizId: {QuizId}", quiz.Id);
 
-            Logger.LogInformation("Quiz successfully saved. QuizId: {QuizId}", quiz.Id);
+            // Add to UserQuizRepository as well
+            // await UserQuizRepository.AddAsync(quiz);
 
-            NavigationManager.NavigateTo($"/TakeAQuiz/{quiz.Id}");
+            var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
+
+            Logger.LogInformation("Quiz successfully saved to the UserQuiz table. QuizId: {QuizId}", userQuizId);
+
+            NavigationManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
         }
         catch (Exception ex)
         {

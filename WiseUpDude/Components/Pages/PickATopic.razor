@@ -12,11 +12,15 @@
 @inject IJSRuntime JSRuntime
 
 @inject ITopicRepository<Topic> TopicRepository
+
 @inject IRepository<Quiz> QuizRepository
+@inject UserQuizRepository UserQuizRepository
+
 @inject ICategoryRepository CategoryRepository
 
 @inject ITopicsCacheService<Topic> TopicsCacheService
 @* @inject QuizFromTopicService QuizQuestionsFromTopic *@
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 @inject IConfiguration Configuration
 
@@ -103,35 +107,48 @@
 
         try
         {
-            // Fetch quizzes for the selected topic using the repository method
             var quizzes = await QuizRepository.GetQuizzesByTopicIdAsync(topicId);
 
             if (quizzes.Any())
             {
-                // If quizzes exist, set the first quiz as the current quiz
                 var selectedQuiz = quizzes.First();
-                // QuizState.CurrentQuiz = new Quiz
-                // {
-                //     Id = -1,        //This signifies a DB entry does not exist, yet.
-                //     Name = selectedQuiz.Name,
-                //     Questions = selectedQuiz.Questions,
-                //     UserName = selectedQuiz.UserName,
-                //     UserId = selectedQuiz.UserId,
-                //     Type = selectedQuiz.Type,
-                //     Topic = selectedQuiz.Topic,
-                //     TopicId = selectedQuiz.TopicId,
-                //     Prompt = selectedQuiz.Prompt,
-                //     Description = selectedQuiz.Description,
-                //     Difficulty = selectedQuiz.Difficulty
-                // };
 
-                // NavigationManager.NavigateTo("/TakeQuiz");
+                // Get current user ID (adjust as needed for your auth setup)
+                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                var user = authState.User;
+                var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value;
 
-                NavigationManager.NavigateTo($"/TakeAQuiz/{selectedQuiz.Id}");
+                // Clone quiz for user
+                var userQuiz = new Quiz
+                {
+                    Name = selectedQuiz.Name,
+                    UserId = userId,
+                    Type = selectedQuiz.Type,
+                    Topic = selectedQuiz.Topic,
+                    Prompt = selectedQuiz.Prompt,
+                    Description = selectedQuiz.Description,
+                    Difficulty = selectedQuiz.Difficulty,
+                    LearnMode = selectedQuiz.LearnMode,
+                    Questions = selectedQuiz.Questions.Select(q => new QuizQuestion
+                    {
+                        Question = q.Question,
+                        QuestionType = q.QuestionType,
+                        Options = q.Options?.ToList(),
+                        Answer = q.Answer,
+                        Explanation = q.Explanation,
+                        Difficulty = q.Difficulty
+                    }).ToList()
+                    // CreationDate = DateTime.UtcNow
+                };
+
+                // Save the user quiz and get the new Id
+                var userQuizId = await UserQuizRepository.AddAsyncGetId(userQuiz);
+
+                NavigationManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
             }
             else
             {
-                // If no quizzes exist, log or handle the case (e.g., show a message)
                 Console.WriteLine("🚫 No quizzes found for the selected topic. Consider generating one via AI.");
             }
         }
@@ -146,6 +163,7 @@
     }
 
     protected override async Task OnInitializedAsync()
+
     {
         Categories = (await CategoryRepository.GetAllAsync()).ToList(); // Load categories
         FilteredTopics = (await TopicRepository.GetAllAsync()).ToList(); // Load all topics initially

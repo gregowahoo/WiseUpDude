@@ -20,7 +20,9 @@ if (string.IsNullOrWhiteSpace(apiBaseAddress))
     throw new InvalidOperationException("ApiBaseAddress is not configured.");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseAddress) });
+
 builder.Services.AddScoped<QuizApiService>();
+builder.Services.AddScoped<UserQuizApiService>();
 
 // In both Server and WASM Program.cs
 builder.Services.AddScoped<QuizState>();

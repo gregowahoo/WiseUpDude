@@ -6,7 +6,6 @@ using Microsoft.Extensions.AI;
 using Serilog;
 using Serilog.Events;
 using System.ClientModel;
-using WiseUpDude.Client.Pages;
 using WiseUpDude.Components;
 using WiseUpDude.Components.Account;
 using WiseUpDude.Data;
@@ -167,20 +166,22 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 
 builder.Services.AddScoped<DashboardDataService>();
 
+builder.Services.AddScoped<QuizApiService>();
+builder.Services.AddScoped<UserQuizApiService>();
+
+//TODO: (Using this still?)
+builder.Services.AddScoped<QuizState>();
+
 #endregion
 
+
+#region Api Support
 
 var apiBaseAddress = builder.Configuration["ApiBaseAddress"];
 if (string.IsNullOrWhiteSpace(apiBaseAddress))
     throw new InvalidOperationException("ApiBaseAddress is not configured.");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseAddress) });
-
-builder.Services.AddScoped<QuizApiService>();
-builder.Services.AddScoped<UserQuizApiService>();
-
-// In both Server and WASM Program.cs
-builder.Services.AddScoped<QuizState>();
 
 builder.Services.AddCors(options =>
 {
@@ -190,9 +191,14 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader());
 });
 
+#endregion
 
 
 
+
+
+
+//Build the pipline
 
 var app = builder.Build();
 

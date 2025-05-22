@@ -23,10 +23,6 @@
 		<ProjectReference Include="..\WiseUpDude.Shared\WiseUpDude.Shared.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<Folder Include="Controls\" />
-	</ItemGroup>
-
 	<!--<ItemGroup>
 		<Content Remove="wwwroot\appsettings*.json" />
 	</ItemGroup>-->

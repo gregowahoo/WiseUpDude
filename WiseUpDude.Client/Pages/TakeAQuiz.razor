@@ -237,6 +237,7 @@ else
                     Score = (double)correctAnswers / totalAnswered,
                     Duration = TimeSpan.Zero
                 };
+
                 var createdAttempt = await UserQuizAttemptApiService.CreateAsync(attempt);
                 if (createdAttempt == null || createdAttempt.Id == 0)
                 {
@@ -244,6 +245,7 @@ else
                     saveMessage = "Error: Could not start quiz attempt.";
                     return;
                 }
+
                 CurrentAttempt = createdAttempt;
                 CurrentAttemptId = createdAttempt.Id;
             }

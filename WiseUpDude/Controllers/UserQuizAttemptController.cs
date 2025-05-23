@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using WiseUpDude.Data.Repositories.Interfaces;
 using WiseUpDude.Model;
 
@@ -30,10 +30,10 @@ namespace WiseUpDude.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Create([FromBody] UserQuizAttempt attempt)
+        public async Task<ActionResult<Model.UserQuizAttempt>> Create([FromBody] Model.UserQuizAttempt attempt)
         {
-            await _repository.AddAsync(attempt);
-            return CreatedAtAction(nameof(GetById), new { id = attempt.Id }, attempt);
+            var createdAttempt = await _repository.AddAsync(attempt);
+            return CreatedAtAction(nameof(GetById), new { id = createdAttempt.Id }, createdAttempt); // 💥 return the one with actual Id
         }
 
         [HttpPut("{id}")]

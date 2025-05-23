@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using WiseUpDude.Data.Entities;
 using WiseUpDude.Data.Repositories.Interfaces;
 using WiseUpDude.Model;
@@ -33,27 +33,40 @@ namespace WiseUpDude.Data.Repositories
             return entities.Select(MapToModel);
         }
 
-        public async Task AddAsync(Model.UserQuizAttempt attempt)
+        public async Task<Model.UserQuizAttempt> AddAsync(Model.UserQuizAttempt attempt)
         {
             try
             {
                 var entity = MapToEntity(attempt);
                 _context.UserQuizAttempts.Add(entity);
-
                 await _context.SaveChangesAsync();
+                return MapToModel(entity); // 👈 This sends back the record with the new Id
             }
             catch (Exception ex)
             {
-                // Log the exception
                 Console.WriteLine($"Error adding UserQuizAttempt: {ex.Message}");
-                throw; // Re-throw the exception to ensure it propagates
+                throw;
             }
         }
 
         public async Task UpdateAsync(Model.UserQuizAttempt attempt)
         {
-            var entity = MapToEntity(attempt);
-            _context.UserQuizAttempts.Update(entity);
+            var existingEntity = await _context.UserQuizAttempts
+                .Include(a => a.AttemptQuestions)
+                .FirstOrDefaultAsync(a => a.Id == attempt.Id);
+
+            if (existingEntity == null)
+                throw new InvalidOperationException("Entity not found.");
+
+            // Update properties
+            existingEntity.UserQuizId = attempt.UserQuizId;
+            existingEntity.AttemptDate = attempt.AttemptDate;
+            existingEntity.Score = attempt.Score;
+            existingEntity.Duration = attempt.Duration;
+
+            // Update child collection if necessary
+            existingEntity.AttemptQuestions = attempt.AttemptQuestions?.Select(MapToEntity).ToList() ?? new List<Entities.UserQuizAttemptQuestion>();
+
             await _context.SaveChangesAsync();
         }
 

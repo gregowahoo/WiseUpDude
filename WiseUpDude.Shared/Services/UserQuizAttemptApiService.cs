@@ -33,6 +33,7 @@ namespace WiseUpDude.Shared.Services
         {
             var response = await _httpClient.PostAsJsonAsync("api/UserQuizAttempt", attempt);
             if (!response.IsSuccessStatusCode) return null;
+
             return await response.Content.ReadFromJsonAsync<UserQuizAttempt>();
         }
 

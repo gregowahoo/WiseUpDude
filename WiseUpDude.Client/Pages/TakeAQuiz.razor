@@ -150,7 +150,6 @@ else
             Logger.LogTrace("OnInitializedAsync: Quiz has {Count} questions.", Quiz.Questions.Count);
             totalQuestions = Quiz.Questions.Count;
             learnMode = Quiz.LearnMode;
-            // Do NOT create UserQuizAttempt here!
         }
         else
         {
@@ -211,6 +210,7 @@ else
         }
     }
 
+    // Refactored: Modularize answer submission logic
     private async Task HandleAnswerSubmitted((bool isCorrect, int questionIndex) args)
     {
         var (isCorrect, questionIndex) = args;
@@ -226,41 +226,13 @@ else
 
         try
         {
-            // On first answer, create the UserQuizAttempt
             if (CurrentAttempt == null)
             {
-                AttemptStartTime = DateTime.Now;
-                var attempt = new UserQuizAttempt
-                {
-                    UserQuizId = QuizId,
-                    AttemptDate = AttemptStartTime.Value,
-                    Score = (double)correctAnswers / totalAnswered,
-                    Duration = TimeSpan.Zero
-                };
-
-                var createdAttempt = await UserQuizAttemptApiService.CreateAsync(attempt);
-                if (createdAttempt == null || createdAttempt.Id == 0)
-                {
-                    Logger.LogError("Failed to create UserQuizAttempt or received invalid Id.");
-                    saveMessage = "Error: Could not start quiz attempt.";
-                    return;
-                }
-
-                CurrentAttempt = createdAttempt;
-                CurrentAttemptId = createdAttempt.Id;
+                await CreateUserQuizAttemptAsync();
             }
             else if (CurrentAttempt != null && AttemptStartTime.HasValue)
             {
-                // For subsequent answers, update the attempt
-                CurrentAttempt.Score = (double)correctAnswers / totalAnswered;
-                CurrentAttempt.Duration = DateTime.Now - AttemptStartTime.Value;
-                if (CurrentAttempt.Id == 0)
-                {
-                    Logger.LogError("Attempt to update UserQuizAttempt with Id=0. Aborting update.");
-                    saveMessage = "Error: Attempt Id is invalid.";
-                    return;
-                }
-                await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
+                await UpdateUserQuizAttemptAsync();
             }
         }
         catch (Exception ex)
@@ -271,20 +243,76 @@ else
             return;
         }
 
+        // Save user response (placeholder for your logic)
+        await SaveUserResponseAsync(isCorrect, questionIndex);
+
         if (Quiz?.Questions != null && totalAnswered >= Quiz.Questions.Count)
         {
-            Logger.LogTrace("HandleAnswerSubmitted: All questions answered. Final score: {CorrectAnswers}/{TotalAnswered}", correctAnswers, totalAnswered);
-            await JS.InvokeVoidAsync("scrollToTopSmooth");
-            double scorePercent = (double)correctAnswers / totalAnswered;
-
-            if (scorePercent >= 0.8)
-            {
-                Logger.LogTrace("HandleAnswerSubmitted: Score >= 80%, playing applause and launching confetti.");
-                await JS.InvokeVoidAsync("playSound", "/sounds/applause.mp3");
-                await JS.InvokeVoidAsync("launchConfetti");
-            }
+            await HandleQuizCompletionAsync();
         }
 
         StateHasChanged();
+    }
+
+    // Helper: Create a new UserQuizAttempt
+    private async Task CreateUserQuizAttemptAsync()
+    {
+        AttemptStartTime = DateTime.Now;
+        var attempt = new UserQuizAttempt
+        {
+            UserQuizId = QuizId,
+            AttemptDate = AttemptStartTime.Value,
+            Score = (double)correctAnswers / totalAnswered,
+            Duration = TimeSpan.Zero
+        };
+
+        var createdAttempt = await UserQuizAttemptApiService.CreateAsync(attempt);
+        if (createdAttempt == null || createdAttempt.Id == 0)
+        {
+            Logger.LogError("Failed to create UserQuizAttempt or received invalid Id.");
+            saveMessage = "Error: Could not start quiz attempt.";
+            throw new InvalidOperationException("Could not start quiz attempt.");
+        }
+
+        CurrentAttempt = createdAttempt;
+        CurrentAttemptId = createdAttempt.Id;
+    }
+
+    // Helper: Update an existing UserQuizAttempt
+    private async Task UpdateUserQuizAttemptAsync()
+    {
+        CurrentAttempt.Score = (double)correctAnswers / totalAnswered;
+        CurrentAttempt.Duration = DateTime.Now - AttemptStartTime!.Value;
+        if (CurrentAttempt.Id == 0)
+        {
+            Logger.LogError("Attempt to update UserQuizAttempt with Id=0. Aborting update.");
+            saveMessage = "Error: Attempt Id is invalid.";
+            throw new InvalidOperationException("Attempt Id is invalid.");
+        }
+        await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
+    }
+
+    // Helper: Save user response to a question (expand this logic as needed)
+    private async Task SaveUserResponseAsync(bool isCorrect, int questionIndex)
+    {
+        // TODO: Implement logic to save user's answer to UserQuizAttemptQuestion
+        // Example: await UserQuizAttemptQuestionApiService.CreateOrUpdateAsync(...);
+        Logger.LogTrace("SaveUserResponseAsync: Saving response for question {QuestionIndex}, isCorrect={IsCorrect}", questionIndex, isCorrect);
+        await Task.CompletedTask;
+    }
+
+    // Helper: Handle end-of-quiz logic
+    private async Task HandleQuizCompletionAsync()
+    {
+        Logger.LogTrace("HandleQuizCompletionAsync: All questions answered. Final score: {CorrectAnswers}/{TotalAnswered}", correctAnswers, totalAnswered);
+        await JS.InvokeVoidAsync("scrollToTopSmooth");
+        double scorePercent = (double)correctAnswers / totalAnswered;
+
+        if (scorePercent >= 0.8)
+        {
+            Logger.LogTrace("HandleQuizCompletionAsync: Score >= 80%, playing applause and launching confetti.");
+            await JS.InvokeVoidAsync("playSound", "/sounds/applause.mp3");
+            await JS.InvokeVoidAsync("launchConfetti");
+        }
     }
 }

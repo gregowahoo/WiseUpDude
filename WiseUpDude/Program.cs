@@ -152,7 +152,9 @@ builder.Services.AddScoped<ITopicRepository<Topic>, TopicRepository>();
 builder.Services.AddScoped<IUserQuizRepository<Quiz>, UserQuizRepository>();
 builder.Services.AddScoped<IUserQuizQuestionRepository<QuizQuestion>, UserQuizQuestionRepository>();
 
+builder.Services.AddScoped<IUserQuizAttemptRepository<WiseUpDude.Model.UserQuizAttempt>, UserQuizAttemptRepository>();
 
+// ...existing code...
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 

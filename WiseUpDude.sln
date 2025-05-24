@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseUpDude.Shared", "WiseUp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseUpDude.Test.Repositories", "WiseUpDude.Test.Repositories\WiseUpDude.Test.Repositories.csproj", "{025BCEEC-85CB-47D9-9F39-6AFB54C1D68E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiseUpDude.Tests.Controllers", "WiseUpDude.Tests.Controllers\WiseUpDude.Tests.Controllers.csproj", "{FAC2AE6B-5DAB-4517-BA70-2D83F423448E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -130,6 +132,18 @@ Global
 		{025BCEEC-85CB-47D9-9F39-6AFB54C1D68E}.Release|x64.Build.0 = Release|Any CPU
 		{025BCEEC-85CB-47D9-9F39-6AFB54C1D68E}.Release|x86.ActiveCfg = Release|Any CPU
 		{025BCEEC-85CB-47D9-9F39-6AFB54C1D68E}.Release|x86.Build.0 = Release|Any CPU
+		{FAC2AE6B-5DAB-4517-BA70-2D83F423448E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FAC2AE6B-5DAB-4517-BA70-2D83F423448E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FAC2AE6B-5DAB-4517-BA70-2D83F423448E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FAC2AE6B-5DAB-4517-BA70-2D83F423448E}.Debug|x64.Build.0 = Debug|Any CPU
+		{FAC2AE6B-5DAB-4517-BA70-2D83F423448E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FAC2AE6B-5DAB-4517-BA70-2D83F423448E}.Debug|x86.Build.0 = Debug|Any CPU
+		{FAC2AE6B-5DAB-4517-BA70-2D83F423448E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FAC2AE6B-5DAB-4517-BA70-2D83F423448E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FAC2AE6B-5DAB-4517-BA70-2D83F423448E}.Release|x64.ActiveCfg = Release|Any CPU
+		{FAC2AE6B-5DAB-4517-BA70-2D83F423448E}.Release|x64.Build.0 = Release|Any CPU
+		{FAC2AE6B-5DAB-4517-BA70-2D83F423448E}.Release|x86.ActiveCfg = Release|Any CPU
+		{FAC2AE6B-5DAB-4517-BA70-2D83F423448E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -47,11 +47,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .Property(t => t.CreationDate)
             .HasDefaultValueSql("GETDATE()");
 
-        // Configure CreationDate for UserQuiz
-        //modelBuilder.Entity<UserQuiz>()
-        //    .Property(uq => uq.CreationDate)
-        //    .HasDefaultValueSql("GETDATE()");
-
         modelBuilder.Entity<UserQuiz>(entity =>
         {
             entity.HasKey(uq => uq.Id); // Set Id as the primary key
@@ -78,18 +73,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(q => q.TopicId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Fix cascade delete issue
+        // Fix cascade delete issue - maintain relationship with UserQuizAttempt
         modelBuilder.Entity<UserQuizAttemptQuestion>()
             .HasOne(uqaq => uqaq.UserQuizAttempt)
             .WithMany(uqa => uqa.AttemptQuestions)
             .HasForeignKey(uqaq => uqaq.UserQuizAttemptId)
-            .OnDelete(DeleteBehavior.Restrict);  // <-- set to Restrict instead of Cascade
-
-        modelBuilder.Entity<UserQuizAttemptQuestion>()
-            .HasOne(aq => aq.UserQuizQuestion)
-            .WithMany()
-            .HasForeignKey(aq => aq.UserQuizQuestionId)
-            .OnDelete(DeleteBehavior.Restrict); // Protect frozen data
+            .OnDelete(DeleteBehavior.Cascade);
+            
+        // Removed the relationship configuration with UserQuizQuestion
+        // Only keeping the foreign key without navigation property
 
         modelBuilder.Entity<UserQuizAttempt>().ToTable("UserQuizAttempts");
         modelBuilder.Entity<UserQuizAttemptQuestion>().ToTable("UserQuizAttemptQuestions");

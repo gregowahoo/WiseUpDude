@@ -171,6 +171,8 @@ builder.Services.AddScoped<UserQuizApiService>();
 builder.Services.AddScoped<UserQuizAttemptApiService>();
 builder.Services.AddScoped<UserQuizAttemptQuestionApiService>();
 
+builder.Services.AddScoped<QuizAttemptService>();
+
 //TODO: (Using this still?)
 builder.Services.AddScoped<QuizState>();
 

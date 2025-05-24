@@ -8,7 +8,8 @@
         public UserQuizAttempt UserQuizAttempt { get; set; }
 
         public int UserQuizQuestionId { get; set; }
-        public UserQuizQuestion UserQuizQuestion { get; set; }
+        // Removing the navigation property to UserQuizQuestion
+        // public UserQuizQuestion UserQuizQuestion { get; set; }
 
         // User's answer data
         public string UserAnswer { get; set; }

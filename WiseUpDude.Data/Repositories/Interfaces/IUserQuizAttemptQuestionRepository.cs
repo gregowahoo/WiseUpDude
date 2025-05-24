@@ -9,5 +9,6 @@ namespace WiseUpDude.Data.Repositories.Interfaces
         Task AddAsync(UserQuizAttemptQuestion question);
         Task UpdateAsync(UserQuizAttemptQuestion question);
         Task DeleteAsync(int id);
+        Task<UserQuizAttemptQuestion> CreateOrUpdateAsync(UserQuizAttemptQuestion question);
     }
 }

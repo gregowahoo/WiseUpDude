@@ -18,6 +18,7 @@
 @inject UserQuizApiService UserQuizApiService
 @inject UserQuizAttemptApiService UserQuizAttemptApiService
 @inject UserQuizAttemptQuestionApiService UserQuizAttemptQuestionApiService
+@inject QuizAttemptService QuizAttemptService
 
 @inject IJSRuntime JS
 
@@ -64,13 +65,13 @@ else
             @if ((double)correctAnswers / totalAnswered >= 0.8)
             {
                 <div class="alert alert-success mt-4 fs-5 text-center fw-bold">
-                    🎉 You Wise’d Up! Final Score: @correctAnswers / @totalAnswered
+                    🎉 You Wise'd Up! Final Score: @correctAnswers / @totalAnswered
                 </div>
             }
             else
             {
                 <div class="alert alert-danger mt-4 fs-5 text-center fw-bold">
-                    😬 You’ve got work to do, wise guy. Final Score: @correctAnswers / @totalAnswered
+                    😬 You've got work to do, wise guy. Final Score: @correctAnswers / @totalAnswered
                 </div>
             }
         }
@@ -123,11 +124,13 @@ else
 
             @if (!string.IsNullOrWhiteSpace(saveMessage))
             {
-                <div class="alert alert-info mt-3">@saveMessage</div>
+                <div class="alert alert-@(saveMessageType) mt-3">@saveMessage</div>
             }
         }
     </div>
 </div>
+
+// ... (rest of the file remains unchanged)
 
 @code {
     [Parameter]
@@ -137,23 +140,35 @@ else
     private UserQuizAttempt? CurrentAttempt;
     private int? CurrentAttemptId;
     private DateTime? AttemptStartTime;
+    // Track which questions have been answered to prevent duplicates
+    private Dictionary<int, bool> answeredQuestions = new Dictionary<int, bool>();
+    private string saveMessageType = "info";
 
     protected override async Task OnInitializedAsync()
     {
-        Logger.LogTrace("OnInitializedAsync: Fetching quiz for QuizId={QuizId}", QuizId);
+        Logger.LogInformation("OnInitializedAsync: Fetching quiz for QuizId={QuizId}", QuizId);
 
-        // Use UserQuizApiService to fetch the user quiz by ID
-        Quiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
-
-        if (Quiz?.Questions != null)
+        try
         {
-            Logger.LogTrace("OnInitializedAsync: Quiz has {Count} questions.", Quiz.Questions.Count);
-            totalQuestions = Quiz.Questions.Count;
-            learnMode = Quiz.LearnMode;
+            // Use UserQuizApiService to fetch the user quiz by ID
+            Quiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
+
+            if (Quiz?.Questions != null)
+            {
+                Logger.LogInformation("OnInitializedAsync: Quiz has {Count} questions.", Quiz.Questions.Count);
+                totalQuestions = Quiz.Questions.Count;
+                learnMode = Quiz.LearnMode;
+            }
+            else
+            {
+                Logger.LogWarning("OnInitializedAsync: Quiz or Quiz.Questions is null.");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Logger.LogTrace("OnInitializedAsync: Quiz or Quiz.Questions is null.");
+            Logger.LogError(ex, "OnInitializedAsync: Error fetching quiz: {Message}", ex.Message);
+            saveMessage = $"Error loading quiz: {ex.Message}";
+            saveMessageType = "danger";
         }
     }
 }
@@ -172,25 +187,25 @@ else
 
     protected override void OnInitialized()
     {
-        Logger.LogTrace("OnInitialized: TakeAQuiz component initialized.");
+        Logger.LogInformation("OnInitialized: TakeAQuiz component initialized.");
     }
 
     private void HandleQuizUpdated()
     {
-        Logger.LogTrace("HandleQuizUpdated: StateHasChanged called.");
+        Logger.LogInformation("HandleQuizUpdated: StateHasChanged called.");
         StateHasChanged();
     }
 
     private void ToggleAutoSubmit()
     {
         autoSubmit = !autoSubmit;
-        Logger.LogTrace("ToggleAutoSubmit: autoSubmit is now {AutoSubmit}", autoSubmit);
+        Logger.LogInformation("ToggleAutoSubmit: autoSubmit is now {AutoSubmit}", autoSubmit);
     }
 
     private void ToggleMute()
     {
         muteSound = !muteSound;
-        Logger.LogTrace("ToggleMute: muteSound is now {MuteSound}", muteSound);
+        Logger.LogInformation("ToggleMute: muteSound is now {MuteSound}", muteSound);
     }
 
     private async Task ToggleLearnMode()
@@ -200,14 +215,25 @@ else
             learnMode = !learnMode;
             Quiz.LearnMode = learnMode;
             saveMessage = learnMode ? "Learn Mode enabled!" : "Learn Mode disabled!";
-            Logger.LogTrace("ToggleLearnMode: LearnMode is now {LearnMode}", learnMode);
+            saveMessageType = "info";
+            Logger.LogInformation("ToggleLearnMode: LearnMode is now {LearnMode}", learnMode);
             await JS.InvokeVoidAsync("console.log", saveMessage);
         }
         else
         {
             saveMessage = "No quiz loaded to toggle Learn Mode.";
-            Logger.LogTrace("ToggleLearnMode: No quiz loaded.");
+            saveMessageType = "warning";
+            Logger.LogWarning("ToggleLearnMode: No quiz loaded.");
         }
+    }
+
+    // Ensure that a quiz attempt exists, creating one if needed
+    private async Task<bool> EnsureQuizAttemptExistsAsync()
+    {
+        if (CurrentAttempt != null) return true;
+        CurrentAttempt = await QuizAttemptService.CreateAttemptAsync(QuizId, totalAnswered, correctAnswers);
+        AttemptStartTime = DateTime.Now;
+        return CurrentAttempt != null;
     }
 
     // Refactored: Modularize answer submission logic
@@ -215,104 +241,162 @@ else
     {
         var (isCorrect, questionIndex) = args;
 
-        totalAnswered++;
-        Logger.LogTrace("HandleAnswerSubmitted: Answer submitted for question {QuestionIndex}, isCorrect={IsCorrect}, totalAnswered={TotalAnswered}", questionIndex, isCorrect, totalAnswered);
-
-        if (isCorrect)
-        {
-            correctAnswers++;
-            Logger.LogTrace("HandleAnswerSubmitted: correctAnswers incremented to {CorrectAnswers}", correctAnswers);
-        }
-
         try
         {
-            if (CurrentAttempt == null)
+            if (Quiz == null || Quiz.Questions == null || questionIndex < 0 || questionIndex >= Quiz.Questions.Count)
             {
-                await CreateUserQuizAttemptAsync();
+                Logger.LogError("HandleAnswerSubmitted: Invalid quiz state or question index: {QuestionIndex}", questionIndex);
+                saveMessage = "Error: Invalid question data";
+                saveMessageType = "danger";
+                StateHasChanged();
+                return;
             }
-            else if (CurrentAttempt != null && AttemptStartTime.HasValue)
+
+            var question = Quiz.Questions[questionIndex];
+            Logger.LogInformation("HandleAnswerSubmitted: Answer submitted for question {QuestionIndex} (ID: {QuestionId}), isCorrect={IsCorrect}, UserAnswer={UserAnswer}", questionIndex, question.Id, isCorrect, question.UserAnswer);
+
+            totalAnswered++;
+
+            if (isCorrect)
             {
-                await UpdateUserQuizAttemptAsync();
+                correctAnswers++;
+                Logger.LogInformation("HandleAnswerSubmitted: correctAnswers incremented to {CorrectAnswers}", correctAnswers);
             }
+
+            // Step 1: Create attempt if it doesn't exist
+            if (!await EnsureQuizAttemptExistsAsync())
+            {
+
+                // return; // Exit if we couldn't create or get the attempt
+            }
+            else
+            {                
+                await UpdateUserQuizAttemptAsync();         // Step 3: Update the attempt with the latest score
+            }
+
+            Logger.LogInformation("HandleAnswerSubmitted: Current attempt ID: {AttemptId}", CurrentAttempt?.Id);
+
+            // Step 2: Save user response for this question
+            bool savedResponse = await SaveQuestionAnswerAsync(isCorrect, questionIndex);
+            if (!savedResponse)
+            {
+                Logger.LogError("HandleAnswerSubmitted: Failed to save user response for question {QuestionIndex}", questionIndex);
+                saveMessage = "Error: Could not save your answer";
+                saveMessageType = "danger";
+                StateHasChanged();
+                return;
+            }
+
+
+
+            // Check if all questions have been answered
+            if (Quiz.Questions != null && totalAnswered >= Quiz.Questions.Count)
+            {
+                showFinalMessage = true;
+                await HandleQuizCompletionAsync();
+            }
+
+            // Clear any previous error messages
+            saveMessage = null;
+            StateHasChanged();
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error creating or updating UserQuizAttempt");
+            Logger.LogError(ex, "HandleAnswerSubmitted: Error handling answer submission: {Message}", ex.Message);
             saveMessage = $"Error: {ex.Message}";
+            saveMessageType = "danger";
             StateHasChanged();
-            return;
         }
-
-        // Save user response (placeholder for your logic)
-        await SaveUserResponseAsync(isCorrect, questionIndex);
-
-        if (Quiz?.Questions != null && totalAnswered >= Quiz.Questions.Count)
-        {
-            await HandleQuizCompletionAsync();
-        }
-
-        StateHasChanged();
     }
 
     // Helper: Create a new UserQuizAttempt
     private async Task CreateUserQuizAttemptAsync()
     {
-        AttemptStartTime = DateTime.Now;
-        var attempt = new UserQuizAttempt
-        {
-            UserQuizId = QuizId,
-            AttemptDate = AttemptStartTime.Value,
-            Score = (double)correctAnswers / totalAnswered,
-            Duration = TimeSpan.Zero
-        };
+        Logger.LogInformation("CreateUserQuizAttemptAsync: Creating attempt for UserQuizId={UserQuizId}", QuizId);
 
-        var createdAttempt = await UserQuizAttemptApiService.CreateAsync(attempt);
-        if (createdAttempt == null || createdAttempt.Id == 0)
+        try
         {
-            Logger.LogError("Failed to create UserQuizAttempt or received invalid Id.");
-            saveMessage = "Error: Could not start quiz attempt.";
-            throw new InvalidOperationException("Could not start quiz attempt.");
+            AttemptStartTime = DateTime.Now;
+            var attempt = new UserQuizAttempt
+            {
+                UserQuizId = QuizId,
+                AttemptDate = AttemptStartTime.Value,
+                Score = totalAnswered > 0 ? (double)correctAnswers / totalAnswered : 0,
+                Duration = TimeSpan.Zero
+            };
+
+            var createdAttempt = await UserQuizAttemptApiService.CreateAsync(attempt);
+            if (createdAttempt == null || createdAttempt.Id == 0)
+            {
+                Logger.LogError("CreateUserQuizAttemptAsync: Failed to create UserQuizAttempt or received invalid Id");
+                throw new InvalidOperationException("Could not start quiz attempt");
+            }
+
+            Logger.LogInformation("CreateUserQuizAttemptAsync: Created attempt with Id={Id}", createdAttempt.Id);
+            CurrentAttempt = createdAttempt;
+            CurrentAttemptId = createdAttempt.Id;
+
+            // Initialize answer tracking dictionary
+            if (Quiz?.Questions != null)
+            {
+                foreach (var question in Quiz.Questions)
+                {
+                    answeredQuestions[question.Id] = false;
+                }
+            }
         }
-
-        CurrentAttempt = createdAttempt;
-        CurrentAttemptId = createdAttempt.Id;
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "CreateUserQuizAttemptAsync: Error creating attempt: {Message}", ex.Message);
+            throw; // Rethrow to be handled by the caller
+        }
     }
 
     // Helper: Update an existing UserQuizAttempt
     private async Task UpdateUserQuizAttemptAsync()
     {
-        CurrentAttempt.Score = (double)correctAnswers / totalAnswered;
-        CurrentAttempt.Duration = DateTime.Now - AttemptStartTime!.Value;
-        if (CurrentAttempt.Id == 0)
-        {
-            Logger.LogError("Attempt to update UserQuizAttempt with Id=0. Aborting update.");
-            saveMessage = "Error: Attempt Id is invalid.";
-            throw new InvalidOperationException("Attempt Id is invalid.");
-        }
-        await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
+        if (CurrentAttempt == null || !AttemptStartTime.HasValue) return;
+        await QuizAttemptService.UpdateAttemptAsync(
+            CurrentAttempt,
+            totalAnswered,
+            correctAnswers,
+            AttemptStartTime.Value
+        );
     }
 
-    // Helper: Save user response to a question (expand this logic as needed)
-    private async Task SaveUserResponseAsync(bool isCorrect, int questionIndex)
+    // Helper: Save user response to a question
+    private async Task<bool> SaveQuestionAnswerAsync(bool isCorrect, int questionIndex)
     {
-        // TODO: Implement logic to save user's answer to UserQuizAttemptQuestion
-        // Example: await UserQuizAttemptQuestionApiService.CreateOrUpdateAsync(...);
-        Logger.LogTrace("SaveUserResponseAsync: Saving response for question {QuestionIndex}, isCorrect={IsCorrect}", questionIndex, isCorrect);
-        await Task.CompletedTask;
+        if (Quiz == null || CurrentAttempt == null) return false;
+        var question = Quiz.Questions[questionIndex];
+        return await QuizAttemptService.SaveAnswerAsync(CurrentAttempt, question, isCorrect);
     }
 
     // Helper: Handle end-of-quiz logic
     private async Task HandleQuizCompletionAsync()
     {
-        Logger.LogTrace("HandleQuizCompletionAsync: All questions answered. Final score: {CorrectAnswers}/{TotalAnswered}", correctAnswers, totalAnswered);
+        Logger.LogInformation("HandleQuizCompletionAsync: All questions answered. Final score: {CorrectAnswers}/{TotalAnswered}", correctAnswers, totalAnswered);
+        showFinalMessage = true;
         await JS.InvokeVoidAsync("scrollToTopSmooth");
-        double scorePercent = (double)correctAnswers / totalAnswered;
+        double scorePercent = totalAnswered > 0 ? (double)correctAnswers / totalAnswered : 0;
 
         if (scorePercent >= 0.8)
         {
-            Logger.LogTrace("HandleQuizCompletionAsync: Score >= 80%, playing applause and launching confetti.");
-            await JS.InvokeVoidAsync("playSound", "/sounds/applause.mp3");
+            Logger.LogInformation("HandleQuizCompletionAsync: Score >= 80%, playing applause and launching confetti");
+
+            if (!muteSound)
+            {
+                await JS.InvokeVoidAsync("playSound", "/sounds/applause.mp3");
+            }
+
             await JS.InvokeVoidAsync("launchConfetti");
+            saveMessage = "Great job! You've completed the quiz with a passing score.";
+            saveMessageType = "success";
+        }
+        else
+        {
+            saveMessage = "Quiz completed. You might want to review the material and try again.";
+            saveMessageType = "warning";
         }
     }
 }

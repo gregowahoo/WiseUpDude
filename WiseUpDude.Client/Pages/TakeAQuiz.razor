@@ -16,6 +16,7 @@
 
 @inject QuizApiService? QuizApiService
 @inject UserQuizApiService UserQuizApiService
+@inject IUserQuizAttemptApiService UserQuizAttemptApiService
 
 @inject IJSRuntime JS
 
@@ -182,6 +183,8 @@ else
     private bool muteSound = false;
     private bool learnMode = false;
 
+    private Dictionary<int, DateTime> questionStartTimes = new(); // Track when each question is shown
+
     protected override void OnInitialized()
     {
         Logger.LogInformation("OnInitialized: TakeAQuiz component initialized.");
@@ -224,13 +227,85 @@ else
         }
     }
 
- 
-
     private async Task HandleAnswerSubmitted((bool isCorrect, int questionIndex) args)
     {
+        var (isCorrect, questionIndex) = args;
+        if (Quiz == null || Quiz.Questions == null || questionIndex < 0 || questionIndex >= Quiz.Questions.Count)
+            return;
 
+        // Prevent duplicate answers
+        if (answeredQuestions.ContainsKey(questionIndex))
+            return;
+        answeredQuestions[questionIndex] = true;
+
+        // Track time taken for this question
+        DateTime questionStart;
+        if (!questionStartTimes.TryGetValue(questionIndex, out questionStart))
+        {
+            // If not tracked, use AttemptStartTime or now
+            questionStart = AttemptStartTime ?? DateTime.UtcNow;
+        }
+        var timeTaken = (DateTime.UtcNow - questionStart).TotalSeconds;
+
+        // Record answer as UserQuizAttemptQuestion
+        var userQuizQuestion = Quiz.Questions[questionIndex];
+        var attemptQuestion = new UserQuizAttemptQuestion
+        {
+            UserQuizAttemptId = CurrentAttemptId ?? 0,
+            UserQuizQuestionId = userQuizQuestion.Id,
+            UserAnswer = "", // TODO: Get actual user answer from QuestionCard if available
+            IsCorrect = isCorrect,
+            TimeTakenSeconds = timeTaken
+        };
+
+        // Start attempt if this is the first answer
+        if (CurrentAttempt == null)
+        {
+            AttemptStartTime = DateTime.UtcNow;
+            var attempt = new UserQuizAttempt
+            {
+                UserQuizId = QuizId,
+                AttemptDate = AttemptStartTime.Value,
+                Score = 0,
+                Duration = TimeSpan.Zero,
+                AttemptQuestions = new List<UserQuizAttemptQuestion> { attemptQuestion }
+            };
+            CurrentAttempt = await UserQuizAttemptApiService.CreateAsync(attempt);
+            if (CurrentAttempt != null)
+            {
+                CurrentAttemptId = CurrentAttempt.Id;
+            }
+            else
+            {
+                saveMessage = "Failed to start quiz attempt.";
+                saveMessageType = "danger";
+                Logger.LogError("Failed to create UserQuizAttempt");
+                return;
+            }
+        }
+        else
+        {
+            // Add new question and update the attempt after every answer
+            CurrentAttempt.AttemptQuestions ??= new List<UserQuizAttemptQuestion>();
+            CurrentAttempt.AttemptQuestions.Add(attemptQuestion);
+            await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
+        }
+
+        // Update score/progress
+        totalAnswered++;
+        if (isCorrect) correctAnswers++;
+
+        // If all questions answered, complete quiz
+        if (totalAnswered == totalQuestions)
+        {
+            var duration = (AttemptStartTime.HasValue) ? (DateTime.UtcNow - AttemptStartTime.Value) : TimeSpan.Zero;
+            CurrentAttempt.Score = totalQuestions > 0 ? (double)correctAnswers / totalQuestions : 0;
+            CurrentAttempt.Duration = duration;
+            await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
+            await HandleQuizCompletionAsync();
+        }
+        StateHasChanged();
     }
-
 
     // Helper: Handle end-of-quiz logic
     private async Task HandleQuizCompletionAsync()

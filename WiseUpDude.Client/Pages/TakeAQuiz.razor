@@ -109,7 +109,7 @@ else
             @for (int i = 0; i < Quiz.Questions.Count; i++)
             {
                 var question = Quiz.Questions[i];
-                bool canEdit = !learnMode || (activeQuestionIndex == i || !answeredQuestions.Contains(i)) && !lockedQuestions.Contains(i);
+                bool canEdit = !learnMode || !answeredQuestions.Contains(i);
                 <div class="mb-4">
                     <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p>
                     <QuestionCard Question="question"
@@ -117,13 +117,8 @@ else
                                   AutoSubmit="autoSubmit"
                                   MuteSound="muteSound"
                                   CanEdit="@canEdit"
-                                  OnAnswerSubmitted="HandleAnswerSubmitted" />
+                                  OnAnswerSubmitted="@((args) => HandleAnswerSubmitted(args))" />
                 </div>
-            }
-
-            @if (!string.IsNullOrWhiteSpace(saveMessage))
-            {
-                <div class="alert alert-@(saveMessageType) mt-3">@saveMessage</div>
             }
         }
     </div>
@@ -133,80 +128,45 @@ else
     [Parameter]
     public int QuizId { get; set; }
 
-    private Quiz? Quiz;
-    private UserQuizAttempt? CurrentAttempt;
-    private int? CurrentAttemptId;
-    private DateTime? AttemptStartTime;
+    private Quiz? Quiz { get; set; }
     private int totalQuestions;
-    private int totalAnswered;
     private int correctAnswers;
-    private bool showFinalMessage = false;
+    private int totalAnswered;
+    private bool showFinalMessage;
     private bool autoSubmit = true;
     private bool muteSound = false;
     private bool learnMode = false;
     private bool hasStartedQuiz = false;
+    private HashSet<int> answeredQuestions = new HashSet<int>();
+    private Dictionary<int, DateTime> questionStartTimes = new Dictionary<int, DateTime>();
+    private DateTime? AttemptStartTime;
+    private UserQuizAttempt? CurrentAttempt;
+    private int? CurrentAttemptId;
     private string? saveMessage;
-    private string saveMessageType = "info";
-    private HashSet<int> answeredQuestions = new();
-    private HashSet<int> lockedQuestions = new();
-    private int? activeQuestionIndex = null;
-    private Dictionary<int, DateTime> questionStartTimes = new();
+    private string? saveMessageType;
 
     protected override async Task OnInitializedAsync()
     {
-        Logger.LogInformation("OnInitializedAsync: Fetching quiz for QuizId={QuizId}", QuizId);
-        try
+        Quiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
+        if (Quiz != null)
         {
-            Quiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
-            if (Quiz?.Questions != null)
-            {
-                Logger.LogInformation("OnInitializedAsync: Quiz has {Count} questions.", Quiz.Questions.Count);
-                totalQuestions = Quiz.Questions.Count;
-                learnMode = Quiz.LearnMode;
-            }
-            else
-            {
-                Logger.LogWarning("OnInitializedAsync: Quiz or Quiz.Questions is null.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "OnInitializedAsync: Error fetching quiz: {Message}", ex.Message);
-            saveMessage = $"Error loading quiz: {ex.Message}";
-            saveMessageType = "danger";
+            totalQuestions = Quiz.Questions?.Count ?? 0;
         }
     }
 
     private void ToggleAutoSubmit()
     {
         autoSubmit = !autoSubmit;
-        Logger.LogInformation("ToggleAutoSubmit: autoSubmit is now {AutoSubmit}", autoSubmit);
     }
 
     private void ToggleMute()
     {
         muteSound = !muteSound;
-        Logger.LogInformation("ToggleMute: muteSound is now {MuteSound}", muteSound);
     }
 
-    private async Task ToggleLearnMode()
+    private void ToggleLearnMode()
     {
-        if (hasStartedQuiz)
-        {
-            saveMessage = "Cannot enable Learn Mode after starting the quiz.";
-            saveMessageType = "warning";
-            Logger.LogWarning("ToggleLearnMode: Attempted to enable Learn Mode after quiz started.");
-            return;
-        }
-        if (!learnMode)
-        {
-            learnMode = true;
-            Quiz.LearnMode = true;
-            saveMessage = "Learn Mode enabled! Your answers will be saved and locked after you move on.";
-            saveMessageType = "info";
-            Logger.LogInformation("ToggleLearnMode: LearnMode is now true");
-            await JS.InvokeVoidAsync("console.log", saveMessage);
-        }
+        learnMode = !learnMode;
     }
 
     private async Task HandleAnswerSubmitted((bool isCorrect, int questionIndex, string userAnswer) args)
@@ -225,13 +185,10 @@ else
             return;
         }
 
-        // Learn Mode logic (persist, lock after moving on)
-        if (activeQuestionIndex != null && activeQuestionIndex != questionIndex && answeredQuestions.Contains(activeQuestionIndex.Value))
-        {
-            lockedQuestions.Add(activeQuestionIndex.Value);
-        }
+        // Learn Mode: lock after first answer, never allow change
+        if (answeredQuestions.Contains(questionIndex))
+            return;
         answeredQuestions.Add(questionIndex);
-        activeQuestionIndex = questionIndex;
 
         // Track time taken for this question
         DateTime questionStart;
@@ -240,18 +197,6 @@ else
             questionStart = AttemptStartTime ?? DateTime.UtcNow;
         }
         var timeTaken = (DateTime.UtcNow - questionStart).TotalSeconds;
-
-        // Remove any previous answer for this question
-        if (CurrentAttempt?.AttemptQuestions != null)
-        {
-            var existing = CurrentAttempt.AttemptQuestions.FirstOrDefault(q => q.UserQuizQuestionId == Quiz.Questions[questionIndex].Id);
-            if (existing != null)
-            {
-                CurrentAttempt.AttemptQuestions.Remove(existing);
-                if (isCorrect) correctAnswers--;
-                totalAnswered--;
-            }
-        }
 
         // Record answer as UserQuizAttemptQuestion
         var userQuizQuestion = Quiz.Questions[questionIndex];

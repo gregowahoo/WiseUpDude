@@ -1,7 +1,5 @@
 ﻿@page "/TakeAQuiz/{QuizId:int}"
-@* @rendermode InteractiveAuto *@
 @rendermode InteractiveWebAssembly
-
 
 @using WiseUpDude.Client.Controls
 @using WiseUpDude.Model
@@ -92,13 +90,14 @@ else
 
             <button type="button"
                     class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-                    @onclick="ToggleLearnMode">
+                    @onclick="ToggleLearnMode"
+                    disabled="@(hasStartedQuiz || learnMode)"
+                    title="Learn Mode: When enabled, your answers are saved and you can only change your answer until you answer another question. Once you move on, previous answers are locked. You cannot turn off Learn Mode after starting, and you cannot enable it after answering a question.">
                 <i class="bi @(learnMode ? "bi-mortarboard-fill" : "bi-mortarboard") me-1"></i>
                 @(learnMode ? "Learn Mode On" : "Learn Mode Off")
             </button>
         </div>
 
-        <!-- Quiz Content -->
         @if (Quiz == null || Quiz.Questions.Count == 0)
         {
             <div class="alert alert-warning">
@@ -110,12 +109,14 @@ else
             @for (int i = 0; i < Quiz.Questions.Count; i++)
             {
                 var question = Quiz.Questions[i];
+                bool canEdit = !learnMode || (activeQuestionIndex == i || !answeredQuestions.Contains(i)) && !lockedQuestions.Contains(i);
                 <div class="mb-4">
                     <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p>
                     <QuestionCard Question="question"
                                   QuestionIndex="i"
                                   AutoSubmit="autoSubmit"
                                   MuteSound="muteSound"
+                                  CanEdit="@canEdit"
                                   OnAnswerSubmitted="HandleAnswerSubmitted" />
                 </div>
             }
@@ -136,19 +137,27 @@ else
     private UserQuizAttempt? CurrentAttempt;
     private int? CurrentAttemptId;
     private DateTime? AttemptStartTime;
-    // Track which questions have been answered to prevent duplicates
-    private Dictionary<int, bool> answeredQuestions = new Dictionary<int, bool>();
+    private int totalQuestions;
+    private int totalAnswered;
+    private int correctAnswers;
+    private bool showFinalMessage = false;
+    private bool autoSubmit = true;
+    private bool muteSound = false;
+    private bool learnMode = false;
+    private bool hasStartedQuiz = false;
+    private string? saveMessage;
     private string saveMessageType = "info";
+    private HashSet<int> answeredQuestions = new();
+    private HashSet<int> lockedQuestions = new();
+    private int? activeQuestionIndex = null;
+    private Dictionary<int, DateTime> questionStartTimes = new();
 
     protected override async Task OnInitializedAsync()
     {
         Logger.LogInformation("OnInitializedAsync: Fetching quiz for QuizId={QuizId}", QuizId);
-
         try
         {
-            // Use UserQuizApiService to fetch the user quiz by ID
             Quiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
-
             if (Quiz?.Questions != null)
             {
                 Logger.LogInformation("OnInitializedAsync: Quiz has {Count} questions.", Quiz.Questions.Count);
@@ -167,32 +176,6 @@ else
             saveMessageType = "danger";
         }
     }
-}
-
-@code {
-    private bool autoSubmit = true;
-    private string? saveMessage;
-
-    private int totalQuestions;
-    private int totalAnswered;
-    private int correctAnswers;
-
-    private bool showFinalMessage = false;
-    private bool muteSound = false;
-    private bool learnMode = false;
-
-    private Dictionary<int, DateTime> questionStartTimes = new(); // Track when each question is shown
-
-    protected override void OnInitialized()
-    {
-        Logger.LogInformation("OnInitialized: TakeAQuiz component initialized.");
-    }
-
-    private void HandleQuizUpdated()
-    {
-        Logger.LogInformation("HandleQuizUpdated: StateHasChanged called.");
-        StateHasChanged();
-    }
 
     private void ToggleAutoSubmit()
     {
@@ -208,20 +191,21 @@ else
 
     private async Task ToggleLearnMode()
     {
-        if (Quiz is not null)
+        if (hasStartedQuiz)
         {
-            learnMode = !learnMode;
-            Quiz.LearnMode = learnMode;
-            saveMessage = learnMode ? "Learn Mode enabled!" : "Learn Mode disabled!";
-            saveMessageType = "info";
-            Logger.LogInformation("ToggleLearnMode: LearnMode is now {LearnMode}", learnMode);
-            await JS.InvokeVoidAsync("console.log", saveMessage);
-        }
-        else
-        {
-            saveMessage = "No quiz loaded to toggle Learn Mode.";
+            saveMessage = "Cannot enable Learn Mode after starting the quiz.";
             saveMessageType = "warning";
-            Logger.LogWarning("ToggleLearnMode: No quiz loaded.");
+            Logger.LogWarning("ToggleLearnMode: Attempted to enable Learn Mode after quiz started.");
+            return;
+        }
+        if (!learnMode)
+        {
+            learnMode = true;
+            Quiz.LearnMode = true;
+            saveMessage = "Learn Mode enabled! Your answers will be saved and locked after you move on.";
+            saveMessageType = "info";
+            Logger.LogInformation("ToggleLearnMode: LearnMode is now true");
+            await JS.InvokeVoidAsync("console.log", saveMessage);
         }
     }
 
@@ -231,19 +215,43 @@ else
         if (Quiz == null || Quiz.Questions == null || questionIndex < 0 || questionIndex >= Quiz.Questions.Count)
             return;
 
-        // Prevent duplicate answers
-        if (answeredQuestions.ContainsKey(questionIndex))
+        hasStartedQuiz = true;
+
+        if (!learnMode)
+        {
+            // In non-learn mode, just update UI, do not persist, allow all edits
+            Quiz.Questions[questionIndex].UserAnswer = userAnswer;
+            StateHasChanged();
             return;
-        answeredQuestions[questionIndex] = true;
+        }
+
+        // Learn Mode logic (persist, lock after moving on)
+        if (activeQuestionIndex != null && activeQuestionIndex != questionIndex && answeredQuestions.Contains(activeQuestionIndex.Value))
+        {
+            lockedQuestions.Add(activeQuestionIndex.Value);
+        }
+        answeredQuestions.Add(questionIndex);
+        activeQuestionIndex = questionIndex;
 
         // Track time taken for this question
         DateTime questionStart;
         if (!questionStartTimes.TryGetValue(questionIndex, out questionStart))
         {
-            // If not tracked, use AttemptStartTime or now
             questionStart = AttemptStartTime ?? DateTime.UtcNow;
         }
         var timeTaken = (DateTime.UtcNow - questionStart).TotalSeconds;
+
+        // Remove any previous answer for this question
+        if (CurrentAttempt?.AttemptQuestions != null)
+        {
+            var existing = CurrentAttempt.AttemptQuestions.FirstOrDefault(q => q.UserQuizQuestionId == Quiz.Questions[questionIndex].Id);
+            if (existing != null)
+            {
+                CurrentAttempt.AttemptQuestions.Remove(existing);
+                if (isCorrect) correctAnswers--;
+                totalAnswered--;
+            }
+        }
 
         // Record answer as UserQuizAttemptQuestion
         var userQuizQuestion = Quiz.Questions[questionIndex];
@@ -256,7 +264,6 @@ else
             TimeTakenSeconds = timeTaken
         };
 
-        // Start attempt if this is the first answer
         if (CurrentAttempt == null)
         {
             AttemptStartTime = DateTime.UtcNow;
@@ -283,17 +290,14 @@ else
         }
         else
         {
-            // Add new question and update the attempt after every answer
             CurrentAttempt.AttemptQuestions ??= new List<UserQuizAttemptQuestion>();
             CurrentAttempt.AttemptQuestions.Add(attemptQuestion);
             await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
         }
 
-        // Update score/progress
         totalAnswered++;
         if (isCorrect) correctAnswers++;
 
-        // If all questions answered, complete quiz
         if (totalAnswered == totalQuestions)
         {
             var duration = (AttemptStartTime.HasValue) ? (DateTime.UtcNow - AttemptStartTime.Value) : TimeSpan.Zero;
@@ -305,7 +309,6 @@ else
         StateHasChanged();
     }
 
-    // Helper: Handle end-of-quiz logic
     private async Task HandleQuizCompletionAsync()
     {
         Logger.LogInformation("HandleQuizCompletionAsync: All questions answered. Final score: {CorrectAnswers}/{TotalAnswered}", correctAnswers, totalAnswered);
@@ -316,12 +319,10 @@ else
         if (scorePercent >= 0.8)
         {
             Logger.LogInformation("HandleQuizCompletionAsync: Score >= 80%, playing applause and launching confetti");
-
             if (!muteSound)
             {
                 await JS.InvokeVoidAsync("playSound", "/sounds/applause.mp3");
             }
-
             await JS.InvokeVoidAsync("launchConfetti");
             saveMessage = "Great job! You've completed the quiz with a passing score.";
             saveMessageType = "success";

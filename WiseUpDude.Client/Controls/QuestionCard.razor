@@ -9,6 +9,7 @@
     [Parameter] public bool AutoSubmit { get; set; }
     [Parameter] public EventCallback<(bool isCorrect, int questionIndex, string userAnswer)> OnAnswerSubmitted { get; set; }
     [Parameter] public bool MuteSound { get; set; }
+    [Parameter] public bool CanEdit { get; set; } = true;
 
     private string userAnswer = string.Empty; // Tracks the user's selected answer
     private bool submitted = false;
@@ -25,6 +26,7 @@
 
     private void OnSelectAnswer(string answer)
     {
+        if (!CanEdit) return;
         userAnswer = answer;
         submitted = false;
 
@@ -38,6 +40,7 @@
 
     private async void CheckAnswerAndNotify()
     {
+        if (!CanEdit) return;
         submitted = true;
 
         if (Question is not null)
@@ -79,29 +82,24 @@
     {
         if (!submitted)
         {
-            Logger.LogDebug("Option class requested for question {QuestionIndex} before submission. Option: {Option}", QuestionIndex, option);
-            return "btn btn-outline-dark me-2 mb-2 rounded-pill";
+            return "btn btn-outline-dark me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
         }
 
         if (option == Question?.Answer)
         {
-            Logger.LogDebug("Option class requested for question {QuestionIndex}. Option: {Option} is correct.", QuestionIndex, option);
-            return "btn btn-correct me-2 mb-2 rounded-pill"; // ✅ Correct
+            return "btn btn-correct me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled"); // ✅ Correct
         }
 
         if (option == userAnswer)
         {
-            Logger.LogDebug("Option class requested for question {QuestionIndex}. Option: {Option} is incorrect.", QuestionIndex, option);
-            return "btn btn-incorrect me-2 mb-2 rounded-pill"; // ❌ Incorrect
+            return "btn btn-incorrect me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled"); // ❌ Incorrect
         }
 
-        Logger.LogDebug("Option class requested for question {QuestionIndex}. Option: {Option} is neutral.", QuestionIndex, option);
-        return "btn btn-outline-secondary me-2 mb-2 rounded-pill";
+        return "btn btn-outline-secondary me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
     }
 }
 
 <div class="card mb-3 shadow-sm">
-@* <div class="question-card mb-3 shadow-sm"> *@
     <div class="card-body">
         <h5 class="card-title">@($"Q{QuestionIndex + 1}: {Question?.Question}")</h5>
 
@@ -110,7 +108,8 @@
             @foreach (var option in Question.Options)
             {
                 <button class="@GetOptionClass(option)"
-                        @onclick="() => OnSelectAnswer(option)">
+                        @onclick="() => OnSelectAnswer(option)"
+                        disabled="@(!CanEdit)">
                     @option
                 </button>
             }
@@ -120,7 +119,8 @@
             @foreach (var tf in new[] { "True", "False" })
             {
                 <button class="@GetOptionClass(tf)"
-                        @onclick="() => OnSelectAnswer(tf)">
+                        @onclick="() => OnSelectAnswer(tf)"
+                        disabled="@(!CanEdit)">
                     @tf
                 </button>
             }
@@ -129,7 +129,7 @@
         @if (!AutoSubmit)
         {
             <div class="mt-3">
-                <button class="btn btn-sm btn-primary" @onclick="CheckAnswer">Check Answer</button>
+                <button class="btn btn-sm btn-primary" @onclick="CheckAnswer" disabled="@(!CanEdit)">Check Answer</button>
             </div>
         }
 

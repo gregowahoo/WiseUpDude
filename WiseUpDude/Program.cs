@@ -172,6 +172,10 @@ builder.Services.AddScoped<UserQuizApiService>();
 //TODO: (Using this still?)
 builder.Services.AddScoped<QuizState>();
 
+builder.Services.AddScoped<IUserQuizAttemptApiService, UserQuizAttemptApiService>();
+
+// ...existing code...
+
 #endregion
 
 

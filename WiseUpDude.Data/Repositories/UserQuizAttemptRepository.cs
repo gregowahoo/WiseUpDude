@@ -1,4 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using WiseUpDude.Data.Entities;
 using WiseUpDude.Data.Repositories.Interfaces;
 using WiseUpDude.Model;
@@ -8,10 +12,12 @@ namespace WiseUpDude.Data.Repositories
     public class UserQuizAttemptRepository : IUserQuizAttemptRepository<Model.UserQuizAttempt>
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<UserQuizAttemptRepository> _logger;
 
-        public UserQuizAttemptRepository(ApplicationDbContext context)
+        public UserQuizAttemptRepository(ApplicationDbContext context, ILogger<UserQuizAttemptRepository> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<Model.UserQuizAttempt?> GetByIdAsync(int id)
@@ -19,117 +25,129 @@ namespace WiseUpDude.Data.Repositories
             var entity = await _context.UserQuizAttempts
                 .Include(a => a.AttemptQuestions)
                 .FirstOrDefaultAsync(a => a.Id == id);
-
-            return entity == null ? null : MapToModel(entity);
+            if (entity == null)
+            {
+                _logger.LogWarning($"UserQuizAttempt with Id {id} not found.");
+                return null;
+            }
+            return new Model.UserQuizAttempt
+            {
+                Id = entity.Id,
+                UserQuizId = entity.UserQuizId,
+                AttemptDate = entity.AttemptDate,
+                Score = entity.Score,
+                Duration = entity.Duration,
+                AttemptQuestions = entity.AttemptQuestions?.Select(q => new Model.UserQuizAttemptQuestion
+                {
+                    Id = q.Id,
+                    UserQuizAttemptId = q.UserQuizAttemptId,
+                    UserQuizQuestionId = q.UserQuizQuestionId,
+                    UserAnswer = q.UserAnswer,
+                    IsCorrect = q.IsCorrect,
+                    TimeTakenSeconds = q.TimeTakenSeconds
+                }).ToList()
+            };
         }
 
         public async Task<IEnumerable<Model.UserQuizAttempt>> GetByUserQuizIdAsync(int userQuizId)
         {
-            var entities = await _context.UserQuizAttempts
-                .Where(a => a.UserQuizId == userQuizId)
+            var attempts = await _context.UserQuizAttempts
                 .Include(a => a.AttemptQuestions)
+                .Where(a => a.UserQuizId == userQuizId)
                 .ToListAsync();
-
-            return entities.Select(MapToModel);
+            return attempts.Select(entity => new Model.UserQuizAttempt
+            {
+                Id = entity.Id,
+                UserQuizId = entity.UserQuizId,
+                AttemptDate = entity.AttemptDate,
+                Score = entity.Score,
+                Duration = entity.Duration,
+                AttemptQuestions = entity.AttemptQuestions?.Select(q => new Model.UserQuizAttemptQuestion
+                {
+                    Id = q.Id,
+                    UserQuizAttemptId = q.UserQuizAttemptId,
+                    UserQuizQuestionId = q.UserQuizQuestionId,
+                    UserAnswer = q.UserAnswer,
+                    IsCorrect = q.IsCorrect,
+                    TimeTakenSeconds = q.TimeTakenSeconds
+                }).ToList()
+            });
         }
 
         public async Task<Model.UserQuizAttempt> AddAsync(Model.UserQuizAttempt attempt)
         {
-            try
+            var entity = new Entities.UserQuizAttempt
             {
-                var entity = MapToEntity(attempt);
-                _context.UserQuizAttempts.Add(entity);
+                UserQuizId = attempt.UserQuizId,
+                AttemptDate = attempt.AttemptDate,
+                Score = attempt.Score,
+                Duration = attempt.Duration
+            };
+            _context.UserQuizAttempts.Add(entity);
+            await _context.SaveChangesAsync();
+
+            if (attempt.AttemptQuestions != null && attempt.AttemptQuestions.Any())
+            {
+                entity.AttemptQuestions = attempt.AttemptQuestions.Select(q => new Entities.UserQuizAttemptQuestion
+                {
+                    UserQuizAttemptId = entity.Id,
+                    UserQuizQuestionId = q.UserQuizQuestionId,
+                    UserAnswer = q.UserAnswer,
+                    IsCorrect = q.IsCorrect,
+                    TimeTakenSeconds = q.TimeTakenSeconds
+                }).ToList();
+                _context.Entry(entity).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
-                return MapToModel(entity); // 👈 This sends back the record with the new Id
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error adding UserQuizAttempt: {ex.Message}");
-                throw;
-            }
+            attempt.Id = entity.Id;
+            _logger.LogInformation($"Added UserQuizAttempt with Id {entity.Id} and {entity.AttemptQuestions?.Count ?? 0} questions.");
+            return attempt;
         }
 
-        public async Task UpdateAsync(Model.UserQuizAttempt attempt)
+        public async Task UpdateAsync(Model.UserQuizAttempt model)
         {
-            var existingEntity = await _context.UserQuizAttempts
+            var entity = await _context.UserQuizAttempts
                 .Include(a => a.AttemptQuestions)
-                .FirstOrDefaultAsync(a => a.Id == attempt.Id);
-
-            if (existingEntity == null)
-                throw new InvalidOperationException("Entity not found.");
-
-            // Update properties
-            existingEntity.UserQuizId = attempt.UserQuizId;
-            existingEntity.AttemptDate = attempt.AttemptDate;
-            existingEntity.Score = attempt.Score;
-            existingEntity.Duration = attempt.Duration;
-
-            // Update child collection if necessary
-            existingEntity.AttemptQuestions = attempt.AttemptQuestions?.Select(MapToEntity).ToList() ?? new List<Entities.UserQuizAttemptQuestion>();
-
+                .FirstOrDefaultAsync(a => a.Id == model.Id);
+            if (entity == null)
+            {
+                _logger.LogWarning($"UserQuizAttempt with Id {model.Id} not found for update.");
+                throw new KeyNotFoundException($"UserQuizAttempt with Id {model.Id} not found.");
+            }
+            entity.UserQuizId = model.UserQuizId;
+            entity.AttemptDate = model.AttemptDate;
+            entity.Score = model.Score;
+            entity.Duration = model.Duration;
+            // Update AttemptQuestions
+            entity.AttemptQuestions = model.AttemptQuestions?.Select(q => new Entities.UserQuizAttemptQuestion
+            {
+                Id = q.Id,
+                UserQuizAttemptId = entity.Id,
+                UserQuizQuestionId = q.UserQuizQuestionId,
+                UserAnswer = q.UserAnswer,
+                IsCorrect = q.IsCorrect,
+                TimeTakenSeconds = q.TimeTakenSeconds
+            }).ToList();
+            _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+            _logger.LogInformation($"Updated UserQuizAttempt with Id {entity.Id}.");
         }
 
         public async Task DeleteAsync(int id)
         {
-            var entity = await _context.UserQuizAttempts.FindAsync(id);
+            var entity = await _context.UserQuizAttempts
+                .Include(a => a.AttemptQuestions)
+                .FirstOrDefaultAsync(a => a.Id == id);
             if (entity != null)
             {
                 _context.UserQuizAttempts.Remove(entity);
                 await _context.SaveChangesAsync();
+                _logger.LogInformation($"Deleted UserQuizAttempt with Id {id}.");
             }
-        }
-
-        private Model.UserQuizAttempt MapToModel(Entities.UserQuizAttempt model)
-        {
-            return new Model.UserQuizAttempt
+            else
             {
-                Id = model.Id,
-                UserQuizId = model.UserQuizId,
-                AttemptDate = model.AttemptDate,
-                Score = model.Score,
-                Duration = model.Duration,
-                AttemptQuestions = model.AttemptQuestions?.Select(MapToModel).ToList()
-            };
-        }
-
-        private Model.UserQuizAttemptQuestion MapToModel(Entities.UserQuizAttemptQuestion entity)
-        {
-            return new Model.UserQuizAttemptQuestion
-            {
-                Id = entity.Id,
-                UserQuizAttemptId = entity.UserQuizAttemptId,
-                UserQuizQuestionId = entity.UserQuizQuestionId,
-                UserAnswer = entity.UserAnswer,
-                IsCorrect = entity.IsCorrect,
-                TimeTakenSeconds = entity.TimeTakenSeconds
-            };
-        }
-
-        private Entities.UserQuizAttempt MapToEntity(Model.UserQuizAttempt model)
-        {
-            return new Entities.UserQuizAttempt
-            {
-                Id = model.Id,
-                UserQuizId = model.UserQuizId,
-                AttemptDate = model.AttemptDate,
-                Score = model.Score,
-                Duration = model.Duration,
-                AttemptQuestions = model.AttemptQuestions?.Select(MapToEntity).ToList()
-            };
-        }
-
-        private Entities.UserQuizAttemptQuestion MapToEntity(Model.UserQuizAttemptQuestion model)
-        {
-            return new Entities.UserQuizAttemptQuestion
-            {
-                Id = model.Id,
-                UserQuizAttemptId = model.UserQuizAttemptId,
-                UserQuizQuestionId = model.UserQuizQuestionId,
-                UserAnswer = model.UserAnswer,
-                IsCorrect = model.IsCorrect,
-                TimeTakenSeconds = model.TimeTakenSeconds
-            };
+                _logger.LogWarning($"UserQuizAttempt with Id {id} not found for deletion.");
+            }
         }
     }
 }

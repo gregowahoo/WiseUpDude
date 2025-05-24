@@ -152,8 +152,6 @@ builder.Services.AddScoped<ITopicRepository<Topic>, TopicRepository>();
 builder.Services.AddScoped<IUserQuizRepository<Quiz>, UserQuizRepository>();
 builder.Services.AddScoped<IUserQuizQuestionRepository<QuizQuestion>, UserQuizQuestionRepository>();
 
-builder.Services.AddScoped<IUserQuizAttemptRepository<UserQuizAttempt>, UserQuizAttemptRepository>();
-builder.Services.AddScoped<IUserQuizAttemptQuestionRepository<UserQuizAttemptQuestion>, UserQuizAttemptQuestionRepository>();
 
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
@@ -168,10 +166,6 @@ builder.Services.AddScoped<DashboardDataService>();
 
 builder.Services.AddScoped<QuizApiService>();
 builder.Services.AddScoped<UserQuizApiService>();
-builder.Services.AddScoped<UserQuizAttemptApiService>();
-builder.Services.AddScoped<UserQuizAttemptQuestionApiService>();
-
-builder.Services.AddScoped<QuizAttemptService>();
 
 //TODO: (Using this still?)
 builder.Services.AddScoped<QuizState>();

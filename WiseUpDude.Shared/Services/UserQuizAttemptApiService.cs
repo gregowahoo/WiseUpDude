@@ -4,7 +4,7 @@ using WiseUpDude.Model;
 
 namespace WiseUpDude.Shared.Services
 {
-    public class UserQuizAttemptApiService
+    public class UserQuizAttemptApiService : IUserQuizAttemptApiService
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<UserQuizAttemptApiService> _logger;

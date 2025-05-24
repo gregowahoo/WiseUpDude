@@ -128,8 +128,6 @@ else
     </div>
 </div>
 
-// ... (rest of the file remains unchanged)
-
 @code {
     [Parameter]
     public int QuizId { get; set; }
@@ -227,9 +225,9 @@ else
         }
     }
 
-    private async Task HandleAnswerSubmitted((bool isCorrect, int questionIndex) args)
+    private async Task HandleAnswerSubmitted((bool isCorrect, int questionIndex, string userAnswer) args)
     {
-        var (isCorrect, questionIndex) = args;
+        var (isCorrect, questionIndex, userAnswer) = args;
         if (Quiz == null || Quiz.Questions == null || questionIndex < 0 || questionIndex >= Quiz.Questions.Count)
             return;
 
@@ -253,7 +251,7 @@ else
         {
             UserQuizAttemptId = CurrentAttemptId ?? 0,
             UserQuizQuestionId = userQuizQuestion.Id,
-            UserAnswer = "", // TODO: Get actual user answer from QuestionCard if available
+            UserAnswer = userAnswer,
             IsCorrect = isCorrect,
             TimeTakenSeconds = timeTaken
         };

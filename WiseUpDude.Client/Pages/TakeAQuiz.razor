@@ -164,9 +164,14 @@ else
         muteSound = !muteSound;
     }
 
-    private void ToggleLearnMode()
+    private async Task ToggleLearnMode()
     {
         learnMode = !learnMode;
+        if (UserQuiz != null)
+        {
+            UserQuiz.LearnMode = learnMode;
+            await UserQuizApiService.UpdateLearnModeAsync(UserQuiz.Id, learnMode);
+        }
     }
 
     private async Task HandleAnswerSubmitted((bool isCorrect, int questionIndex, string userAnswer) args)
@@ -177,10 +182,14 @@ else
 
         hasStartedQuiz = true;
 
+        // Always update UserQuizQuestion.UserAnswer in DB
+        var userQuizQuestion = UserQuiz.Questions[questionIndex];
+        userQuizQuestion.UserAnswer = userAnswer;
+        await UserQuizApiService.UpdateUserQuizQuestionAnswerAsync(userQuizQuestion.Id, userAnswer);
+
         if (!learnMode)
         {
             // In non-learn mode, just update UI, do not persist, allow all edits
-            UserQuiz.Questions[questionIndex].UserAnswer = userAnswer;
             StateHasChanged();
             return;
         }
@@ -199,7 +208,6 @@ else
         var timeTaken = (DateTime.UtcNow - questionStart).TotalSeconds;
 
         // Record answer as UserQuizAttemptQuestion
-        var userQuizQuestion = UserQuiz.Questions[questionIndex];
         var attemptQuestion = new UserQuizAttemptQuestion
         {
             UserQuizAttemptId = CurrentAttemptId ?? 0,

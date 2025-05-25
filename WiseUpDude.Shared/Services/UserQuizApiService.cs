@@ -27,7 +27,6 @@ public class UserQuizApiService
     public async Task UpdateUserQuizAsync(Quiz quiz)
     {
         var response = await _httpClient.PutAsJsonAsync($"api/UserQuizzes/{quiz.Id}", quiz);
-
         response.EnsureSuccessStatusCode();
     }
 
@@ -55,5 +54,19 @@ public class UserQuizApiService
             }
         }
         return null;
+    }
+
+    // Update LearnMode for a UserQuiz
+    public async Task UpdateLearnModeAsync(int userQuizId, bool learnMode)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"api/UserQuizzes/{userQuizId}/learnmode", learnMode);
+        response.EnsureSuccessStatusCode();
+    }
+
+    // Update UserAnswer for a UserQuizQuestion
+    public async Task UpdateUserQuizQuestionAnswerAsync(int questionId, string? userAnswer)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"api/UserQuizQuestions/{questionId}/useranswer", userAnswer);
+        response.EnsureSuccessStatusCode();
     }
 }

@@ -40,14 +40,14 @@ else
         <div>
             <h3 class="mb-0">
                 🧠 Take Quiz -
-                @(Quiz?.Type == "Topic"
-                                ? Quiz?.Topic
-                                : Quiz?.Prompt)
+                @(UserQuiz?.Type == "Topic"
+                                ? UserQuiz?.Topic
+                                : UserQuiz?.Prompt)
             </h3>
             <p class="mb-0">Select an answer for each question to see if you're correct.</p>
-            @if (!string.IsNullOrWhiteSpace(Quiz?.Difficulty))
+            @if (!string.IsNullOrWhiteSpace(UserQuiz?.Difficulty))
             {
-                <p class="text-muted mb-0">Quiz Difficulty: <strong>@Quiz.Difficulty</strong></p>
+                <p class="text-muted mb-0">Quiz Difficulty: <strong>@UserQuiz.Difficulty</strong></p>
             }
         </div>
     </div>
@@ -98,7 +98,7 @@ else
             </button>
         </div>
 
-        @if (Quiz == null || Quiz.Questions.Count == 0)
+        @if (UserQuiz == null || UserQuiz.Questions.Count == 0)
         {
             <div class="alert alert-warning">
                 No quiz questions found. Please go to Home and generate a quiz first.
@@ -106,9 +106,9 @@ else
         }
         else
         {
-            @for (int i = 0; i < Quiz.Questions.Count; i++)
+            @for (int i = 0; i < UserQuiz.Questions.Count; i++)
             {
-                var question = Quiz.Questions[i];
+                var question = UserQuiz.Questions[i];
                 bool canEdit = !learnMode || !answeredQuestions.Contains(i);
                 <div class="mb-4">
                     <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p>
@@ -128,7 +128,7 @@ else
     [Parameter]
     public int QuizId { get; set; }
 
-    private Quiz? Quiz { get; set; }
+    private Quiz? UserQuiz { get; set; }
     private int totalQuestions;
     private int correctAnswers;
     private int totalAnswered;
@@ -147,10 +147,10 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        Quiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
-        if (Quiz != null)
+        UserQuiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
+        if (UserQuiz != null)
         {
-            totalQuestions = Quiz.Questions?.Count ?? 0;
+            totalQuestions = UserQuiz.Questions?.Count ?? 0;
         }
     }
 
@@ -172,7 +172,7 @@ else
     private async Task HandleAnswerSubmitted((bool isCorrect, int questionIndex, string userAnswer) args)
     {
         var (isCorrect, questionIndex, userAnswer) = args;
-        if (Quiz == null || Quiz.Questions == null || questionIndex < 0 || questionIndex >= Quiz.Questions.Count)
+        if (UserQuiz == null || UserQuiz.Questions == null || questionIndex < 0 || questionIndex >= UserQuiz.Questions.Count)
             return;
 
         hasStartedQuiz = true;
@@ -180,7 +180,7 @@ else
         if (!learnMode)
         {
             // In non-learn mode, just update UI, do not persist, allow all edits
-            Quiz.Questions[questionIndex].UserAnswer = userAnswer;
+            UserQuiz.Questions[questionIndex].UserAnswer = userAnswer;
             StateHasChanged();
             return;
         }
@@ -199,7 +199,7 @@ else
         var timeTaken = (DateTime.UtcNow - questionStart).TotalSeconds;
 
         // Record answer as UserQuizAttemptQuestion
-        var userQuizQuestion = Quiz.Questions[questionIndex];
+        var userQuizQuestion = UserQuiz.Questions[questionIndex];
         var attemptQuestion = new UserQuizAttemptQuestion
         {
             UserQuizAttemptId = CurrentAttemptId ?? 0,

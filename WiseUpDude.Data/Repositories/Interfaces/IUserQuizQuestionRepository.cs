@@ -9,5 +9,6 @@ namespace WiseUpDude.Data.Repositories.Interfaces
         Task<IEnumerable<QuizQuestion>> GetAllAsync();
         Task<QuizQuestion> GetByIdAsync(int id);
         Task UpdateAsync(QuizQuestion quizQuestion);
+        Task ClearUserAnswersByQuizIdAsync(int quizId);
     }
 }

@@ -100,6 +100,16 @@ namespace WiseUpDude.Data.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task ClearUserAnswersByQuizIdAsync(int quizId)
+        {
+            var questions = await _context.UserQuizQuestions.Where(q => q.QuizId == quizId).ToListAsync();
+            foreach (var question in questions)
+            {
+                question.UserAnswer = null;
+            }
+            await _context.SaveChangesAsync();
+        }
     }
 }
 

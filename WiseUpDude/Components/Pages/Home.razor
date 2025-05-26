@@ -13,7 +13,9 @@
 @inject DashboardDataService DashboardData
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavManager
-@inject IUserQuizRepository<Quiz> QuizRepository
+@inject IUserQuizRepository<Quiz> UserQuizRepository
+@inject IUserQuizQuestionRepository<QuizQuestion> UserQuizQuestionRepository
+
 @inject QuizStateService QuizState
 
 @rendermode InteractiveServer
@@ -91,7 +93,6 @@
                                     </div>
                                 }
                             </div>
-
 
                             <div class="card-body">
                                 @if (quiz.Type == "Prompt")
@@ -174,7 +175,6 @@
     </div>
 }
 
-
 @code {
     private int? editingQuizId = null;
     private DashboardSummaryDto? Summary;
@@ -186,7 +186,7 @@
 
     private async Task SaveQuizName(RecentQuizDto quiz)
     {
-        await QuizRepository.UpdateQuizNameAsync(quiz.Id, quiz.Name);
+        await UserQuizRepository.UpdateQuizNameAsync(quiz.Id, quiz.Name);
         editingQuizId = null;
     }
 
@@ -194,7 +194,7 @@
     {
         try
         {
-            await QuizRepository.DeleteAsync(quizId);
+            await UserQuizRepository.DeleteAsync(quizId);
             Summary?.RecentQuizzes?.RemoveAll(q => q.Id == quizId);
         }
         catch (Exception ex)
@@ -222,11 +222,11 @@
         IsGenerating = true;
         try
         {
-            var selectedQuiz = await QuizRepository.GetByIdAsync(quizId);
+            var selectedQuiz = await UserQuizRepository.GetByIdAsync(quizId);
             if (selectedQuiz != null)
             {
                 QuizState.CurrentQuiz = selectedQuiz;
-                NavManager.NavigateTo("/TakeQuiz");
+                NavManager.NavigateTo($"/TakeAQuiz/{quizId}");
             }
         }
         catch (Exception ex)
@@ -248,7 +248,7 @@
             var quiz = Summary?.RecentQuizzes?.FirstOrDefault(q => q.Id == quizId);
             if (quiz != null)
             {
-                await QuizRepository.UpdateLearnModeAsync(quizId, !quiz.LearnMode);
+                await UserQuizRepository.UpdateLearnModeAsync(quizId, !quiz.LearnMode);
             }
 
             // Refresh the Summary object to reflect the updated LearnMode
@@ -278,16 +278,8 @@
         IsGenerating = true;
         try
         {
-            var selectedQuiz = await QuizRepository.GetByIdAsync(quizId);
-            if (selectedQuiz != null)
-            {
-                QuizState.CurrentQuiz = selectedQuiz;
-                foreach (var question in QuizState.CurrentQuiz.Questions)
-                {
-                    question.UserAnswer = null;
-                }
-                NavManager.NavigateTo("/TakeQuiz");
-            }
+            await UserQuizQuestionRepository.ClearUserAnswersByQuizIdAsync(quizId);
+            NavManager.NavigateTo($"/TakeAQuiz/{quizId}");
         }
         catch (Exception ex)
         {

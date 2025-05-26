@@ -126,9 +126,13 @@
                                         <a class="text-secondary mx-2" title="Edit Quiz Name" @onclick="() => EditQuiz(quiz.Id)">
                                             <i class="bi bi-pencil fs-5"></i>
                                         </a>
-                                        <a class="@GetLearnModeIconClass(quiz.LearnMode) mx-2" title="@GetLearnModeTooltip(quiz.LearnMode)" @onclick="() => ToggleLearnMode(quiz.Id)">
+                                        <button type="button"
+                                                class="btn btn-link p-0 @GetLearnModeIconClass(quiz.LearnMode) mx-2"
+                                                title="@GetLearnModeTooltip(quiz.LearnMode, quiz.Id)"
+                                                @onclick="() => ToggleLearnMode(quiz.Id)"
+                                                disabled="@(quizzesWithAnswers.Contains(quiz.Id))">
                                             <i class="@GetLearnModeIconType(quiz.LearnMode) fs-5"></i>
-                                        </a>
+                                        </button>
                                     </div>
                                 </nav>
                             </div>
@@ -180,6 +184,7 @@
     private DashboardSummaryDto? Summary;
     private bool IsGenerating = false;
     private int? quizToDeleteId = null;
+    private HashSet<int> quizzesWithAnswers = new HashSet<int>();
 
     private void EditQuiz(int quizId) => editingQuizId = quizId;
     private void CancelEdit() => editingQuizId = null;
@@ -213,8 +218,24 @@
             if (!string.IsNullOrEmpty(userId))
             {
                 Summary = await DashboardData.GetDashboardSummaryAsync(userId);
+                if (Summary?.RecentQuizzes != null)
+                {
+                    foreach (var quiz in Summary.RecentQuizzes)
+                    {
+                        if (await HasAnyUserAnswersAsync(quiz.Id))
+                        {
+                            quizzesWithAnswers.Add(quiz.Id);
+                        }
+                    }
+                }
             }
         }
+    }
+
+    private async Task<bool> HasAnyUserAnswersAsync(int quizId)
+    {
+        var questions = await UserQuizQuestionRepository.GetAllAsync();
+        return questions.Any(q => q.QuizId == quizId && !string.IsNullOrEmpty(q.UserAnswer));
     }
 
     private async Task ResumeQuiz(int quizId)
@@ -302,20 +323,17 @@
             quizToDeleteId = null;
         }
     }
-}
 
-@code {
     private string GetLearnModeIconClass(bool isActive) =>
         isActive ? "text-info learn-active" : "text-success";
 
     private string GetLearnModeIconType(bool isActive) =>
         isActive ? "bi bi-mortarboard-fill" : "bi bi-mortarboard";
 
-    private string GetLearnModeTooltip(bool isActive) =>
-        isActive ? "Learn Mode is ON" : "Enable Learn Mode";
-
-    private void ToggleLearnMode(Guid quizId)
+    private string GetLearnModeTooltip(bool isActive, int quizId)
     {
-        // Toggle logic goes here...
+        if (quizzesWithAnswers.Contains(quizId))
+            return "Learn Mode cannot be enabled or disabled after you have started answering questions.";
+        return isActive ? "Learn Mode is ON" : "Enable Learn Mode";
     }
 }

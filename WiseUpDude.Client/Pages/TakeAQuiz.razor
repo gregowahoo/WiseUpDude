@@ -151,6 +151,7 @@ else
         if (UserQuiz != null)
         {
             totalQuestions = UserQuiz.Questions?.Count ?? 0;
+            learnMode = UserQuiz.LearnMode; // Set local variable from loaded quiz
         }
     }
 

@@ -92,7 +92,7 @@ else
                     class="btn btn-outline-secondary btn-sm d-flex align-items-center"
                     @onclick="ToggleLearnMode"
                     disabled="@(hasStartedQuiz || learnMode)"
-                    title="Learn Mode: When enabled, your answers are saved and you can only change your answer until you answer another question. Once you move on, previous answers are locked. You cannot turn off Learn Mode after starting, and you cannot enable it after answering a question.">
+                    title="Learn Mode: When enabled, your answers are saved and you cannot change your answer. You cannot turn off Learn Mode after starting, and you cannot enable it after answering a question.">
                 <i class="bi @(learnMode ? "bi-mortarboard-fill" : "bi-mortarboard") me-1"></i>
                 @(learnMode ? "Learn Mode On" : "Learn Mode Off")
             </button>
@@ -148,11 +148,24 @@ else
     protected override async Task OnInitializedAsync()
     {
         UserQuiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
-        if (UserQuiz != null)
+        if (UserQuiz != null && UserQuiz.Questions != null)
         {
-            totalQuestions = UserQuiz.Questions?.Count ?? 0;
-            learnMode = UserQuiz.LearnMode; // Set local variable from loaded quiz
+            totalQuestions = UserQuiz.Questions.Count;
+            learnMode = UserQuiz.LearnMode;
+            // Populate answeredQuestions with already-answered questions
+            for (int i = 0; i < UserQuiz.Questions.Count; i++)
+            {
+                if (!string.IsNullOrEmpty(UserQuiz.Questions[i].UserAnswer))
+                {
+                    answeredQuestions.Add(i);
+                }
+            }
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JS.InvokeVoidAsync("initBootstrapTooltips");
     }
 
     private void ToggleAutoSubmit()
@@ -167,6 +180,27 @@ else
 
     private async Task ToggleLearnMode()
     {
+        // Re-check all questions for answers to ensure up-to-date state
+        if (UserQuiz?.Questions != null)
+        {
+            answeredQuestions.Clear();
+            for (int i = 0; i < UserQuiz.Questions.Count; i++)
+            {
+                if (!string.IsNullOrEmpty(UserQuiz.Questions[i].UserAnswer))
+                {
+                    answeredQuestions.Add(i);
+                }
+            }
+        }
+
+        // If LearnMode is already ON and any question has been answered, do nothing
+        if (learnMode && answeredQuestions.Count > 0)
+            return;
+
+        // If LearnMode is OFF and any question has been answered, do nothing (optional)
+        if (!learnMode && answeredQuestions.Count > 0)
+            return;
+
         learnMode = !learnMode;
         if (UserQuiz != null)
         {

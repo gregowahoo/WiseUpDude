@@ -84,7 +84,7 @@ namespace WiseUpDude.API.Controllers
         }
 
         // PATCH: api/UserQuizzes/5/learnmode
-        [HttpPatch("{id}/learnmode")]
+        [HttpPut("{id}/learnmode")]
         public async Task<IActionResult> UpdateLearnMode(int id, [FromBody] bool learnMode)
         {
             await _userQuizRepository.UpdateLearnModeAsync(id, learnMode);

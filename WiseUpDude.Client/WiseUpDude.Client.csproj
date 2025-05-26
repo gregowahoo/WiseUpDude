@@ -9,10 +9,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Content Remove="wwwroot\index.html" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.5" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.5" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.5" />
@@ -21,6 +17,10 @@
 	<ItemGroup>
 		<ProjectReference Include="..\WiseUpDude.Model\WiseUpDude.Model.csproj" />
 		<ProjectReference Include="..\WiseUpDude.Shared\WiseUpDude.Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="wwwroot\js\" />
 	</ItemGroup>
 
 	<!--<ItemGroup>

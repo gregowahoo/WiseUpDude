@@ -42,3 +42,14 @@ function loadFromSessionStorage(key) {
 function removeFromSessionStorage(key) {
     sessionStorage.removeItem(key);
 }
+
+window.initBootstrapTooltips = () => {
+    // Dispose existing tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function (el) {
+        if (el._tooltipInstance) {
+            el._tooltipInstance.dispose();
+        }
+        el._tooltipInstance = new bootstrap.Tooltip(el);
+    });
+};

@@ -89,9 +89,10 @@ else
             </button>
 
             <button type="button"
-                    class="btn btn-outline-secondary btn-sm d-flex align-items-center @(hasStartedQuiz || learnMode ? "disabled text-muted" : "")"
+                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
                     @onclick="ToggleLearnMode"
-                    title="@GetLearnModeTooltip(UserQuiz.LearnMode)">
+                    disabled="@(hasStartedQuiz || learnMode)"
+                    title="Learn Mode: When enabled, your answers are saved and you can only change your answer until you answer another question. Once you move on, previous answers are locked. You cannot turn off Learn Mode after starting, and you cannot enable it after answering a question.">
                 <i class="bi @(learnMode ? "bi-mortarboard-fill" : "bi-mortarboard") me-1"></i>
                 @(learnMode ? "Learn Mode On" : "Learn Mode Off")
             </button>
@@ -166,9 +167,6 @@ else
 
     private async Task ToggleLearnMode()
     {
-        if (hasStartedQuiz || learnMode)
-            return; // Do nothing if not allowed
-
         learnMode = !learnMode;
         if (UserQuiz != null)
         {
@@ -289,7 +287,4 @@ else
             saveMessageType = "warning";
         }
     }
-
-    private string GetLearnModeTooltip(bool isActive) => isActive ? "Learn Mode is ON" : "Enable Learn Mode";
-    @* title="Learn Mode: When enabled, your answers are saved and you can only change your answer until you answer another question. Once you move on, previous answers are locked. You cannot turn off Learn Mode after starting, and you cannot enable it after answering a question."> *@
 }

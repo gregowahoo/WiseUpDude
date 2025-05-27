@@ -158,8 +158,15 @@ else
                 if (!string.IsNullOrEmpty(UserQuiz.Questions[i].UserAnswer))
                 {
                     answeredQuestions.Add(i);
+                    // Check if the answer is correct and increment correctAnswers
+                    if (UserQuiz.Questions[i].UserAnswer == UserQuiz.Questions[i].Answer)
+                    {
+                        correctAnswers++;
+                    }
                 }
             }
+            // Set totalAnswered to the count of previously answered questions
+            totalAnswered = answeredQuestions.Count;
         }
     }
 
@@ -222,77 +229,87 @@ else
         userQuizQuestion.UserAnswer = userAnswer;
         await UserQuizApiService.UpdateUserQuizQuestionAnswerAsync(userQuizQuestion.Id, userAnswer);
 
-        if (!learnMode)
-        {
-            // In non-learn mode, just update UI, do not persist, allow all edits
-            StateHasChanged();
-            return;
-        }
+        // if (!learnMode)
+        // {
+        //     // In non-learn mode, just update UI, do not persist, allow all edits
+        //     StateHasChanged();
+        //     return;
+        // }
 
-        // Learn Mode: lock after first answer, never allow change
-        if (answeredQuestions.Contains(questionIndex))
-            return;
-        answeredQuestions.Add(questionIndex);
-
-        // Track time taken for this question
-        DateTime questionStart;
-        if (!questionStartTimes.TryGetValue(questionIndex, out questionStart))
+        if (learnMode)
         {
-            questionStart = AttemptStartTime ?? DateTime.UtcNow;
-        }
-        var timeTaken = (DateTime.UtcNow - questionStart).TotalSeconds;
+            // Learn Mode: lock after first answer, never allow change
+            if (answeredQuestions.Contains(questionIndex))
+                return;
 
-        // Record answer as UserQuizAttemptQuestion
-        var attemptQuestion = new UserQuizAttemptQuestion
-        {
-            UserQuizAttemptId = CurrentAttemptId ?? 0,
-            UserQuizQuestionId = userQuizQuestion.Id,
-            UserAnswer = userAnswer,
-            IsCorrect = isCorrect,
-            TimeTakenSeconds = timeTaken
-        };
+            answeredQuestions.Add(questionIndex);
 
-        if (CurrentAttempt == null)
-        {
-            AttemptStartTime = DateTime.UtcNow;
-            var attempt = new UserQuizAttempt
+            // Track time taken for this question
+            DateTime questionStart;
+            if (!questionStartTimes.TryGetValue(questionIndex, out questionStart))
             {
-                UserQuizId = QuizId,
-                AttemptDate = AttemptStartTime.Value,
-                Score = 0,
-                Duration = TimeSpan.Zero,
-                AttemptQuestions = new List<UserQuizAttemptQuestion> { attemptQuestion }
+                questionStart = AttemptStartTime ?? DateTime.UtcNow;
+            }
+            var timeTaken = (DateTime.UtcNow - questionStart).TotalSeconds;
+
+            // Record answer as UserQuizAttemptQuestion
+            var attemptQuestion = new UserQuizAttemptQuestion
+            {
+                UserQuizAttemptId = CurrentAttemptId ?? 0,
+                UserQuizQuestionId = userQuizQuestion.Id,
+                UserAnswer = userAnswer,
+                IsCorrect = isCorrect,
+                TimeTakenSeconds = timeTaken
             };
-            CurrentAttempt = await UserQuizAttemptApiService.CreateAsync(attempt);
-            if (CurrentAttempt != null)
+
+            if (CurrentAttempt == null)
             {
-                CurrentAttemptId = CurrentAttempt.Id;
+                AttemptStartTime = DateTime.UtcNow;
+                var attempt = new UserQuizAttempt
+                {
+                    UserQuizId = QuizId,
+                    AttemptDate = AttemptStartTime.Value,
+                    Score = 0,
+                    Duration = TimeSpan.Zero,
+                    AttemptQuestions = new List<UserQuizAttemptQuestion> { attemptQuestion }
+                };
+                CurrentAttempt = await UserQuizAttemptApiService.CreateAsync(attempt);
+                if (CurrentAttempt != null)
+                {
+                    CurrentAttemptId = CurrentAttempt.Id;
+                }
+                else
+                {
+                    saveMessage = "Failed to start quiz attempt.";
+                    saveMessageType = "danger";
+                    Logger.LogError("Failed to create UserQuizAttempt");
+                    return;
+                }
             }
             else
             {
-                saveMessage = "Failed to start quiz attempt.";
-                saveMessageType = "danger";
-                Logger.LogError("Failed to create UserQuizAttempt");
-                return;
+                CurrentAttempt.AttemptQuestions ??= new List<UserQuizAttemptQuestion>();
+                CurrentAttempt.AttemptQuestions.Add(attemptQuestion);
+                await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
             }
-        }
-        else
-        {
-            CurrentAttempt.AttemptQuestions ??= new List<UserQuizAttemptQuestion>();
-            CurrentAttempt.AttemptQuestions.Add(attemptQuestion);
-            await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
         }
 
         totalAnswered++;
         if (isCorrect) correctAnswers++;
 
+        Console.WriteLine($"totalAnswered: {totalAnswered}, totalQuestions: {totalQuestions}");
+
         if (totalAnswered == totalQuestions)
         {
-            var duration = (AttemptStartTime.HasValue) ? (DateTime.UtcNow - AttemptStartTime.Value) : TimeSpan.Zero;
-            CurrentAttempt.Score = totalQuestions > 0 ? (double)correctAnswers / totalQuestions : 0;
-            CurrentAttempt.Duration = duration;
-            await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
-            await HandleQuizCompletionAsync();
+            if (learnMode)
+            {
+                var duration = (AttemptStartTime.HasValue) ? (DateTime.UtcNow - AttemptStartTime.Value) : TimeSpan.Zero;
+                CurrentAttempt.Score = totalQuestions > 0 ? (double)correctAnswers / totalQuestions : 0;
+                CurrentAttempt.Duration = duration;
+                await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
+            }
+
+            await HandleQuizCompletionAsync();      //TODO: Maybe for LearnMode change the final display, more professional ;-).
         }
         StateHasChanged();
     }

@@ -1,4 +1,5 @@
-﻿/* PleaseWaitDialog.razor.css or global styles */
+﻿/* PleaseWaitDialog.razor.css */
+
 .please-wait-overlay {
     position: fixed;
     top: 0;
@@ -15,37 +16,44 @@
 
 .please-wait-dialog-content {
     background-color: #ffffff;
-    padding: 25px 45px; /* More padding */
-    border-radius: 10px; /* More rounded corners */
-    text-align: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3); /* Softer, more pronounced shadow */
-    color: #333; /* Default text color */
-    min-width: 250px; /* Minimum width */
+    padding: 25px 45px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    color: #333; /* Default text color for content */
+    min-width: 250px;
     max-width: 90%;
+    /* Added for centering image above text */
+    display: flex;
+    flex-direction: column; /* Stack children (image, text) vertically */
+    align-items: center; /* Center children horizontally */
+    text-align: center; /* Ensures text itself is centered if it wraps */
 }
 
 .loading-gif {
-    max-width: 180px; /* Slightly larger GIF */
-    max-height: 180px;
-    margin-top: 15px;
-    margin-bottom: 15px;
-    border-radius: 5px; /* Slight rounding on GIF if it's rectangular */
+    /* Image is now bigger */
+    max-width: 250px; /* Increased from 180px */
+    max-height: 250px; /* Increased from 180px */
+    /* Adjusted margins for spacing, especially between image and text */
+    margin-top: 20px; /* Space above the image */
+    margin-bottom: 10px; /* Space between image and the text below it */
+    border-radius: 8px; /* Slightly more rounded corners for the image container */
 }
 
 .loading-text {
-    font-size: 1.3em; /* Larger text */
-    font-weight: 600; /* Bolder */
-    margin-bottom: 20px;
-    color: #0056b3; /* A theme color, e.g., blue */
+    /* Text is now smaller and uses default dark color */
+    font-size: 1em; /* Reduced from 1.3em */
+    font-weight: 500; /* Reduced from 600 (normal to slightly bold) */
+    margin-bottom: 15px; /* Space below the text */
+    color: #333; /* Ensures text is dark, consistent with dialog content */
 }
 
 .error-message {
-    color: #D8000C; /* Error red */
-    background-color: #FFD2D2; /* Light red background */
+    color: #D8000C;
+    background-color: #FFD2D2;
     border: 1px solid #D8000C;
     padding: 12px;
     border-radius: 5px;
-    margin-top: 15px;
+    margin-top: 10px; /* Adjusted from 15px to be consistent with text */
     margin-bottom: 15px;
     font-size: 0.95em;
 }

@@ -106,11 +106,13 @@
                 Questions = generatedQuestions
             };
 
-            await QuizRepository.AddAsync(quiz);
+            //TODO: Figure out if we need to save to Quizzes, maybe only need to save to UserQuizzes
+
+            // await QuizRepository.AddAsync(quiz);
             Logger.LogInformation("Quiz successfully saved to the Quiz table. QuizId: {QuizId}", quiz.Id);
 
             // Add to UserQuizRepository as well
-            // await UserQuizRepository.AddAsync(quiz);
+            await UserQuizRepository.AddAsync(quiz);
 
             var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
 

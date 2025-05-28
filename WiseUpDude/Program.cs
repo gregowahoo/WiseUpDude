@@ -154,9 +154,9 @@ builder.Services.AddScoped<IUserQuizQuestionRepository<QuizQuestion>, UserQuizQu
 
 builder.Services.AddScoped<IUserQuizAttemptRepository<WiseUpDude.Model.UserQuizAttempt>, UserQuizAttemptRepository>();
 
-// ...existing code...
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
+builder.Services.AddScoped<ITenorGifService, TenorGifService>();
 
 //builder.Services.AddScoped<TopicService>();
 //builder.Services.AddScoped<QuizFromTopicService>();
@@ -173,8 +173,6 @@ builder.Services.AddScoped<UserQuizApiService>();
 builder.Services.AddScoped<QuizState>();
 
 builder.Services.AddScoped<IUserQuizAttemptApiService, UserQuizAttemptApiService>();
-
-// ...existing code...
 
 #endregion
 

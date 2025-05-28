@@ -1,49 +1,61 @@
-﻿@*
-    PleaseWaitDialog.razor
-    A reusable Blazor component to display a "please wait" message
-    with an animated GIF fetched from Tenor.
-*@
-
+﻿@* PleaseWaitDialog.razor *@
 @inject ITenorGifService GifService
 @inject IConfiguration Configuration
-@inject ILogger<PleaseWaitDialog> Logger // Optional: for logging
+@inject ILogger<PleaseWaitDialog> Logger
 
 @if (IsVisible)
 {
     <div class="please-wait-overlay">
-        <div class="please-wait-dialog-content">
-            @if (!string.IsNullOrEmpty(CurrentLoadingMessage))
+        @* Bootstrap 5 Card structure. Added 'shadow' for a default shadow. *@
+        <div class="card please-wait-card shadow">
+            @if (_isInternalLoadingGif && string.IsNullOrEmpty(_gifUrl)) // Show this only if GIF is actively being fetched for the first time
             {
-                <p class="loading-text">@CurrentLoadingMessage</p>
-            }
-
-            @if (_isInternalLoadingGif)
-            {
-                <p>Fetching animation...</p>
+                <div class="card-body text-center">
+                    <p class="loading-text">@CurrentLoadingMessage</p>
+                    <div class="spinner-border spinner-border-sm ms-2" role="status">
+                        <span class="visually-hidden">Fetching animation...</span>
+                    </div>
+                    <p class="text-muted small mt-1">Fetching animation...</p>
+                </div>
             }
             else if (!string.IsNullOrEmpty(_gifUrl))
             {
-                <img src="@_gifUrl" alt="Loading animation for @SearchKeyword" class="loading-gif" />
+                <img src="@_gifUrl" class="card-img-top loading-gif" alt="Loading animation for @SearchKeyword">
+                <div class="card-body">
+                    <p class="card-text loading-text text-center">@CurrentLoadingMessage</p>
+                </div>
             }
             else if (!string.IsNullOrEmpty(_errorMessage))
             {
-                <p class="error-message">@_errorMessage</p>
-                <p>Please wait a moment...</p>
-     }
-            else
+                <div class="card-body text-center">
+                    @* Optionally, you could include a generic error icon/image above the message if desired *@
+                    <p class="card-text error-message">@_errorMessage</p>
+                    <p class="card-text text-muted small">Please try again or wait a moment.</p>
+                </div>
+            }
+            else // Fallback: Visible, but no GIF yet (e.g., initial state before GIF loads, or if API key is missing)
             {
-                <p>Loading...</p>
+                <div class="card-body text-center">
+                    <p class="card-text loading-text">@CurrentLoadingMessage</p>
+                    <div class="spinner-border text-primary mt-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted small mt-1">Loading content...</p>
+                </div>
             }
         </div>
     </div>
 }
 
 @code {
+    // Your existing C# code block remains unchanged here
+    // ... (IsVisible, SearchKeyword, LoadingTextMessage parameters, _gifUrl, etc.) ...
+
     [Parameter]
     public bool IsVisible { get; set; }
 
     [Parameter]
-    public string SearchKeyword { get; set; } = "thinking"; // Default keyword
+    public string SearchKeyword { get; set; } = "thinking";
 
     [Parameter]
     public string LoadingTextMessage { get; set; } = "WiseUpDude is working its magic...";
@@ -51,59 +63,57 @@
     private string _gifUrl;
     private string _errorMessage;
     private string _tenorApiKey;
-    private bool _isInternalLoadingGif; // Tracks if the component is currently fetching a GIF
-    private string _currentLoadedKeyword; // Tracks the keyword for the currently loaded GIF
-    private string _initialLoadingMessage; // To store the initial message
+    private bool _isInternalLoadingGif;
+    private string _currentLoadedKeyword;
 
-    private string CurrentLoadingMessage => _isInternalLoadingGif || !string.IsNullOrEmpty(_gifUrl) ? LoadingTextMessage : _errorMessage ?? LoadingTextMessage;
+    private string CurrentLoadingMessage => string.IsNullOrEmpty(_errorMessage) ? LoadingTextMessage : "Oops! Something went wrong.";
 
 
     protected override void OnInitialized()
     {
-        // Fetch API key once when the component is initialized
         _tenorApiKey = Configuration["TenorApiKey"];
         if (string.IsNullOrEmpty(_tenorApiKey))
         {
-            _errorMessage = "CRITICAL: Tenor API Key is not configured in appsettings.json or other configuration providers.";
+            _errorMessage = "CRITICAL: Tenor API Key is not configured."; // This will be shown if dialog becomes visible
             Logger?.LogCritical(_errorMessage);
-            // This error will be displayed if the component is made visible.
         }
-        _initialLoadingMessage = LoadingTextMessage;
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        // This method is called when parameters are set initially and when they change.
         if (IsVisible)
         {
-            // If API key wasn't loaded or is missing, re-check (though OnInitialized should get it)
-            if (string.IsNullOrEmpty(_tenorApiKey))
+            if (string.IsNullOrEmpty(_tenorApiKey)) // Re-check in case it was missing initially
             {
                 _tenorApiKey = Configuration["TenorApiKey"]; // Attempt to re-fetch
                 if (string.IsNullOrEmpty(_tenorApiKey))
                 {
-                    _errorMessage = "Tenor API Key is not configured.";
-                    Logger?.LogError(_errorMessage);
-                    _gifUrl = null; // Ensure no stale GIF if key disappears
-                    _isInternalLoadingGif = false;
+                    // _errorMessage is already set from OnInitialized if key was missing.
+                    // If it was somehow cleared, set it again.
+                    if (string.IsNullOrEmpty(_errorMessage)) _errorMessage = "Tenor API Key is not configured.";
+                    Logger?.LogError("Tenor API Key is not configured (checked in OnParametersSetAsync).");
+                    _gifUrl = null;
+                    _isInternalLoadingGif = false; // Not actively loading if key is missing
                     StateHasChanged();
-                    return; // Stop if no API key
+                    return;
+                }
+                else
+                {
+                    _errorMessage = null; // Clear error if key is now found
                 }
             }
 
             // Load GIF if:
-            // 1. It's not already loaded for the current keyword OR
+            // 1. No GIF is currently loaded OR
             // 2. The search keyword has changed OR
-            // 3. A previous attempt to load resulted in an error (so we can retry) OR
-            // 4. The component was previously not visible and now is (covered by _gifUrl being null or different keyword)
+            // 3. A previous attempt to load resulted in an error (so we can retry)
             if (string.IsNullOrEmpty(_gifUrl) || _currentLoadedKeyword != SearchKeyword || !string.IsNullOrEmpty(_errorMessage))
             {
-                // If only LoadingTextMessage changed but GIF is fine for the keyword, don't reload GIF.
-                // The check `_currentLoadedKeyword != SearchKeyword` handles keyword changes.
-                // If `_errorMessage` is set, it means the last attempt failed, so try again.
+                // If only LoadingTextMessage changed but GIF is fine for the keyword, don't reload.
+                // However, if there was an error, we should try loading again.
                 if (_currentLoadedKeyword == SearchKeyword && !string.IsNullOrEmpty(_gifUrl) && string.IsNullOrEmpty(_errorMessage))
                 {
-                    // GIF already loaded for this keyword and no error, do nothing unless forced refresh
+                    // GIF already loaded for this keyword and no error, do nothing.
                 }
                 else
                 {
@@ -111,14 +121,14 @@
                 }
             }
         }
-        else // IsVisible is false
+        else
         {
             // Reset when hidden so it fetches a fresh GIF next time it's shown,
-            // even with the same keyword, giving a new "random" GIF from the service.
             _gifUrl = null;
             _currentLoadedKeyword = null;
-            _errorMessage = null; // Clear any previous errors
-            // Do not reset _isInternalLoadingGif here, it's for active loading.
+            // _errorMessage = null; // debatable: keep error if it was a critical one like API key? Or clear?
+            // For now, let's clear general errors, API key error handled above.
+            if (_errorMessage != "CRITICAL: Tenor API Key is not configured.") _errorMessage = null;
         }
     }
 
@@ -126,40 +136,40 @@
     {
         if (string.IsNullOrEmpty(_tenorApiKey))
         {
-            // This check is redundant if OnInitialized/OnParametersSetAsync handles it, but good for safety.
-            _errorMessage = "Cannot load GIF: Tenor API Key is missing.";
+            // _errorMessage should already be set.
+            // If not (e.g. direct call or race condition), set it.
+            if (string.IsNullOrEmpty(_errorMessage)) _errorMessage = "Cannot load GIF: Tenor API Key is missing.";
             Logger?.LogError(_errorMessage);
-            _isInternalLoadingGif = false; // Ensure loading flag is reset
+            _isInternalLoadingGif = false;
             StateHasChanged();
             return;
         }
 
+        _errorMessage = null;   // Clear previous general errors before attempting to load
         _isInternalLoadingGif = true;
-        _gifUrl = null;         // Clear previous GIF URL
-        _errorMessage = null;   // Clear previous error message
-        StateHasChanged();      // Update UI to show "Fetching animation..."
+        _gifUrl = null;
+        StateHasChanged();
 
         Logger?.LogInformation("Attempting to load GIF for keyword: {Keyword}", SearchKeyword);
 
-        // Call the service to get the GIF URL
         var fetchedUrl = await GifService.GetRandomGifUrlAsync(_tenorApiKey, SearchKeyword);
 
         if (string.IsNullOrEmpty(fetchedUrl))
         {
-            _errorMessage = $"Oops! Could not fetch a fun animation for '{SearchKeyword}'. Please wait...";
+            _errorMessage = $"Oops! Could not fetch a fun animation for '{SearchKeyword}'.";
             Logger?.LogWarning("Failed to load GIF for keyword: {Keyword}. Service returned null or empty.", SearchKeyword);
-            _gifUrl = null; // Ensure it's null
-            _currentLoadedKeyword = null; // Mark that no GIF is loaded for any keyword
+            _gifUrl = null;
+            _currentLoadedKeyword = null;
         }
         else
         {
             _gifUrl = fetchedUrl;
-            _currentLoadedKeyword = SearchKeyword; // Store the keyword for which the GIF was successfully loaded
-            _errorMessage = null; // Clear any previous error
+            _currentLoadedKeyword = SearchKeyword;
+            // _errorMessage = null; // Already cleared at the start of LoadGifAsync
             Logger?.LogInformation("Successfully loaded GIF for {Keyword}: {Url}", SearchKeyword, _gifUrl);
         }
 
         _isInternalLoadingGif = false;
-        StateHasChanged(); // Update UI with the new GIF or error message
+        StateHasChanged();
     }
 }

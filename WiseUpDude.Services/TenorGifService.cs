@@ -21,6 +21,8 @@ public class TenorGifService : ITenorGifService
         _logger = logger; // Can be null if not provided
     }
 
+    // This method is inside your TenorGifService.cs file, within the TenorGifService class
+
     /// <summary>
     /// Fetches a URL for a random GIF from Tenor based on a keyword.
     /// </summary>
@@ -41,17 +43,10 @@ public class TenorGifService : ITenorGifService
             throw new ArgumentException("Search keyword cannot be null or empty.", nameof(keyword));
         }
 
-        // Tenor API v2 search limit is 50. Adjust if needed.
         if (limit <= 0) limit = 1;
-        if (limit > 50) limit = 50;
+        if (limit > 50) limit = 50; // Tenor API v2 search limit is 50
 
-        // Construct the request URL
-        // You can add more parameters like `client_key`, `country`, `locale`, `contentfilter`, `ar_range`
-        // `media_filter` helps get specific formats directly, but media_formats in response is more robust.
         var requestUrl = $"{TenorApiBaseUrl}?key={apiKey}&q={Uri.EscapeDataString(keyword)}&limit={limit}&media_filter=minimal";
-        // Adding `media_filter=minimal` might make responses smaller if you only care about a few formats.
-        // Or specify `media_filter=nanogif,tinygif,gif`
-
         _logger?.LogInformation("Requesting GIF from Tenor: {RequestUrl}", requestUrl);
 
         try
@@ -60,49 +55,80 @@ public class TenorGifService : ITenorGifService
 
             if (tenorResponse?.Results != null && tenorResponse.Results.Any())
             {
-                var gifsWithUrls = tenorResponse.Results
-                    .Where(r => r.MediaFormats?.NanoGif?.Url != null ||
-                                r.MediaFormats?.TinyGif?.Url != null ||
-                                r.MediaFormats?.MediumGif?.Url != null ||
-                                r.MediaFormats?.Gif?.Url != null)
+                // Filter for results that actually have some media formats we might use
+                var gifsWithUseableFormats = tenorResponse.Results
+                    .Where(r => r.MediaFormats != null &&
+                                (!string.IsNullOrEmpty(r.MediaFormats.Gif?.Url) ||
+                                 !string.IsNullOrEmpty(r.MediaFormats.MediumGif?.Url) ||
+                                 !string.IsNullOrEmpty(r.MediaFormats.TinyGif?.Url) ||
+                                 !string.IsNullOrEmpty(r.MediaFormats.NanoGif?.Url)))
                     .ToArray();
 
-                if (gifsWithUrls.Any())
+                if (gifsWithUseableFormats.Any())
                 {
-                    var randomResult = gifsWithUrls[_random.Next(gifsWithUrls.Length)];
+                    var randomResult = gifsWithUseableFormats[_random.Next(gifsWithUseableFormats.Length)];
                     string selectedUrl = null;
 
-                    // Prioritize smaller GIF formats for "please wait" dialogs
-                    if (!string.IsNullOrEmpty(randomResult.MediaFormats.NanoGif?.Url))
-                        selectedUrl = randomResult.MediaFormats.NanoGif.Url;
-                    else if (!string.IsNullOrEmpty(randomResult.MediaFormats.TinyGif?.Url))
-                        selectedUrl = randomResult.MediaFormats.TinyGif.Url;
-                    else if (!string.IsNullOrEmpty(randomResult.MediaFormats.MediumGif?.Url)) // MediumGif is often a good balance
-                        selectedUrl = randomResult.MediaFormats.MediumGif.Url;
-                    else if (!string.IsNullOrEmpty(randomResult.MediaFormats.Gif?.Url)) // Fallback to standard gif
-                        selectedUrl = randomResult.MediaFormats.Gif.Url;
+                    // --- THIS IS THE UPDATED PRIORITIZATION LOGIC ---
+                    if (randomResult.MediaFormats != null) // Double check MediaFormats isn't null
+                    {
+                        if (!string.IsNullOrEmpty(randomResult.MediaFormats.Gif?.Url)) // 1. Prioritize full "gif"
+                        {
+                            selectedUrl = randomResult.MediaFormats.Gif.Url;
+                            _logger?.LogDebug("Selected 'gif' format for '{Keyword}'. Dimensions: {Dims}", keyword, string.Join("x", randomResult.MediaFormats.Gif.Dims ?? new int[0]));
+                        }
+                        else if (!string.IsNullOrEmpty(randomResult.MediaFormats.MediumGif?.Url)) // 2. Then "mediumgif"
+                        {
+                            selectedUrl = randomResult.MediaFormats.MediumGif.Url;
+                            _logger?.LogDebug("Selected 'mediumgif' format for '{Keyword}'. Dimensions: {Dims}", keyword, string.Join("x", randomResult.MediaFormats.MediumGif.Dims ?? new int[0]));
+                        }
+                        else if (!string.IsNullOrEmpty(randomResult.MediaFormats.TinyGif?.Url)) // 3. Then "tinygif"
+                        {
+                            selectedUrl = randomResult.MediaFormats.TinyGif.Url;
+                            _logger?.LogDebug("Selected 'tinygif' format for '{Keyword}'. Dimensions: {Dims}", keyword, string.Join("x", randomResult.MediaFormats.TinyGif.Dims ?? new int[0]));
+                        }
+                        else if (!string.IsNullOrEmpty(randomResult.MediaFormats.NanoGif?.Url)) // 4. Lastly "nanogif"
+                        {
+                            selectedUrl = randomResult.MediaFormats.NanoGif.Url;
+                            _logger?.LogDebug("Selected 'nanogif' format for '{Keyword}'. Dimensions: {Dims}", keyword, string.Join("x", randomResult.MediaFormats.NanoGif.Dims ?? new int[0]));
+                        }
+                    }
+                    // --- END OF UPDATED PRIORITIZATION LOGIC ---
 
-                    _logger?.LogInformation("Found GIF for '{Keyword}': {Url}", keyword, selectedUrl);
-                    return selectedUrl;
+                    if (!string.IsNullOrEmpty(selectedUrl))
+                    {
+                        _logger?.LogInformation("Successfully selected GIF URL for '{Keyword}': {Url}", keyword, selectedUrl);
+                        return selectedUrl;
+                    }
+                    else
+                    {
+                        _logger?.LogWarning("No suitable GIF media format URL found for the selected random result for keyword '{Keyword}'.", keyword);
+                    }
+                }
+                else
+                {
+                    _logger?.LogWarning("No results with useable media formats found for keyword '{Keyword}' from Tenor response.", keyword);
                 }
             }
-
-            _logger?.LogWarning("No suitable GIF found for keyword '{Keyword}' from Tenor response.", keyword);
-            return null;
+            else
+            {
+                _logger?.LogWarning("No results found or results array was empty for keyword '{Keyword}' from Tenor response.", keyword);
+            }
+            return null; // Return null if no suitable URL was found after all checks
         }
         catch (HttpRequestException ex)
         {
-            _logger?.LogError(ex, "Error fetching GIF from Tenor (HTTP Request). Status Code: {StatusCode}", ex.StatusCode);
+            _logger?.LogError(ex, "Error fetching GIF from Tenor (HTTP Request). Status Code: {StatusCode}. Keyword: {Keyword}", ex.StatusCode, keyword);
             return null;
         }
         catch (JsonException ex)
         {
-            _logger?.LogError(ex, "Error deserializing Tenor API response.");
+            _logger?.LogError(ex, "Error deserializing Tenor API response. Keyword: {Keyword}", keyword);
             return null;
         }
-        catch (Exception ex) // Catch-all for other unexpected errors
+        catch (Exception ex)
         {
-            _logger?.LogError(ex, "An unexpected error occurred while fetching GIF from Tenor.");
+            _logger?.LogError(ex, "An unexpected error occurred while fetching GIF from Tenor. Keyword: {Keyword}", keyword);
             return null;
         }
     }

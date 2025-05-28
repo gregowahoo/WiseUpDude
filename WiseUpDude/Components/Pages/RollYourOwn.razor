@@ -37,8 +37,8 @@
     </div> *@
 
     <PleaseWaitDialog IsVisible="IsGenerating || IsSaving"
-                      SearchKeyword="Getting smarter and wiser!"
-                      LoadingTextMessage="@($"Preparing your {UserPrompt} quiz...")" />
+                      SearchKeyword="@_currentDialogKeyword"
+                          LoadingTextMessage="@($"Preparing your \"{UserPrompt}\" quiz...")" /> 
 }
 
 <div class="container mt-5">
@@ -76,6 +76,37 @@
     private bool IsSaving = false;
     private string? ErrorMessage;
 
+    // --- ADD THESE NEW FIELDS ---
+    private Random _keywordRandom = new Random();
+    private List<string> _wiseUpDudeThemedKeywords = new List<string> {
+        "thinking hard",
+        "brain power",
+        "smart idea",
+        "lightbulb moment",
+        "genius at work",
+        "knowledge quiz",
+        "learning fun",
+        "wise guy thinking",
+        "aha moment",
+        "study time",
+        "deep thought",
+        "problem solving",
+        "getting smarter",
+        "wise owl",
+        "einstein thinking",
+        "quiz loading",
+        "education",
+        "inspiration",
+        "eureka",
+        "mind blown",
+        "smart cookie",
+        "brainy",
+        "pondering"
+        // Add more relevant keywords/phrases as you like!
+    };
+    private string _currentDialogKeyword = "thinking hard"; // Default or initial value
+    // --- END OF NEW FIELDS ---
+
     private bool CanGenerateAndSave =>
         !IsGenerating && !IsSaving && !string.IsNullOrWhiteSpace(UserPrompt);
 
@@ -87,15 +118,23 @@
             return;
         }
 
+        // --- ADD THIS LOGIC TO SELECT A RANDOM KEYWORD ---
+        if (_wiseUpDudeThemedKeywords.Any())
+        {
+            _currentDialogKeyword = _wiseUpDudeThemedKeywords[_keywordRandom.Next(_wiseUpDudeThemedKeywords.Count)];
+        }
+        Logger?.LogInformation("PleaseWaitDialog will use keyword: {DialogKeyword}", _currentDialogKeyword);
+        // --- END OF RANDOM KEYWORD SELECTION ---
+
         IsGenerating = true;
-        IsSaving = true;
+        IsSaving = true; // You have both flags, the dialog uses IsGenerating || IsSaving
         ErrorMessage = null;
-        StateHasChanged(); // Ensure UI updates to show modal
+        StateHasChanged(); // Ensure UI updates to show modal and current keyword is picked up
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                   ?? user.FindFirst("sub")?.Value; // fallback for JWT sub claim
+                     ?? user.FindFirst("sub")?.Value; // fallback for JWT sub claim
 
         try
         {
@@ -107,6 +146,10 @@
             {
                 Logger.LogError("QuizGenerationService returned no questions.");
                 ErrorMessage = "Failed to generate quiz questions. Please try again.";
+                // Ensure IsGenerating/IsSaving are reset if we return early
+                IsGenerating = false;
+                IsSaving = false;
+                StateHasChanged();
                 return;
             }
 
@@ -116,30 +159,52 @@
                 UserId = userId,
                 Type = "Prompt",
                 Prompt = UserPrompt,
-                Description = null, // You can set this to something else if needed
+                Description = null,
                 Difficulty = "Medium",
                 LearnMode = false,
-                Topic = null, 
+                Topic = null,
                 Questions = generatedQuestions
             };
 
-            //TODO: Figure out if we need to save to Quizzes, maybe only need to save to UserQuizzes
+            // await QuizRepository.AddAsync(quiz); // Your TODO note
+            // Logger.LogInformation("Quiz successfully saved to the Quiz table. QuizId: {QuizId}", quiz.Id); // If you re-enable
 
-            // await QuizRepository.AddAsync(quiz);
-            Logger.LogInformation("Quiz successfully saved to the Quiz table. QuizId: {QuizId}", quiz.Id);
+            await UserQuizRepository.AddAsync(quiz); // Assuming this saves and assigns ID to quiz.Id
+            var userQuizId = quiz.Id; // Or get ID from AddAsync if it returns it differently.
+                                      // Your original code: var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
+                                      // Let's assume AddAsync handles ID assignment or AddAsyncGetId is preferred:
+            if (quiz.Id == 0 && UserQuizRepository.GetType().GetMethod("AddAsyncGetId") != null)
+            {
+                // If AddAsync doesn't set ID and AddAsyncGetId exists
+                // For safety, let's call AddAsync first, then get ID or re-add with get ID.
+                // This part depends on your repository implementation details.
+                // Assuming UserQuizRepository.AddAsync(quiz) makes quiz.Id available OR UserQuizRepository.AddAsyncGetId is the one to use.
+                // Sticking to your most recent logic:
+                // await UserQuizRepository.AddAsync(quiz); // you already called this.
+                // var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz); // This might re-add or have specific logic
+                // For now, assuming quiz.Id is populated by one of the AddAsync calls.
+                // Let's assume the AddAsyncGetId is what you want for the ID for navigation:
+                userQuizId = await UserQuizRepository.AddAsyncGetId(quiz); // Use this if it's the correct way to get the ID for navigation
+            }
+            else if (quiz.Id == 0)
+            {
+                // Fallback if ID is still not set - this indicates a potential issue in repo logic understanding
+                Logger.LogError("Quiz ID was not set after saving to UserQuizRepository.");
+                ErrorMessage = "Error saving quiz progress. Quiz ID not obtained.";
+                IsGenerating = false;
+                IsSaving = false;
+                StateHasChanged();
+                return;
+            }
 
-            // Add to UserQuizRepository as well
-            await UserQuizRepository.AddAsync(quiz);
 
-            var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
-
-            Logger.LogInformation("Quiz successfully saved to the UserQuiz table. QuizId: {QuizId}", userQuizId);
+            Logger.LogInformation("Quiz successfully processed for UserQuiz. Navigating with UserQuizId: {UserQuizId}", userQuizId);
 
             NavigationManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Exception during quiz save.");
+            Logger.LogError(ex, "Exception during quiz generation or save.");
             ErrorMessage = "An error occurred while generating or saving the quiz. Please try again later.";
         }
         finally

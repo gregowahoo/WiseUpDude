@@ -23,7 +23,7 @@
 
 @if (IsGenerating || IsSaving)
 {
-    <div class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0, 0, 0, 0.5);">
+@*     <div class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0, 0, 0, 0.5);">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-body text-center">
@@ -34,7 +34,11 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> *@
+
+    <PleaseWaitDialog IsVisible="IsGenerating || IsSaving"
+                      SearchKeyword=UserPrompt
+                      LoadingTextMessage="@($"Preparing your {UserPrompt} quiz...")" />
 }
 
 <div class="container mt-5">

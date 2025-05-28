@@ -1,0 +1,51 @@
+﻿/* PleaseWaitDialog.razor.css or global styles */
+.please-wait-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000; /* High z-index to ensure it's on top */
+    backdrop-filter: blur(3px); /* Optional: frosted glass effect */
+}
+
+.please-wait-dialog-content {
+    background-color: #ffffff;
+    padding: 25px 45px; /* More padding */
+    border-radius: 10px; /* More rounded corners */
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3); /* Softer, more pronounced shadow */
+    color: #333; /* Default text color */
+    min-width: 250px; /* Minimum width */
+    max-width: 90%;
+}
+
+.loading-gif {
+    max-width: 180px; /* Slightly larger GIF */
+    max-height: 180px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    border-radius: 5px; /* Slight rounding on GIF if it's rectangular */
+}
+
+.loading-text {
+    font-size: 1.3em; /* Larger text */
+    font-weight: 600; /* Bolder */
+    margin-bottom: 20px;
+    color: #0056b3; /* A theme color, e.g., blue */
+}
+
+.error-message {
+    color: #D8000C; /* Error red */
+    background-color: #FFD2D2; /* Light red background */
+    border: 1px solid #D8000C;
+    padding: 12px;
+    border-radius: 5px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    font-size: 0.95em;
+}

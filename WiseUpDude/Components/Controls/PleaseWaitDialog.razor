@@ -8,7 +8,7 @@
     <div class="please-wait-overlay">
         @* Bootstrap 5 Card structure. Added 'shadow' for a default shadow. *@
         <div class="card please-wait-card shadow">
-            @if (_isInternalLoadingGif && string.IsNullOrEmpty(_gifUrl)) // Show this only if GIF is actively being fetched for the first time
+            @if (_isInternalLoadingGif && string.IsNullOrEmpty(_gifUrl))
             {
                 <div class="card-body text-center">
                     <p class="loading-text">@CurrentLoadingMessage</p>
@@ -20,7 +20,8 @@
             }
             else if (!string.IsNullOrEmpty(_gifUrl))
             {
-                <img src="@_gifUrl" class="card-img-top loading-gif" alt="Loading animation for @SearchKeyword">
+                @* MODIFIED: alt tag now uses _effectiveKeyword *@
+                <img src="@_gifUrl" class="card-img-top loading-gif" alt="Loading animation for @_effectiveKeyword">
                 <div class="card-body">
                     <p class="card-text loading-text text-center">@CurrentLoadingMessage</p>
                 </div>
@@ -28,12 +29,11 @@
             else if (!string.IsNullOrEmpty(_errorMessage))
             {
                 <div class="card-body text-center">
-                    @* Optionally, you could include a generic error icon/image above the message if desired *@
                     <p class="card-text error-message">@_errorMessage</p>
                     <p class="card-text text-muted small">Please try again or wait a moment.</p>
                 </div>
             }
-            else // Fallback: Visible, but no GIF yet (e.g., initial state before GIF loads, or if API key is missing)
+            else
             {
                 <div class="card-body text-center">
                     <p class="card-text loading-text">@CurrentLoadingMessage</p>
@@ -48,125 +48,185 @@
 }
 
 @code {
-    // Your existing C# code block remains unchanged here
-    // ... (IsVisible, SearchKeyword, LoadingTextMessage parameters, _gifUrl, etc.) ...
-
     [Parameter]
     public bool IsVisible { get; set; }
 
+    // SearchKeyword is now optional. If provided by parent, it overrides internal themed keywords.
     [Parameter]
-    public string SearchKeyword { get; set; } = "thinking";
+    public string SearchKeyword { get; set; }
 
     [Parameter]
     public string LoadingTextMessage { get; set; } = "WiseUpDude is working its magic...";
+
+    // --- ADDED FIELDS FOR INTERNAL THEMED KEYWORD SELECTION ---
+    private Random _internalKeywordRandom = new Random();
+
+    private List<string> _internalThemedKeywords = new List<string> {
+        "thinking hard", "brain power", "smart idea", "lightbulb moment",
+        "genius at work", "knowledge quiz", "learning fun", "wise guy thinking", // <-- Could be ambiguous
+        "aha moment", "study time", "deep thought", "problem solving",
+        "getting smarter", "wise owl", "einstein thinking", "quiz loading",
+        "education", "inspiration", "eureka", "mind blown", "smart cookie",
+        "brainy", "pondering"
+};
+    private string _effectiveKeyword; // The actual keyword to be used for the API call
+    // --- END OF ADDED FIELDS ---
 
     private string _gifUrl;
     private string _errorMessage;
     private string _tenorApiKey;
     private bool _isInternalLoadingGif;
-    private string _currentLoadedKeyword;
+    private string _currentLoadedKeywordForGif; // RENAMED from _currentLoadedKeyword
 
     private string CurrentLoadingMessage => string.IsNullOrEmpty(_errorMessage) ? LoadingTextMessage : "Oops! Something went wrong.";
 
+    // Injected services are already in your original post, so they are here too.
 
     protected override void OnInitialized()
     {
         _tenorApiKey = Configuration["TenorApiKey"];
         if (string.IsNullOrEmpty(_tenorApiKey))
         {
-            _errorMessage = "CRITICAL: Tenor API Key is not configured."; // This will be shown if dialog becomes visible
+            _errorMessage = "CRITICAL: Tenor API Key is not configured.";
             Logger?.LogCritical(_errorMessage);
         }
     }
 
     protected override async Task OnParametersSetAsync()
     {
+        await base.OnParametersSetAsync(); // Call base method first
+
         if (IsVisible)
         {
-            if (string.IsNullOrEmpty(_tenorApiKey)) // Re-check in case it was missing initially
+            // API Key Check (as you had it)
+            if (string.IsNullOrEmpty(_tenorApiKey))
             {
-                _tenorApiKey = Configuration["TenorApiKey"]; // Attempt to re-fetch
+                _tenorApiKey = Configuration["TenorApiKey"];
                 if (string.IsNullOrEmpty(_tenorApiKey))
                 {
-                    // _errorMessage is already set from OnInitialized if key was missing.
-                    // If it was somehow cleared, set it again.
-                    if (string.IsNullOrEmpty(_errorMessage)) _errorMessage = "Tenor API Key is not configured.";
+                    if (string.IsNullOrEmpty(_errorMessage) || _errorMessage != "CRITICAL: Tenor API Key is not configured.")
+                    {
+                        _errorMessage = "Tenor API Key is not configured."; // Set if not already the critical one
+                    }
                     Logger?.LogError("Tenor API Key is not configured (checked in OnParametersSetAsync).");
                     _gifUrl = null;
-                    _isInternalLoadingGif = false; // Not actively loading if key is missing
+                    _isInternalLoadingGif = false;
                     StateHasChanged();
                     return;
                 }
                 else
                 {
-                    _errorMessage = null; // Clear error if key is now found
+                    // If API key was missing and now found, clear the specific API key error message
+                    if (_errorMessage == "Tenor API Key is not configured." || _errorMessage == "CRITICAL: Tenor API Key is not configured.")
+                    {
+                        _errorMessage = null;
+                    }
                 }
             }
 
-            // Load GIF if:
-            // 1. No GIF is currently loaded OR
-            // 2. The search keyword has changed OR
-            // 3. A previous attempt to load resulted in an error (so we can retry)
-            if (string.IsNullOrEmpty(_gifUrl) || _currentLoadedKeyword != SearchKeyword || !string.IsNullOrEmpty(_errorMessage))
+            // Determine the effective keyword for this display instance
+            string keywordToUseThisTime;
+            if (!string.IsNullOrWhiteSpace(SearchKeyword)) // 1. Use provided SearchKeyword if available
             {
-                // If only LoadingTextMessage changed but GIF is fine for the keyword, don't reload.
-                // However, if there was an error, we should try loading again.
-                if (_currentLoadedKeyword == SearchKeyword && !string.IsNullOrEmpty(_gifUrl) && string.IsNullOrEmpty(_errorMessage))
+                keywordToUseThisTime = SearchKeyword;
+                Logger?.LogInformation("Using provided SearchKeyword: {Keyword}", keywordToUseThisTime);
+            }
+            else if (_internalThemedKeywords.Any()) // 2. Else, pick from internal list
+            {
+                keywordToUseThisTime = _internalThemedKeywords[_internalKeywordRandom.Next(_internalThemedKeywords.Count)];
+                Logger?.LogInformation("Using internal themed keyword: {Keyword}", keywordToUseThisTime);
+            }
+            else // 3. Fallback if internal list is somehow empty
+            {
+                keywordToUseThisTime = "thinking"; // Default fallback
+                Logger?.LogInformation("Falling back to default keyword: {Keyword}", keywordToUseThisTime);
+            }
+
+            // Only trigger LoadGifAsync if:
+            // - The effective keyword for this instance is different from what was last used to load a GIF, OR
+            // - No GIF is currently loaded (e.g., first time, or after being hidden), OR
+            // - There's an active error message (implies a previous load failed and we should retry).
+            if (_effectiveKeyword != keywordToUseThisTime || string.IsNullOrEmpty(_gifUrl) || !string.IsNullOrEmpty(_errorMessage))
+            {
+                _effectiveKeyword = keywordToUseThisTime; // Set the keyword to be used by LoadGifAsync
+
+                // Further check: Don't reload if a GIF for this exact _effectiveKeyword is already loaded and there's no error
+                if (_currentLoadedKeywordForGif == _effectiveKeyword && !string.IsNullOrEmpty(_gifUrl) && string.IsNullOrEmpty(_errorMessage))
                 {
-                    // GIF already loaded for this keyword and no error, do nothing.
+                    // Already loaded for this keyword, no error. Do nothing.
                 }
                 else
                 {
-                    await LoadGifAsync();
+                    await LoadGifAsync(); // LoadGifAsync will now use _effectiveKeyword
                 }
             }
         }
-        else
+        else // IsVisible is false
         {
-            // Reset when hidden so it fetches a fresh GIF next time it's shown,
             _gifUrl = null;
-            _currentLoadedKeyword = null;
-            // _errorMessage = null; // debatable: keep error if it was a critical one like API key? Or clear?
-            // For now, let's clear general errors, API key error handled above.
-            if (_errorMessage != "CRITICAL: Tenor API Key is not configured.") _errorMessage = null;
+            _currentLoadedKeywordForGif = null;
+            _effectiveKeyword = null; // Reset effective keyword when hidden
+            // Clear general errors when hidden; API key error is sticky and re-evaluated when visible
+            if (_errorMessage != "CRITICAL: Tenor API Key is not configured.")
+            {
+                _errorMessage = null;
+            }
         }
     }
 
     private async Task LoadGifAsync()
     {
+        // _effectiveKeyword should be set by OnParametersSetAsync before this is called
+        if (string.IsNullOrEmpty(_effectiveKeyword))
+        {
+            Logger?.LogWarning("LoadGifAsync called but _effectiveKeyword is not set. This might indicate an issue in OnParametersSetAsync logic.");
+            _isInternalLoadingGif = false; // Ensure loading state is reset
+            // Optionally set an error message here if this state is problematic
+            // _errorMessage = "Internal error: No keyword selected for GIF search.";
+            StateHasChanged();
+            return;
+        }
+
         if (string.IsNullOrEmpty(_tenorApiKey))
         {
-            // _errorMessage should already be set.
-            // If not (e.g. direct call or race condition), set it.
-            if (string.IsNullOrEmpty(_errorMessage)) _errorMessage = "Cannot load GIF: Tenor API Key is missing.";
-            Logger?.LogError(_errorMessage);
+            // This check is important. If _errorMessage wasn't already set to the critical API key message, set a general one.
+            if (string.IsNullOrEmpty(_errorMessage) || _errorMessage != "CRITICAL: Tenor API Key is not configured.")
+            {
+                _errorMessage = "Cannot load GIF: Tenor API Key is missing.";
+            }
+            Logger?.LogError(_errorMessage); // Log whatever the current error is
             _isInternalLoadingGif = false;
             StateHasChanged();
             return;
         }
 
-        _errorMessage = null;   // Clear previous general errors before attempting to load
+        // Clear previous non-critical errors before attempting to load
+        if (_errorMessage != "CRITICAL: Tenor API Key is not configured.")
+        {
+            _errorMessage = null;
+        }
         _isInternalLoadingGif = true;
         _gifUrl = null;
         StateHasChanged();
 
-        Logger?.LogInformation("Attempting to load GIF for keyword: {Keyword}", SearchKeyword);
-
-        var fetchedUrl = await GifService.GetRandomGifUrlAsync(_tenorApiKey, SearchKeyword);
+        Logger?.LogInformation("Attempting to load GIF for effective keyword: {Keyword}", _effectiveKeyword);
+        // Make sure your ITenorGifService and its implementation (TenorGifService.cs)
+        // are correctly injected and the GetRandomGifUrlAsync method is available.
+        var fetchedUrl = await GifService.GetRandomGifUrlAsync(_tenorApiKey, _effectiveKeyword);
 
         if (string.IsNullOrEmpty(fetchedUrl))
         {
-            _errorMessage = $"Oops! Could not fetch a fun animation for '{SearchKeyword}'.";
-            Logger?.LogWarning("Failed to load GIF for keyword: {Keyword}. Service returned null or empty.", SearchKeyword);
+            _errorMessage = $"Oops! Could not fetch a fun animation for '{_effectiveKeyword}'.";
+            Logger?.LogWarning("Failed to load GIF for keyword: {Keyword}. Service returned null or empty.", _effectiveKeyword);
             _gifUrl = null;
-            _currentLoadedKeyword = null;
+            _currentLoadedKeywordForGif = null; // Mark that no GIF is loaded for any keyword (or this one failed)
         }
         else
         {
             _gifUrl = fetchedUrl;
-            _currentLoadedKeyword = SearchKeyword;
-            // _errorMessage = null; // Already cleared at the start of LoadGifAsync
-            Logger?.LogInformation("Successfully loaded GIF for {Keyword}: {Url}", SearchKeyword, _gifUrl);
+            _currentLoadedKeywordForGif = _effectiveKeyword; // Store the keyword for which GIF was successfully loaded
+            // _errorMessage = null; // Already cleared at the start of LoadGifAsync or if API key was re-found
+            Logger?.LogInformation("Successfully loaded GIF for {Keyword}: {Url}", _effectiveKeyword, _gifUrl);
         }
 
         _isInternalLoadingGif = false;

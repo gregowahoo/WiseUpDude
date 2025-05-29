@@ -11,6 +11,9 @@
         public TimeSpan Duration { get; set; }
 
         public ICollection<UserQuizAttemptQuestion> AttemptQuestions { get; set; }
+
+        // Indicates if the attempt is complete (all questions answered)
+        public bool IsComplete { get; set; }
     }
 
 }

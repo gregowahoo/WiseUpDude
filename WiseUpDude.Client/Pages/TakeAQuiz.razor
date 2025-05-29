@@ -222,6 +222,10 @@ else
         if (UserQuiz == null || UserQuiz.Questions == null || questionIndex < 0 || questionIndex >= UserQuiz.Questions.Count)
             return;
 
+        // Prevent double-counting: If already answered, do nothing
+        if (answeredQuestions.Contains(questionIndex))
+            return;
+
         hasStartedQuiz = true;
 
         // Always update UserQuizQuestion.UserAnswer in DB
@@ -229,19 +233,9 @@ else
         userQuizQuestion.UserAnswer = userAnswer;
         await UserQuizApiService.UpdateUserQuizQuestionAnswerAsync(userQuizQuestion.Id, userAnswer);
 
-        // if (!learnMode)
-        // {
-        //     // In non-learn mode, just update UI, do not persist, allow all edits
-        //     StateHasChanged();
-        //     return;
-        // }
-
         if (learnMode)
         {
             // Learn Mode: lock after first answer, never allow change
-            if (answeredQuestions.Contains(questionIndex))
-                return;
-
             answeredQuestions.Add(questionIndex);
 
             // Track time taken for this question
@@ -271,7 +265,8 @@ else
                     AttemptDate = AttemptStartTime.Value,
                     Score = 0,
                     Duration = TimeSpan.Zero,
-                    AttemptQuestions = new List<UserQuizAttemptQuestion> { attemptQuestion }
+                    AttemptQuestions = new List<UserQuizAttemptQuestion> { attemptQuestion },
+                    IsComplete = false
                 };
                 CurrentAttempt = await UserQuizAttemptApiService.CreateAsync(attempt);
                 if (CurrentAttempt != null)
@@ -293,6 +288,11 @@ else
                 await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
             }
         }
+        else
+        {
+            // Non-learn mode: allow edits, but only count first answer for progress
+            answeredQuestions.Add(questionIndex);
+        }
 
         totalAnswered++;
         if (isCorrect) correctAnswers++;
@@ -306,6 +306,7 @@ else
                 var duration = (AttemptStartTime.HasValue) ? (DateTime.UtcNow - AttemptStartTime.Value) : TimeSpan.Zero;
                 CurrentAttempt.Score = totalQuestions > 0 ? (double)correctAnswers / totalQuestions : 0;
                 CurrentAttempt.Duration = duration;
+                CurrentAttempt.IsComplete = true;
                 await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
             }
 

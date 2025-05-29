@@ -37,6 +37,7 @@ namespace WiseUpDude.Data.Repositories
                 AttemptDate = userQuizAttemptEntity.AttemptDate,
                 Score = userQuizAttemptEntity.Score,
                 Duration = userQuizAttemptEntity.Duration,
+                IsComplete = userQuizAttemptEntity.IsComplete,
                 AttemptQuestions = userQuizAttemptEntity.AttemptQuestions?
                     .Select(attemptQuestionEntity => new Model.UserQuizAttemptQuestion
                     {
@@ -63,6 +64,7 @@ namespace WiseUpDude.Data.Repositories
                 AttemptDate = userQuizAttemptEntity.AttemptDate,
                 Score = userQuizAttemptEntity.Score,
                 Duration = userQuizAttemptEntity.Duration,
+                IsComplete = userQuizAttemptEntity.IsComplete,
                 AttemptQuestions = userQuizAttemptEntity.AttemptQuestions?
                     .Select(attemptQuestionEntity => new Model.UserQuizAttemptQuestion
                     {
@@ -83,7 +85,8 @@ namespace WiseUpDude.Data.Repositories
                 UserQuizId = userQuizAttemptModel.UserQuizId,
                 AttemptDate = userQuizAttemptModel.AttemptDate,
                 Score = userQuizAttemptModel.Score,
-                Duration = userQuizAttemptModel.Duration
+                Duration = userQuizAttemptModel.Duration,
+                IsComplete = userQuizAttemptModel.IsComplete
             };
             _dbContext.UserQuizAttempts.Add(userQuizAttemptEntity);
             await _dbContext.SaveChangesAsync();
@@ -120,6 +123,7 @@ namespace WiseUpDude.Data.Repositories
             userQuizAttemptEntity.AttemptDate = userQuizAttemptModel.AttemptDate;
             userQuizAttemptEntity.Score = userQuizAttemptModel.Score;
             userQuizAttemptEntity.Duration = userQuizAttemptModel.Duration;
+            userQuizAttemptEntity.IsComplete = userQuizAttemptModel.IsComplete;
             // Update AttemptQuestions
             userQuizAttemptEntity.AttemptQuestions = userQuizAttemptModel.AttemptQuestions?.Select(attemptQuestionModel => new Entities.UserQuizAttemptQuestion
             {

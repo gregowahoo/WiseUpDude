@@ -136,7 +136,7 @@ builder.Services.AddHttpClient();
 
 
 builder.Services.AddScoped<ContentFetchingService>();
-//builder.Services.AddScoped<QuizBuilderService>();
+builder.Services.AddScoped<QuizBuilderService>();
 builder.Services.AddScoped<QuizStateService>();
 builder.Services.AddScoped<IQuizFromPromptService, QuizFromPromptService>();
 builder.Services.AddScoped<AnswerRandomizerService>();
@@ -242,5 +242,12 @@ app.MapRazorComponents<App>()
 app.MapAdditionalIdentityEndpoints();
 
 app.UseCors("AllowClient");
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
 
 app.Run();

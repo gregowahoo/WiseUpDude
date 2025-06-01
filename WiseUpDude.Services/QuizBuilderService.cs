@@ -18,19 +18,22 @@ namespace WiseUpDude.Services
             _chatClient = chatClient;
         }
 
-        public async Task<QuizResponse> GenerateQuizAsync(string content, int maxQuestions)
+        public async Task<Quiz> GenerateQuizAsync(string content, int maxQuestions)
         {
-            var quizResponse = new QuizResponse
+            var quiz = new Quiz
             {
                 Type = "Generated",
                 Topic = "AI-Generated Quiz",
-                Description = "This quiz was generated based on the provided content."
+                Description = "This quiz was generated based on the provided content.",
+                Questions = new List<QuizQuestion>(),
+                Difficulty = "Mixed",
+                CreationDate = DateTime.UtcNow
             };
 
-            var allQuestions = new List<QuizQuestion>();
             int chunkSize = 4000;
             var chunks = SplitContent(content, chunkSize);
             bool isFirstChunk = true;
+            var allQuestions = new List<QuizQuestion>();
 
             foreach (var chunk in chunks)
             {
@@ -50,14 +53,13 @@ namespace WiseUpDude.Services
 
                 if (allQuestions.Count >= maxQuestions)
                 {
-                    quizResponse.Questions = allQuestions.Take(maxQuestions).ToList();
-                    quizResponse.Difficulty = "Mixed";
-                    return quizResponse;
+                    quiz.Questions = allQuestions.Take(maxQuestions).ToList();
+                    return quiz;
                 }
             }
 
-            quizResponse.Questions = allQuestions;
-            return quizResponse;
+            quiz.Questions = allQuestions;
+            return quiz;
         }
 
         public async Task<QuizResponse> LoadQuizFromFileAsync(string filePath)

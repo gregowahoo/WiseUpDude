@@ -16,9 +16,9 @@ namespace WiseUpDude.Data.Migrations
                 table: "UserQuizAttemptQuestions");
 
             // Drop the foreign key constraint to UserQuizQuestion with the correct name
-            migrationBuilder.DropForeignKey(
-                name: "FK_UserQuizAttemptQuestion_UserQuizQuestions_UserQuizQuestionId",
-                table: "UserQuizAttemptQuestions");
+            //migrationBuilder.DropForeignKey(
+            //    name: "FK_UserQuizAttemptQuestion_UserQuizQuestions_UserQuizQuestionId",
+            //    table: "UserQuizAttemptQuestions");
 
             // Drop the index - this should be the correct name based on the constraint
             migrationBuilder.DropIndex(

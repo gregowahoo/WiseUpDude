@@ -57,11 +57,6 @@
 	<ItemGroup>
 	  <Content Remove="..\WiseUpDude.Client\wwwroot\appsettings.Development.json" />
 	  <Content Remove="..\WiseUpDude.Client\wwwroot\appsettings.json" />
-	  <Content Remove="Components\Pages\UrlToQuiz.razor" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Remove="Components\Pages\UrlToQuiz.razor.css" />
 	</ItemGroup>
 
 	<ItemGroup>

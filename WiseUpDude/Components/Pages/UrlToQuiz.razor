@@ -11,6 +11,10 @@
 @inject QuizStateService QuizState
 @inject NavigationManager NavManager
 
+@using WiseUpDude.Shared.Services
+@inject UserQuizApiService UserQuizApiService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
 @rendermode InteractiveServer
 
 @using Microsoft.AspNetCore.Authorization
@@ -110,15 +114,27 @@
         // 2) Pass the validated text content to QuizBuilderService.
         quiz = await QuizBuilderService.GenerateQuizAsync(fetchResult.Content, 25); //TODO: Make this n appsettings variable
 
-        // 3) Navigate or show an error based on the quiz response.
-        if (quiz.Questions != null && quiz.Questions.Count > 0)
+        // 3) Set quiz metadata (user, prompt, etc.)
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                   ?? user.FindFirst("sub")?.Value;
+        quiz.UserId = userId;
+        quiz.Prompt = url;
+        quiz.Type = "Prompt";
+        quiz.Description = $"Quiz generated from {url}";
+        quiz.Name = quiz.Topic ?? quiz.Prompt ?? "Generated Quiz";
+        quiz.CreationDate = DateTime.UtcNow;
+
+        // 4) Save to DB and navigate to TakeAQuiz
+        var savedQuiz = await UserQuizApiService.CreateUserQuizAsync(quiz);
+        if (savedQuiz != null && savedQuiz.Id > 0)
         {
-            QuizState.CurrentQuiz = quiz;
-            NavManager.NavigateTo("/takequiz");
+            NavManager.NavigateTo($"/TakeAQuiz/{savedQuiz.Id}");
         }
         else
         {
-            errorMessage = "No questions were generated.";
+            errorMessage = "Failed to save the quiz. Please try again.";
         }
 
         showOverlay = false;

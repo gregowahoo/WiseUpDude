@@ -1,0 +1,42 @@
+@page "/learningtracks"
+@using WiseUpDude.Data.Entities
+@using WiseUpDude.Data.Repositories.Interfaces
+@inject ILearningTrackRepository LearningTrackRepository
+
+<PageTitle>Learning Tracks</PageTitle>
+
+<h2>Learning Tracks</h2>
+
+@if (learningTracks == null)
+{
+    <p>Loading...</p>
+}
+else if (!learningTracks.Any())
+{
+    <div class="alert alert-info">No learning tracks found. Create your first one!</div>
+}
+else
+{
+    <ul class="list-group mb-4">
+        @foreach (var track in learningTracks)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>@track.Name</strong>
+                    <span class="text-muted ms-2">@track.Description</span>
+                </div>
+                <span class="badge bg-secondary">@track.CreationDate.ToShortDateString()</span>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private List<LearningTrack>? learningTracks;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var tracks = await LearningTrackRepository.GetAllAsync();
+        learningTracks = tracks.ToList();
+    }
+}

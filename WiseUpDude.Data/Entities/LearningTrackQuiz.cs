@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WiseUpDude.Data.Entities
 {
-    public class LearningTrack
+    public class LearningTrackQuiz
     {
         [Key]
         public int Id { get; set; }
@@ -15,10 +15,10 @@ namespace WiseUpDude.Data.Entities
         [MaxLength(1000)]
         public string? Description { get; set; }
         [Required]
-        public string UserId { get; set; } = string.Empty;
-        [ForeignKey("UserId")]
-        public ApplicationUser User { get; set; }
+        public int LearningTrackSourceId { get; set; }
+        [ForeignKey("LearningTrackSourceId")]
+        public LearningTrackSource LearningTrackSource { get; set; }
         public DateTime CreationDate { get; set; }
-        public ICollection<LearningTrackCategory> Categories { get; set; } = new List<LearningTrackCategory>();
+        public ICollection<LearningTrackQuizQuestion> Questions { get; set; } = new List<LearningTrackQuizQuestion>();
     }
 }

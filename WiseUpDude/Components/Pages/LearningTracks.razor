@@ -1,11 +1,17 @@
 @page "/learningtracks"
-@using WiseUpDude.Data.Entities
+
+@* @using WiseUpDude.Data.Entities *@
 @using WiseUpDude.Data.Repositories.Interfaces
+
 @inject ILearningTrackRepository LearningTrackRepository
 
 <PageTitle>Learning Tracks</PageTitle>
 
 <h2>Learning Tracks</h2>
+
+<a class="btn btn-primary mb-3" href="/learningtracks/add">
+    <i class="bi bi-plus-circle"></i> Add New Learning Track
+</a>
 
 @if (learningTracks == null)
 {

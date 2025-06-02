@@ -174,6 +174,11 @@ builder.Services.AddScoped<QuizState>();
 
 builder.Services.AddScoped<IUserQuizAttemptApiService, UserQuizAttemptApiService>();
 
+builder.Services.AddScoped<ILearningTrackRepository, LearningTrackRepository>();
+builder.Services.AddScoped<ILearningTrackCategoryRepository, LearningTrackCategoryRepository>();
+builder.Services.AddScoped<ILearningTrackSourceRepository, LearningTrackSourceRepository>();
+builder.Services.AddScoped<ILearningTrackQuizRepository, LearningTrackQuizRepository>();
+
 #endregion
 
 

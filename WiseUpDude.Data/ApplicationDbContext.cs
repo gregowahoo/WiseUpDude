@@ -117,6 +117,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(qq => qq.LearningTrackQuizId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<LearningTrackCategory>()
+            .Property(c => c.CreationDate)
+            .HasDefaultValueSql("GETDATE()");
+        modelBuilder.Entity<LearningTrackSource>()
+            .Property(s => s.CreationDate)
+            .HasDefaultValueSql("GETDATE()");
+        modelBuilder.Entity<LearningTrackQuiz>()
+            .Property(q => q.CreationDate)
+            .HasDefaultValueSql("GETDATE()");
+        modelBuilder.Entity<LearningTrackQuizQuestion>()
+            .Property(qq => qq.CreationDate)
+            .HasDefaultValueSql("GETDATE()");
+
         //foreach (var entity in modelBuilder.Model.GetEntityTypes())
         //{
         //    // Use Humanizer to pluralize table names

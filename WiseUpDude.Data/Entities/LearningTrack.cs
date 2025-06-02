@@ -36,6 +36,7 @@ namespace WiseUpDude.Data.Entities
         public int LearningTrackId { get; set; }
         [ForeignKey("LearningTrackId")]
         public LearningTrack LearningTrack { get; set; }
+        public DateTime CreationDate { get; set; }
         public ICollection<LearningTrackSource> Sources { get; set; } = new List<LearningTrackSource>();
     }
 
@@ -56,6 +57,7 @@ namespace WiseUpDude.Data.Entities
         public int LearningTrackCategoryId { get; set; }
         [ForeignKey("LearningTrackCategoryId")]
         public LearningTrackCategory LearningTrackCategory { get; set; }
+        public DateTime CreationDate { get; set; }
         public ICollection<LearningTrackQuiz> Quizzes { get; set; } = new List<LearningTrackQuiz>();
     }
 
@@ -94,5 +96,6 @@ namespace WiseUpDude.Data.Entities
         public string? OptionsJson { get; set; }
         [MaxLength(50)]
         public string? Difficulty { get; set; }
+        public DateTime CreationDate { get; set; }
     }
 }

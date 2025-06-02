@@ -23,6 +23,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<UserQuizAttempt> UserQuizAttempts { get; set; }
     public DbSet<UserQuizAttemptQuestion> UserQuizAttemptQuestions { get; set; }
 
+    public DbSet<LearningTrack> LearningTracks { get; set; }
+    public DbSet<LearningTrackCategory> LearningTrackCategories { get; set; }
+    public DbSet<LearningTrackSource> LearningTrackSources { get; set; }
+    public DbSet<LearningTrackQuiz> LearningTrackQuizzes { get; set; }
+    public DbSet<LearningTrackQuizQuestion> LearningTrackQuizQuestions { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -85,6 +91,31 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<UserQuizAttempt>().ToTable("UserQuizAttempts");
         modelBuilder.Entity<UserQuizAttemptQuestion>().ToTable("UserQuizAttemptQuestions");
+
+        // LearningTrack relationships
+        modelBuilder.Entity<LearningTrack>()
+            .Property(lt => lt.CreationDate)
+            .HasDefaultValueSql("GETDATE()");
+        modelBuilder.Entity<LearningTrack>()
+            .HasMany(lt => lt.Categories)
+            .WithOne(c => c.LearningTrack)
+            .HasForeignKey(c => c.LearningTrackId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<LearningTrackCategory>()
+            .HasMany(c => c.Sources)
+            .WithOne(s => s.LearningTrackCategory)
+            .HasForeignKey(s => s.LearningTrackCategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<LearningTrackSource>()
+            .HasMany(s => s.Quizzes)
+            .WithOne(q => q.LearningTrackSource)
+            .HasForeignKey(q => q.LearningTrackSourceId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<LearningTrackQuiz>()
+            .HasMany(q => q.Questions)
+            .WithOne(qq => qq.LearningTrackQuiz)
+            .HasForeignKey(qq => qq.LearningTrackQuizId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         //foreach (var entity in modelBuilder.Model.GetEntityTypes())
         //{

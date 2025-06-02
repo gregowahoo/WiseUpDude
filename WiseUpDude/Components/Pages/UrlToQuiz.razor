@@ -4,6 +4,7 @@
 
 @using WiseUpDude.Services
 @using WiseUpDude.Components.Controls
+@using WiseUpDude.Data.Repositories
 
 @inject WiseUpDude.Services.ContentFetchingService ContentFetchingService
 @inject WiseUpDude.Services.QuizBuilderService QuizBuilderService
@@ -11,8 +12,7 @@
 @inject QuizStateService QuizState
 @inject NavigationManager NavManager
 
-@using WiseUpDude.Shared.Services
-@inject UserQuizApiService UserQuizApiService
+@inject UserQuizRepository UserQuizRepository
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 @rendermode InteractiveServer
@@ -21,14 +21,8 @@
 
 @attribute [Authorize]
 
-@if (showOverlay)
-{
-    <div class="overlay">
-        @* <i class="fas fa-brain spinner"></i> *@
-        <div class="spinner"></div>
-        <p class="overlay-text">Please wait...</p>
-    </div>
-}
+<PleaseWaitDialog IsVisible="showOverlay"
+                  LoadingTextMessage="@($"Preparing your quiz from the URL: \"{url}\".")" />
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
@@ -127,10 +121,11 @@
         quiz.CreationDate = DateTime.UtcNow;
 
         // 4) Save to DB and navigate to TakeAQuiz
-        var savedQuiz = await UserQuizApiService.CreateUserQuizAsync(quiz);
-        if (savedQuiz != null && savedQuiz.Id > 0)
+        await UserQuizRepository.AddAsync(quiz);
+        var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
+        if (userQuizId > 0)
         {
-            NavManager.NavigateTo($"/TakeAQuiz/{savedQuiz.Id}");
+            NavManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
         }
         else
         {

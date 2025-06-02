@@ -1,0 +1,16 @@
+@* Spinner.razor - Fullscreen overlay spinner *@
+@if (IsVisible)
+{
+    <div class="overlay">
+        <div class="spinner"></div>
+        <p class="overlay-text">@Message</p>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public string Message { get; set; } = "Please wait...";
+}

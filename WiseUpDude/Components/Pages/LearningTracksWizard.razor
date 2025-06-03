@@ -1,11 +1,16 @@
 ﻿@page "/learningtracks/add"
-
-@* @using WiseUpDude.Data.Entities *@
+@page "/learningtracks/edit/{Id:int?}"
 
 @inject ILearningTrackRepository LearningTrackRepository
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 
 @rendermode InteractiveServer
+
+@code {
+    private static readonly string[] DifficultyLevels = new[] { "Easy", "Medium", "Hard" };
+    private static readonly string[] SourceTypes = new[] { "YouTube", "Blog", "Book", "Article", "Podcast", "Other" };
+}
 
 <h3>Add a New Learning Track</h3>
 
@@ -57,7 +62,13 @@
                 </ul>
                 <div class="mb-2">
                     <input class="form-control mb-1" placeholder="Category Name" @bind="newCategory.Name" maxlength="100" />
-                    <input class="form-control mb-1" placeholder="Difficulty" @bind="newCategory.Difficulty" maxlength="50" />
+                    <select class="form-select mb-1" @bind="newCategory.Difficulty">
+                        <option value="">Select Difficulty</option>
+                        @foreach (var level in DifficultyLevels)
+                        {
+                            <option value="@level">@level</option>
+                        }
+                    </select>
                     <textarea class="form-control mb-1" placeholder="Description" @bind="newCategory.Description" maxlength="500"></textarea>
                     <button class="btn btn-success btn-sm" @onclick="AddCategory" disabled="@string.IsNullOrWhiteSpace(newCategory.Name)">Add Category</button>
                 </div>
@@ -83,7 +94,13 @@
                             }
                         </ul>
                         <input class="form-control mb-1" placeholder="Source Name" @bind="newSource.Name" maxlength="200" />
-                        <input class="form-control mb-1" placeholder="Type (e.g. YouTube, Blog)" @bind="newSource.SourceType" maxlength="100" />
+                        <select class="form-select mb-1" @bind="newSource.SourceType">
+                            <option value="">Select Source Type</option>
+                            @foreach (var type in SourceTypes)
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        </select>
                         <input class="form-control mb-1" placeholder="URL" @bind="newSource.Url" maxlength="500" />
                         <textarea class="form-control mb-1" placeholder="Description" @bind="newSource.Description" maxlength="1000"></textarea>
                         <button class="btn btn-success btn-sm" @onclick="() => AddSource(cat)" disabled="@string.IsNullOrWhiteSpace(newSource.Name)">Add Source</button>
@@ -124,7 +141,28 @@
     </div>
 </div>
 
-@code {
+@code{
+    protected override async Task OnInitializedAsync()
+    {
+        if (isEditMode)
+        {
+            var existing = await LearningTrackRepository.GetByIdAsync(Id.Value);
+            if (existing != null)
+            {
+                track = existing;
+                categories = existing.Categories ?? new();
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/learningtracks/maintain");
+            }
+        }
+    }
+
+    [Parameter]
+    public int? Id { get; set; }
+    private bool isEditMode => Id.HasValue;
+
     private int step = 1;
     private LearningTrack track = new();
     private List<LearningTrackCategory> categories = new();
@@ -157,6 +195,7 @@
         categories.Add(cat);
         newCategory = new LearningTrackCategory();
     }
+
     private void RemoveCategory(LearningTrackCategory cat)
     {
         categories.Remove(cat);
@@ -174,6 +213,7 @@
         cat.Sources.Add(src);
         newSource = new LearningTrackSource();
     }
+
     private void RemoveSource(LearningTrackCategory cat, LearningTrackSource src)
     {
         cat.Sources.Remove(src);
@@ -189,16 +229,18 @@
         }
         else
         {
-            // Handle unauthenticated case as needed
             saveMessage = "You must be logged in to save a Learning Track.";
             return;
         }
 
         track.Categories = categories;
-        await LearningTrackRepository.AddAsync(track);
+
+        if (isEditMode)
+            await LearningTrackRepository.UpdateAsync(track);
+        else
+            await LearningTrackRepository.AddAsync(track);
+
         saveMessage = "Learning Track saved!";
-        step = 1;
-        track = new();
-        categories = new();
+        NavigationManager.NavigateTo("/learningtracks/maintain");
     }
 }

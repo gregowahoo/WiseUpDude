@@ -1,4 +1,4 @@
-@page "/learningtracks"
+﻿@page "/learningtracks"
 
 @using WiseUpDude.Model
 @using WiseUpDude.Data.Repositories.Interfaces
@@ -6,113 +6,130 @@
 @inject ILearningTrackRepository LearningTrackRepository
 @inject NavigationManager NavigationManager
 
+@inject ILearningTrackRepository LearningTrackRepo
+@inject ILearningTrackCategoryRepository CategoryRepo
+@inject ILearningTrackSourceRepository SourceRepo
+
 @rendermode InteractiveServer
 
-<PageTitle>Learning Tracks</PageTitle>
+<h3>Learning Tracks Management</h3>
 
-<h2>Learning Tracks</h2>
-
-<a class="btn btn-primary mb-3" href="/learningtracks/add">
-    <i class="bi bi-plus-circle"></i> Add New Learning Track
-</a>
-
-@if (learningTracks == null)
-{
-    <p>Loading...</p>
-}
-else if (!learningTracks.Any())
-{
-    <div class="alert alert-info">No learning tracks found. Create your first one!</div>
-}
-else
-{
-    <ul class="list-group mb-4">
-        @foreach (var track in learningTracks)
+<div class="row">
+    <div class="col-4">
+        @foreach (var track in LearningTracksList)
         {
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>@track.Name</strong>
-                    <span class="text-muted ms-2">@track.Description</span>
-                </div>
-                <span>
-                    <button class="btn btn-sm btn-primary me-2" @onclick="() => EditTrack(track.Id)">Edit</button>
-                    <button class="btn btn-sm btn-danger" @onclick="() => ConfirmDelete(track.Id, track.Name)">Delete</button>
-                </span>
-                <span class="badge bg-secondary ms-2">@track.CreationDate.ToShortDateString()</span>
-            </li>
-        }
-    </ul>
-}
-
-@if (showDeleteConfirm)
-{
-    <div class="modal show d-block" tabindex="-1" style="background:rgba(0,0,0,0.3)">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirm Delete</h5>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete <strong>@deleteTrackName</strong>?</p>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
-                    <button class="btn btn-danger" @onclick="DeleteTrackConfirmed">Delete</button>
+            <div class="card mb-2">
+                <div class="card-body">
+                    <h5 class="card-title">@track.Name</h5>
+                    <button class="btn btn-sm btn-link" @onclick="() => EditItem(track)">Edit</button>
+                    <button class="btn btn-sm btn-link text-danger" @onclick="() => DeleteTrack(track.Id)">Delete</button>
+                    <button class="btn btn-sm btn-link" @onclick="() => AddCategory(track.Id)">Add Category</button>
+                    <ul class="mt-2">
+                        @foreach (var category in track.Categories)
+                        {
+                            <li>
+                                <strong>@category.Name</strong>
+                                <button class="btn btn-sm btn-link" @onclick="() => EditItem(category)">Edit</button>
+                                <button class="btn btn-sm btn-link text-danger" @onclick="() => DeleteCategory(category.Id)">Delete</button>
+                                <button class="btn btn-sm btn-link" @onclick="() => AddSource(category.Id)">Add Source</button>
+                                <ul>
+                                    @foreach (var source in category.Sources)
+                                    {
+                                        <li>
+                                            @source.Name
+                                            <button class="btn btn-sm btn-link" @onclick="() => EditItem(source)">Edit</button>
+                                            <button class="btn btn-sm btn-link text-danger" @onclick="() => DeleteSource(source.Id)">Delete</button>
+                                        </li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                    </ul>
                 </div>
             </div>
-        </div>
+        }
+        <button class="btn btn-primary" @onclick="AddTrack">Add Learning Track</button>
     </div>
-}
+</div>
 
-@if (!string.IsNullOrEmpty(message))
+@if (showDialog)
 {
-    <div class="alert alert-info mt-2">@message</div>
+    <PopupDialog Model="selectedItem" OnSave="HandleSave" OnCancel="HandleCancel" />
 }
 
 @code {
-    private List<LearningTrack>? learningTracks;
-    private string? message;
-
-    // For delete confirmation
-    private bool showDeleteConfirm = false;
-    private int deleteTrackId;
-    private string? deleteTrackName;
+    private List<LearningTrack> LearningTracksList = new();
+    private object selectedItem;
+    private bool showDialog = false;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadTracks();
+        await LoadData();
     }
 
-    private async Task LoadTracks()
+    private async Task LoadData()
     {
-        var tracks = await LearningTrackRepository.GetAllAsync();
-        learningTracks = tracks.ToList();
+        LearningTracksList = (await LearningTrackRepo.GetAllAsync()).ToList();
     }
 
-    private void EditTrack(int id)
+    void AddTrack() => OpenDialog(new LearningTrack());
+
+    void AddCategory(int trackId)
     {
-        NavigationManager.NavigateTo($"/learningtracks/edit/{id}");
+        OpenDialog(new LearningTrackCategory { LearningTrackId = trackId });
     }
 
-    private void ConfirmDelete(int id, string name)
+    void AddSource(int categoryId)
     {
-        deleteTrackId = id;
-        deleteTrackName = name;
-        showDeleteConfirm = true;
+        OpenDialog(new LearningTrackSource { LearningTrackCategoryId = categoryId });
     }
 
-    private void CancelDelete()
+    void EditItem(object item) => OpenDialog(item);
+
+    void OpenDialog(object item)
     {
-        showDeleteConfirm = false;
-        deleteTrackId = 0;
-        deleteTrackName = null;
+        selectedItem = item;
+        showDialog = true;
     }
 
-    private async Task DeleteTrackConfirmed()
+    async Task HandleSave()
     {
-        await LearningTrackRepository.DeleteAsync(deleteTrackId);
-        message = $"Learning Track '{deleteTrackName}' deleted.";
-        showDeleteConfirm = false;
-        await LoadTracks();
+        switch (selectedItem)
+        {
+            case LearningTrack track:
+                if (track.Id == 0) await LearningTrackRepo.AddAsync(track);
+                else await LearningTrackRepo.UpdateAsync(track);
+                break;
+            case LearningTrackCategory category:
+                if (category.Id == 0) await CategoryRepo.AddAsync(category);
+                else await CategoryRepo.UpdateAsync(category);
+                break;
+            case LearningTrackSource source:
+                if (source.Id == 0) await SourceRepo.AddAsync(source);
+                else await SourceRepo.UpdateAsync(source);
+                break;
+        }
+        await LoadData();
+        showDialog = false;
+    }
+
+    void HandleCancel() => showDialog = false;
+
+    async void DeleteTrack(int id)
+    {
+        await LearningTrackRepo.DeleteAsync(id);
+        await LoadData();
+    }
+
+    async void DeleteCategory(int id)
+    {
+        await CategoryRepo.DeleteAsync(id);
+        await LoadData();
+    }
+
+    async void DeleteSource(int id)
+    {
+        await SourceRepo.DeleteAsync(id);
+        await LoadData();
     }
 }

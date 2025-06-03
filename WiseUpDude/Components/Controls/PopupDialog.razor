@@ -1,0 +1,60 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+
+<div class="popup-container">
+    <div class="popup-box">
+        <div class="popup-header d-flex justify-content-between">
+            <strong>Edit @Model.GetType().Name</strong>
+            <button class="btn-close" @onclick="OnCancel"></button>
+        </div>
+        <div class="popup-body mt-3">
+            @switch (Model)
+            {
+                case LearningTrack track:
+                    <EditForm Model="@track" OnValidSubmit="@OnSave">
+                        <InputText class="form-control mb-2" @bind-Value="track.Name" />
+                        <InputTextArea class="form-control mb-2" @bind-Value="track.Description" />
+                        <button class="btn btn-primary mt-2" type="submit">Save</button>
+                    </EditForm>
+                    break;
+
+                case LearningTrackCategory category:
+                    <EditForm Model="@category" OnValidSubmit="@OnSave">
+                        <InputText class="form-control mb-2" @bind-Value="category.Name" />
+                        <select class="form-select mb-2" @bind="category.Difficulty">
+                            <option value="">Select Difficulty</option>
+                            @foreach (var level in DifficultyLevels)
+                            {
+                                <option value="@level">@level</option>
+                            }
+                        </select>
+                        <button class="btn btn-primary mt-2" type="submit">Save</button>
+                    </EditForm>
+                    break;
+
+                case LearningTrackSource source:
+                    <EditForm Model="@source" OnValidSubmit="@OnSave">
+                        <InputText class="form-control mb-2" @bind-Value="source.Name" />
+                        <select class="form-select mb-2" @bind="source.SourceType">
+                            <option value="">Select Source Type</option>
+                            @foreach (var type in SourceTypes)
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        </select>
+                        <InputText class="form-control mb-2" @bind-Value="source.Url" />
+                        <button class="btn btn-primary mt-2" type="submit">Save</button>
+                    </EditForm>
+                    break;
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public object Model { get; set; } = default!;
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private static readonly string[] DifficultyLevels = new[] { "Easy", "Medium", "Hard" };
+    private static readonly string[] SourceTypes = new[] { "YouTube", "Blog", "Book", "Article", "Podcast", "Other" };
+}

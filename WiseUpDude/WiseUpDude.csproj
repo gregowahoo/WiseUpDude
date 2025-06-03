@@ -20,6 +20,7 @@
 		<ProjectReference Include="..\WiseUpDude.Model\WiseUpDude.Model.csproj" />
 		<ProjectReference Include="..\WiseUpDude.Services\WiseUpDude.Services.csproj" />
 		<ProjectReference Include="..\WiseUpDude.Shared\WiseUpDude.Shared.csproj" />
+		<PackageReference Include="itext" Version="9.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.5" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.5" />
 		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.5" />
@@ -37,6 +38,7 @@
 	<ItemGroup>
 		<PackageReference Include="AngleSharp" Version="1.2.0" />
 		<PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="9.0.5" />
+		<PackageReference Include="PdfPig" Version="0.1.10" />
 		<PackageReference Include="Serilog.Extensions.Hosting" Version="9.0.0" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
 		<PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />

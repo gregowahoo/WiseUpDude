@@ -1,6 +1,7 @@
 ﻿@page "/learningtrackstree"
 
 @using WiseUpDude.Model
+@using WiseUpDude.Components.Controls
 @inject ILearningTrackRepository LearningTrackRepo
 @inject ILearningTrackCategoryRepository CategoryRepo
 @inject ILearningTrackSourceRepository SourceRepo
@@ -13,300 +14,25 @@
 @if (addingTrack)
 {
     <div class="mb-3">
-        <input class="form-control d-inline w-auto me-2" @bind="newTrack.Name" placeholder="Track Name" /> <!-- New track name input -->
-        <input class="form-control d-inline w-auto me-2" @bind="newTrack.Description" placeholder="Description" /> <!-- New track description input -->
-        <button class="btn btn-sm btn-success me-1" @onclick="SaveNewTrack">Save</button> <!-- Save new track -->
-        <button class="btn btn-sm btn-secondary" @onclick="CancelAddTrack">Cancel</button> <!-- Cancel adding track -->
+        <input class="form-control d-inline w-auto me-2" @bind="newTrack.Name" placeholder="Track Name" />
+        <input class="form-control d-inline w-auto me-2" @bind="newTrack.Description" placeholder="Description" />
+        <button class="btn btn-sm btn-success me-1" @onclick="SaveNewTrack">Save</button>
+        <button class="btn btn-sm btn-secondary" @onclick="CancelAddTrack">Cancel</button>
     </div>
 }
 else
 {
-    <button class="btn btn-primary mb-3" @onclick="ShowAddTrack">Add Learning Track</button> <!-- Show add track form -->
+    <button class="btn btn-primary mb-3" @onclick="ShowAddTrack">Add Learning Track</button>
 }
 
 @if (tracks == null)
 {
-    <p>Loading...</p> <!-- Loading state -->
+    <p>Loading...</p>
 }
 else if (!tracks.Any())
 {
-    <div class="alert alert-info">No learning tracks found.</div> <!-- No tracks found -->
+    <div class="alert alert-info">No learning tracks found.</div>
 }
 else
 {
-    <ul class="list-group">
-        @foreach (var track in tracks)
-        {
-            <li class="list-group-item">
-                @if (editingItem is LearningTrack editTrack && editTrack.Id == track.Id)
-                {
-                    <input class="form-control d-inline w-auto me-2" @bind="editTrack.Name" /> <!-- Edit track name -->
-                    <input class="form-control d-inline w-auto me-2" @bind="editTrack.Description" placeholder="Description" /> <!-- Edit track description -->
-                    <button class="btn btn-sm btn-success me-1" @onclick="() => SaveEdit(editTrack)">Save</button> <!-- Save track edit -->
-                    <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button> <!-- Cancel track edit -->
-                }
-                else
-                {
-                    <span @onclick="() => ToggleTrack(track.Id)" style="cursor:pointer;"> <!-- Toggle track expand/collapse -->
-                        <i class="bi @GetChevron(track.Id, expandedTracks)" style="margin-right:4px;"></i>
-                        <strong>@track.Name</strong>
-                        <span class="text-muted ms-2">@track.Description</span>
-                    </span>
-                    <button class="btn btn-sm btn-link ms-2" @onclick:stopPropagation @onclick="() => EditTrack(track)">Edit</button> <!-- Edit track -->
-                    <button class="btn btn-sm btn-link text-danger" @onclick:stopPropagation @onclick="() => DeleteTrack(track.Id)">Delete</button> <!-- Delete track -->
-                    <button class="btn btn-sm btn-link" @onclick:stopPropagation @onclick="() => AddCategory(track.Id)">Add Category</button> <!-- Add category to track -->
-                }
-                @if (expandedTracks.Contains(track.Id))
-                {
-                    <ul class="list-group ms-4 mt-2">
-                        @foreach (var cat in track.Categories)
-                        {
-                            <li class="list-group-item">
-                                @if (editingItem is LearningTrackCategory editCat && editCat.Id == cat.Id)
-                                {
-                                    <input class="form-control d-inline w-auto me-2" @bind="editCat.Name" /> <!-- Edit category name -->
-                                    <select class="form-select d-inline w-auto me-2" @bind="editCat.Difficulty"> <!-- Edit category difficulty -->
-                                        <option value="">Select Difficulty</option>
-                                        <option value="Easy">Easy</option>
-                                        <option value="Medium">Medium</option>
-                                        <option value="Hard">Hard</option>
-                                    </select>
-                                    <input class="form-control d-inline w-auto me-2" @bind="editCat.Description" placeholder="Description" /> <!-- Edit category description -->
-                                    <button class="btn btn-sm btn-success me-1" @onclick="() => SaveEdit(editCat)">Save</button> <!-- Save category edit -->
-                                    <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button> <!-- Cancel category edit -->
-                                }
-                                else
-                                {
-                                    <span @onclick="() => ToggleCategory(cat.Id)" style="cursor:pointer;"> <!-- Toggle category expand/collapse -->
-                                        <i class="bi @GetChevron(cat.Id, expandedCategories)" style="margin-right:4px;"></i>
-                                        @cat.Name <span class="badge bg-secondary ms-2">@cat.Difficulty</span>
-                                        <span class="text-muted ms-2">@cat.Description</span>
-                                    </span>
-                                    <button class="btn btn-sm btn-link ms-2" @onclick:stopPropagation @onclick="() => EditCategory(cat)">Edit</button> <!-- Edit category -->
-                                    <button class="btn btn-sm btn-link text-danger" @onclick:stopPropagation @onclick="() => DeleteCategory(cat.Id)">Delete</button> <!-- Delete category -->
-                                    <button class="btn btn-sm btn-link" @onclick:stopPropagation @onclick="() => AddSource(cat.Id)">Add Source</button> <!-- Add source to category -->
-                                }
-                                @if (expandedCategories.Contains(cat.Id))
-                                {
-                                    <ul class="list-group ms-4 mt-2">
-                                        @foreach (var src in cat.Sources)
-                                        {
-                                            <li class="list-group-item">
-                                                @if (editingItem is LearningTrackSource editSrc && editSrc.Id == src.Id)
-                                                {
-                                                    <input class="form-control d-inline w-auto me-2" @bind="editSrc.Name" /> <!-- Edit source name -->
-                                                    <select class="form-select d-inline w-auto me-2" @bind="editSrc.SourceType"> <!-- Edit source type -->
-                                                        <option value="">Select Source Type</option>
-                                                        <option value="YouTube">YouTube</option>
-                                                        <option value="Blog">Blog</option>
-                                                        <option value="Book">Book</option>
-                                                        <option value="Article">Article</option>
-                                                        <option value="Podcast">Podcast</option>
-                                                        <option value="Other">Other</option>
-                                                    </select>
-                                                    <input class="form-control d-inline w-auto me-2" @bind="editSrc.Url" placeholder="URL" /> <!-- Edit source URL -->
-                                                    <input class="form-control d-inline w-auto me-2" @bind="editSrc.Description" placeholder="Description" /> <!-- Edit source description -->
-                                                    <button class="btn btn-sm btn-success me-1" @onclick="() => SaveEdit(editSrc)">Save</button> <!-- Save source edit -->
-                                                    <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button> <!-- Cancel source edit -->
-                                                }
-                                                else
-                                                {
-                                                    <span>@src.Name <span class="text-muted">(@src.SourceType)</span> <span class="text-muted ms-2">@src.Description</span></span> <!-- Source display -->
-                                                    <button class="btn btn-sm btn-link ms-2" @onclick:stopPropagation @onclick="() => EditSource(src)">Edit</button> <!-- Edit source -->
-                                                    <button class="btn btn-sm btn-link text-danger" @onclick:stopPropagation @onclick="() => DeleteSource(src.Id)">Delete</button> <!-- Delete source -->
-                                                }
-                                            </li>
-                                        }
-                                    </ul>
-                                }
-                            </li>
-                        }
-                    </ul>
-                }
-            </li>
-        }
-    </ul>
-}
-
-@if (addingCategoryTrackId != null)
-{
-    <div class="ms-4 mt-2">
-        <input class="form-control d-inline w-auto me-2" @bind="newCategory.Name" placeholder="Category Name" /> <!-- New category name input -->
-        <select class="form-select d-inline w-auto me-2" @bind="newCategory.Difficulty"> <!-- New category difficulty -->
-            <option value="">Select Difficulty</option>
-            <option value="Easy">Easy</option>
-            <option value="Medium">Medium</option>
-            <option value="Hard">Hard</option>
-        </select>
-        <input class="form-control d-inline w-auto me-2" @bind="newCategory.Description" placeholder="Description" /> <!-- New category description input -->
-        <button class="btn btn-sm btn-success me-1" @onclick="SaveNewCategory">Save</button> <!-- Save new category -->
-        <button class="btn btn-sm btn-secondary" @onclick="CancelAddCategory">Cancel</button> <!-- Cancel adding category -->
-    </div>
-}
-@if (addingSourceCategoryId != null)
-{
-    <div class="ms-5 mt-2">
-        <input class="form-control d-inline w-auto me-2" @bind="newSource.Name" placeholder="Source Name" /> <!-- New source name input -->
-        <select class="form-select d-inline w-auto me-2" @bind="newSource.SourceType"> <!-- New source type -->
-            <option value="">Select Source Type</option>
-            <option value="YouTube">YouTube</option>
-            <option value="Blog">Blog</option>
-            <option value="Book">Book</option>
-            <option value="Article">Article</option>
-            <option value="Podcast">Podcast</option>
-            <option value="Other">Other</option>
-        </select>
-        <input class="form-control d-inline w-auto me-2" @bind="newSource.Url" placeholder="URL" /> <!-- New source URL input -->
-        <input class="form-control d-inline w-auto me-2" @bind="newSource.Description" placeholder="Description" /> <!-- New source description input -->
-        <button class="btn btn-sm btn-success me-1" @onclick="SaveNewSource">Save</button> <!-- Save new source -->
-        <button class="btn btn-sm btn-secondary" @onclick="CancelAddSource">Cancel</button> <!-- Cancel adding source -->
-    </div>
-}
-
-@code {
-    private List<LearningTrack>? tracks; // All learning tracks
-    private HashSet<int> expandedTracks = new(); // Expanded track IDs
-    private HashSet<int> expandedCategories = new(); // Expanded category IDs
-    private object editingItem; // Currently editing item
-    private int? addingCategoryTrackId; // Track ID for adding category
-    private int? addingSourceCategoryId; // Category ID for adding source
-
-    private LearningTrack newTrack = new(); // New track model
-    private LearningTrackCategory newCategory = new(); // New category model
-    private LearningTrackSource newSource = new(); // New source model
-
-    private bool addingTrack = false; // Add track mode
-
-    void ShowAddTrack()
-    {
-        addingTrack = true; // Show add track form
-        newTrack = new LearningTrack(); // Reset new track
-        SetCurrentUserIdOnNewTrack(); // Set user ID
-    }
-
-    async Task SetCurrentUserIdOnNewTrack()
-    {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync(); // Get auth state
-        var user = authState.User;
-        if (user.Identity?.IsAuthenticated == true)
-        {
-            newTrack.UserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty; // Set user ID
-        }
-    }
-
-    void CancelAddTrack()
-    {
-        addingTrack = false; // Cancel add track
-        newTrack = new LearningTrack(); // Reset new track
-    }
-
-    async Task SaveNewTrack()
-    {
-        await SetCurrentUserIdOnNewTrack(); // Ensure user ID
-        await LearningTrackRepo.AddAsync(newTrack); // Save new track
-        addingTrack = false;
-        await LoadData(); // Reload data
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadData(); // Initial data load
-    }
-
-    private async Task LoadData()
-    {
-        tracks = (await LearningTrackRepo.GetAllAsync()).ToList(); // Load all tracks
-        editingItem = null;
-        addingCategoryTrackId = null;
-        addingSourceCategoryId = null;
-        newCategory = new();
-        newSource = new();
-    }
-
-    void EditTrack(LearningTrack track) => editingItem = new LearningTrack { Id = track.Id, Name = track.Name, Description = track.Description, UserId = track.UserId }; // Start editing track
-    void EditCategory(LearningTrackCategory cat) => editingItem = new LearningTrackCategory { Id = cat.Id, Name = cat.Name, Difficulty = cat.Difficulty, Description = cat.Description }; // Start editing category
-    void EditSource(LearningTrackSource src) => editingItem = new LearningTrackSource { Id = src.Id, Name = src.Name, SourceType = src.SourceType, Url = src.Url, Description = src.Description }; // Start editing source
-
-    async Task SaveEdit(object item)
-    {
-        switch (item)
-        {
-            case LearningTrack track:
-                await LearningTrackRepo.UpdateAsync(track); // Save track edit
-                break;
-            case LearningTrackCategory category:
-                await CategoryRepo.UpdateAsync(category); // Save category edit
-                break;
-            case LearningTrackSource source:
-                await SourceRepo.UpdateAsync(source); // Save source edit
-                break;
-        }
-        await LoadData(); // Reload data
-    }
-
-    void CancelEdit() => editingItem = null; // Cancel editing
-
-    void AddCategory(int trackId)
-    {
-        addingCategoryTrackId = trackId; // Set track for new category
-        newCategory = new LearningTrackCategory { LearningTrackId = trackId }; // Reset new category
-    }
-    void AddSource(int categoryId)
-    {
-        addingSourceCategoryId = categoryId; // Set category for new source
-        newSource = new LearningTrackSource { LearningTrackCategoryId = categoryId }; // Reset new source
-    }
-    async Task SaveNewCategory()
-    {
-        await CategoryRepo.AddAsync(newCategory); // Save new category
-        await LoadData(); // Reload data
-    }
-    async Task SaveNewSource()
-    {
-        await SourceRepo.AddAsync(newSource); // Save new source
-        await LoadData(); // Reload data
-    }
-    void CancelAddCategory()
-    {
-        addingCategoryTrackId = null; // Cancel add category
-        newCategory = new LearningTrackCategory(); // Reset new category
-    }
-    void CancelAddSource()
-    {
-        addingSourceCategoryId = null; // Cancel add source
-        newSource = new LearningTrackSource(); // Reset new source
-    }
-
-    async void DeleteTrack(int id)
-    {
-        await LearningTrackRepo.DeleteAsync(id); // Delete track
-        await LoadData(); // Reload data
-    }
-
-    async void DeleteCategory(int id)
-    {
-        await CategoryRepo.DeleteAsync(id); // Delete category
-        await LoadData(); // Reload data
-    }
-
-    async void DeleteSource(int id)
-    {
-        await SourceRepo.DeleteAsync(id); // Delete source
-        await LoadData(); // Reload data
-    }
-
-    void ToggleTrack(int id)
-    {
-        if (!expandedTracks.Add(id))
-            expandedTracks.Remove(id); // Toggle track expand/collapse
-    }
-
-    void ToggleCategory(int id)
-    {
-        if (!expandedCategories.Add(id))
-            expandedCategories.Remove(id); // Toggle category expand/collapse
-    }
-
-    string GetChevron(int id, HashSet<int> expandedSet)
-        => expandedSet.Contains(id) ? "bi-chevron-down" : "bi-chevron-right"; // Chevron icon
-}
+    <ul class="list-group

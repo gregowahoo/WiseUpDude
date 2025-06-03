@@ -1,0 +1,108 @@
+@using WiseUpDude.Model
+@using WiseUpDude.Components.Controls
+
+<div>
+    @if (IsEditing)
+    {
+        <input class="form-control d-inline w-auto me-2" @bind="EditTrack.Name" placeholder="Track Name" />
+        <input class="form-control d-inline w-auto me-2" @bind="EditTrack.Description" placeholder="Description" />
+        <button class="btn btn-sm btn-success me-1" @onclick="() => OnSave.InvokeAsync(EditTrack)">Save</button>
+        <button class="btn btn-sm btn-secondary" @onclick="OnCancel">Cancel</button>
+    }
+    else
+    {
+        <span @onclick="OnToggle" style="cursor:pointer;">
+            <i class="bi @ChevronIcon" style="margin-right:4px;"></i>
+            <strong>@Track.Name</strong>
+            <span class="text-muted ms-2">@Track.Description</span>
+        </span>
+        <button class="btn btn-sm btn-link ms-2" @onclick:stopPropagation @onclick="OnEdit">Edit</button>
+        <button class="btn btn-sm btn-link text-danger" @onclick:stopPropagation @onclick="() => OnDelete.InvokeAsync(Track.Id)">Delete</button>
+        <button class="btn btn-sm btn-link" @onclick:stopPropagation @onclick="OnAddCategory">Add Category</button>
+    }
+    @if (IsExpanded && Track.Categories != null)
+    {
+        <ul class="list-group ms-4 mt-2">
+            @foreach (var cat in Track.Categories)
+            {
+                <li class="list-group-item">
+                    <LearningTrackCategoryItem Category="cat"
+                                              IsEditing="EditingCategoryId == cat.Id"
+                                              EditCategory="EditCategory"
+                                              OnSave="OnSaveCategory"
+                                              OnCancel="OnCancelCategory"
+                                              OnEdit="() => OnEditCategory.InvokeAsync(cat)"
+                                              OnDelete="OnDeleteCategory"
+                                              OnAddSource="() => OnAddSource.InvokeAsync(cat.Id)"
+                                              IsExpanded="ExpandedCategoryIds?.Contains(cat.Id) == true"
+                                              OnToggle="() => OnToggleCategory.InvokeAsync(cat.Id)"
+                                              ChevronIcon="@GetChevron(cat.Id)"
+                                              ShowAddSource="AddSourceCategoryId.HasValue && AddSourceCategoryId.Value == cat.Id"
+                                              NewSource="NewSource"
+                                              OnSaveNewSource="OnSaveNewSource"
+                                              OnCancelAddSource="OnCancelAddSource"
+                                              EditingSourceId="EditingSourceId"
+                                              EditSource="EditSource"
+                                              OnSaveSource="OnSaveSource"
+                                              OnCancelSource="OnCancelSource"
+                                              OnEditSource="OnEditSource"
+                                              OnDeleteSource="OnDeleteSource" />
+                </li>
+            }
+        </ul>
+    }
+    @if (ShowAddCategory)
+    {
+        <div class="ms-4 mt-2">
+            <input class="form-control d-inline w-auto me-2" @bind="NewCategory.Name" placeholder="Category Name" />
+            <select class="form-select d-inline w-auto me-2" @bind="NewCategory.Difficulty">
+                <option value="">Select Difficulty</option>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+            </select>
+            <input class="form-control d-inline w-auto me-2" @bind="NewCategory.Description" placeholder="Description" />
+            <button class="btn btn-sm btn-success me-1" @onclick="() => OnSaveNewCategory.InvokeAsync(NewCategory)">Save</button>
+            <button class="btn btn-sm btn-secondary" @onclick="OnCancelAddCategory">Cancel</button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public LearningTrack Track { get; set; }
+    [Parameter] public bool IsEditing { get; set; }
+    [Parameter] public LearningTrack EditTrack { get; set; }
+    [Parameter] public EventCallback<LearningTrack> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnEdit { get; set; }
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
+    [Parameter] public EventCallback OnAddCategory { get; set; }
+    [Parameter] public bool IsExpanded { get; set; }
+    [Parameter] public EventCallback OnToggle { get; set; }
+    [Parameter] public string ChevronIcon { get; set; }
+    [Parameter] public bool ShowAddCategory { get; set; }
+    [Parameter] public LearningTrackCategory NewCategory { get; set; }
+    [Parameter] public EventCallback<LearningTrackCategory> OnSaveNewCategory { get; set; }
+    [Parameter] public EventCallback OnCancelAddCategory { get; set; }
+    [Parameter] public int? EditingCategoryId { get; set; }
+    [Parameter] public LearningTrackCategory EditCategory { get; set; }
+    [Parameter] public EventCallback<LearningTrackCategory> OnSaveCategory { get; set; }
+    [Parameter] public EventCallback OnCancelCategory { get; set; }
+    [Parameter] public EventCallback<LearningTrackCategory> OnEditCategory { get; set; }
+    [Parameter] public EventCallback<int> OnDeleteCategory { get; set; }
+    [Parameter] public EventCallback<int> OnAddSource { get; set; }
+    [Parameter] public HashSet<int> ExpandedCategoryIds { get; set; }
+    [Parameter] public EventCallback<int> OnToggleCategory { get; set; }
+    [Parameter] public int? AddSourceCategoryId { get; set; }
+    [Parameter] public bool ShowAddSource { get; set; }
+    [Parameter] public LearningTrackSource NewSource { get; set; }
+    [Parameter] public EventCallback<LearningTrackSource> OnSaveNewSource { get; set; }
+    [Parameter] public EventCallback OnCancelAddSource { get; set; }
+    [Parameter] public int? EditingSourceId { get; set; }
+    [Parameter] public LearningTrackSource EditSource { get; set; }
+    [Parameter] public EventCallback<LearningTrackSource> OnSaveSource { get; set; }
+    [Parameter] public EventCallback OnCancelSource { get; set; }
+    [Parameter] public EventCallback<LearningTrackSource> OnEditSource { get; set; }
+    [Parameter] public EventCallback<int> OnDeleteSource { get; set; }
+    private string GetChevron(int id) => ExpandedCategoryIds?.Contains(id) == true ? "bi-chevron-down" : "bi-chevron-right";
+}

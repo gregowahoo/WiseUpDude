@@ -1,0 +1,103 @@
+@using WiseUpDude.Model
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-secondary mb-0"><i class="bi bi-card-list me-2"></i>Questions for Quiz ID: @LearningTrackQuizId</h4>
+    <button class="btn btn-success" @onclick="AddNewQuestion">
+        <i class="bi bi-plus-circle-fill me-1"></i> Add New Question
+    </button>
+</div>
+
+@if (questions == null)
+{
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 150px;">
+        <div class="spinner-border text-warning" role="status"><span class="visually-hidden">Loading...</span></div>
+        <strong class="ms-2">Loading questions...</strong>
+    </div>
+}
+else if (!questions.Any())
+{
+     <div class="alert alert-light text-center" role="alert">
+        <i class="bi bi-info-circle me-2"></i> No questions found for this quiz.
+        <button class="btn btn-link p-0 ms-1" @onclick="AddNewQuestion">Add one now!</button>
+    </div>
+}
+else
+{
+    <QuickGrid Items="@questionsQueryable" ResizableColumns="true" Pagination="@paginationState" Class="table table-hover table-sm table-bordered">
+        <PropertyColumn Property="@(q => q.Question)" Sortable="true" Title="Question Text">
+            <ColumnOptions>
+                <div class="custom-header"><i class="bi bi-question-circle me-1"></i> Question Text</div>
+            </ColumnOptions>
+        </PropertyColumn>
+        <PropertyColumn Property="@(q => q.Answer)" Title="Answer">
+            <ColumnOptions>
+                <div class="custom-header"><i class="bi bi-check2-circle me-1"></i> Answer</div>
+            </ColumnOptions>
+        </PropertyColumn>
+        <PropertyColumn Property="@(q => q.Difficulty)" Sortable="true" Title="Difficulty">
+            <ColumnOptions>
+                <div class="custom-header"><i class="bi bi-bar-chart-steps me-1"></i> Difficulty</div>
+            </ColumnOptions>
+        </PropertyColumn>
+        <PropertyColumn Property="@(q => q.CreationDate)" Format="yyyy-MM-dd HH:mm" Sortable="true" Title="Created On">
+            <ColumnOptions>
+                <div class="custom-header"><i class="bi bi-calendar-event me-1"></i> Created On</div>
+            </ColumnOptions>
+        </PropertyColumn>
+        <TemplateColumn Title="Actions" Class="text-center" HeaderClass="text-center">
+            <ColumnOptions>
+                <div class="custom-header"><i class="bi bi-tools me-1"></i> Actions</div>
+            </ColumnOptions>
+            <ChildContent Context="question">
+                <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => EditQuestion(question)" title="Edit Question">
+                    <i class="bi bi-pencil-square"></i> Edit
+                </button>
+                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteQuestion(question)" title="Delete Question">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </ChildContent>
+        </TemplateColumn>
+    </QuickGrid>
+    <Paginator State="@paginationState" />
+}
+
+@code {
+    [Parameter] public int LearningTrackQuizId { get; set; }
+    // No selection callback needed if this is the last grid
+
+    private List<LearningTrackQuizQuestion>? questions;
+    private IQueryable<LearningTrackQuizQuestion>? questionsQueryable;
+    private PaginationState paginationState = new PaginationState { ItemsPerPage = 5 };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadQuestions();
+    }
+
+    private async Task LoadQuestions()
+    {
+        questions = null;
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(300);
+
+        questions = new List<LearningTrackQuizQuestion>
+        {
+            new LearningTrackQuizQuestion { Id = 401, LearningTrackQuizId = LearningTrackQuizId, Question = "What is Blazor?", Answer = "A web framework.", Difficulty = "Easy", CreationDate = DateTime.UtcNow.AddDays(-LearningTrackQuizId) },
+            new LearningTrackQuizQuestion { Id = 402, LearningTrackQuizId = LearningTrackQuizId, Question = "C# or JavaScript?", Answer = "C#", Difficulty = "Easy", CreationDate = DateTime.UtcNow.AddDays(-LearningTrackQuizId -1) }
+        }.Where(q => q.LearningTrackQuizId == LearningTrackQuizId).ToList();
+        questionsQueryable = questions.AsQueryable();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void AddNewQuestion() { Console.WriteLine($"Add New Question for Quiz ID: {LearningTrackQuizId}"); }
+    private void EditQuestion(LearningTrackQuizQuestion question) { Console.WriteLine($"Edit Question: {question.Question}"); }
+    private async Task DeleteQuestion(LearningTrackQuizQuestion question) {
+        Console.WriteLine($"Delete Question: {question.Question}");
+        if (questions != null) {
+            questions.Remove(question);
+            questionsQueryable = questions.AsQueryable();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}

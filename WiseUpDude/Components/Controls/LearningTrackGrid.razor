@@ -1,0 +1,125 @@
+@using WiseUpDude.Model
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-secondary mb-0"><i class="bi bi-list-task me-2"></i>Learning Tracks</h4>
+    <button class="btn btn-success" @onclick="AddNewTrack">
+        <i class="bi bi-plus-circle-fill me-1"></i> Add New Track
+    </button>
+</div>
+
+@if (tracks == null)
+{
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <strong class="ms-2">Loading tracks...</strong>
+    </div>
+}
+else if (!tracks.Any())
+{
+    <div class="alert alert-light text-center" role="alert">
+        <i class="bi bi-info-circle me-2"></i> No learning tracks found.
+        <button class="btn btn-link p-0 ms-1" @onclick="AddNewTrack">Add one now!</button>
+    </div>
+}
+else
+{
+    <QuickGrid Items="@tracksQueryable" ResizableColumns="true" Pagination="@paginationState" Class="table table-hover table-striped table-bordered">
+        <PropertyColumn Property="@(t => t.Name)" Sortable="true" Title="Track Name">
+            <ColumnOptions>
+                <div class="custom-header">
+                    <i class="bi bi-type me-1"></i> Track Name
+                </div>
+            </ColumnOptions>
+        </PropertyColumn>
+        <PropertyColumn Property="@(t => t.Description)" Title="Description">
+            <ColumnOptions>
+                <div class="custom-header">
+                    <i class="bi bi-text-paragraph me-1"></i> Description
+                </div>
+            </ColumnOptions>
+        </PropertyColumn>
+        <PropertyColumn Property="@(t => t.CreationDate)" Format="yyyy-MM-dd" Sortable="true" Title="Created On">
+            <ColumnOptions>
+                <div class="custom-header">
+                    <i class="bi bi-calendar-event me-1"></i> Created On
+                </div>
+            </ColumnOptions>
+        </PropertyColumn>
+        <TemplateColumn Title="Actions" Class="text-center" HeaderClass="text-center">
+            <ColumnOptions>
+                <div class="custom-header">
+                    <i class="bi bi-tools me-1"></i> Actions
+                </div>
+            </ColumnOptions>
+            <ChildContent Context="track">
+                <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => SelectTrack(track)" title="Select Track">
+                    <i class="bi bi-check-circle"></i> Select
+                </button>
+                <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => EditTrack(track)" title="Edit Track">
+                    <i class="bi bi-pencil-square"></i> Edit
+                </button>
+                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteTrack(track)" title="Delete Track">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </ChildContent>
+        </TemplateColumn>
+    </QuickGrid>
+    <Paginator State="@paginationState" />
+}
+
+<!-- TODO: Add Modals for Add/Edit operations -->
+
+@code {
+    private List<LearningTrack>? tracks;
+    private IQueryable<LearningTrack>? tracksQueryable;
+    private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
+
+    [Parameter] public EventCallback<LearningTrack> OnLearningTrackSelected { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Simulate data loading
+        await Task.Delay(500); // Simulate network latency
+        tracks = new List<LearningTrack>
+        {
+            new LearningTrack { Id = 1, Name = "Blazor Fundamentals", Description = "Learn the basics of Blazor.", CreationDate = DateTime.UtcNow.AddDays(-10) },
+            new LearningTrack { Id = 2, Name = "Advanced C#", Description = "Deep dive into C# features.", CreationDate = DateTime.UtcNow.AddDays(-5) },
+            new LearningTrack { Id = 3, Name = "ASP.NET Core Web API", Description = "Building robust APIs.", CreationDate = DateTime.UtcNow.AddDays(-20) }
+        };
+        tracksQueryable = tracks.AsQueryable();
+    }
+
+    private async Task SelectTrack(LearningTrack track)
+    {
+        await OnLearningTrackSelected.InvokeAsync(track);
+    }
+
+    private void AddNewTrack()
+    {
+        // TODO: Implement logic to show an "Add New Track" modal/form
+        Console.WriteLine("Add New Track clicked");
+    }
+
+    private void EditTrack(LearningTrack track)
+    {
+        // TODO: Implement logic to show an "Edit Track" modal/form, pre-filled with track data
+        Console.WriteLine($"Edit Track clicked for: {track.Name}");
+    }
+
+    private async Task DeleteTrack(LearningTrack track)
+    {
+        // TODO: Implement confirmation and deletion logic
+        // For now, just remove from list and refresh
+        Console.WriteLine($"Delete Track clicked for: {track.Name}");
+        bool confirmed = true; // Replace with actual confirmation dialog (e.g., using JS interop or a Blazor modal component)
+        if (confirmed && tracks != null)
+        {
+            tracks.Remove(track);
+            tracksQueryable = tracks.AsQueryable();
+            StateHasChanged(); // Refresh the grid
+        }
+    }
+}

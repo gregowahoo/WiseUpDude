@@ -1,0 +1,65 @@
+@using WiseUpDude.Model
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-secondary mb-0"><i class="bi bi-diagram-3 me-2"></i>Categories for Track ID: @LearningTrackId</h4>
+    <button class="btn btn-success" @onclick="AddNewCategory">
+        <i class="bi bi-plus-circle-fill me-1"></i> Add New Category
+    </button>
+</div>
+
+@if (categories == null)
+{
+    <p><em>Loading categories...</em></p>
+}
+else
+{
+    <QuickGrid Items="@categoriesQueryable" ResizableColumns="true" Pagination="@paginationState" Class="table table-hover table-sm table-bordered">
+        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Title="Category Name" />
+        <PropertyColumn Property="@(c => c.Description)" Title="Description" />
+        <TemplateColumn Title="Actions" Class="text-center">
+            <ChildContent Context="category">
+                <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => SelectCategory(category)">
+                    <i class="bi bi-check-circle"></i> Select
+                </button>
+                <!-- Edit/Delete buttons -->
+            </ChildContent>
+        </TemplateColumn>
+    </QuickGrid>
+    <Paginator State="@paginationState" />
+}
+
+@code {
+    [Parameter] public int LearningTrackId { get; set; }
+    [Parameter] public EventCallback<LearningTrackCategory> OnLearningTrackCategorySelected { get; set; }
+
+    private List<LearningTrackCategory>? categories;
+    private IQueryable<LearningTrackCategory>? categoriesQueryable;
+    private PaginationState paginationState = new PaginationState { ItemsPerPage = 5 };
+
+
+    protected override async Task OnParametersSetAsync() // Use OnParametersSetAsync to react to parent ID changes
+    {
+        await LoadCategories();
+    }
+
+    private async Task LoadCategories()
+    {
+        // TODO: Replace with actual data loading filtered by LearningTrackId
+        await Task.Delay(300); 
+        categories = new List<LearningTrackCategory>
+        {
+            new LearningTrackCategory { Id = 101, LearningTrackId = LearningTrackId, Name = $"Category A for Track {LearningTrackId}", Description = "First category" },
+            new LearningTrackCategory { Id = 102, LearningTrackId = LearningTrackId, Name = $"Category B for Track {LearningTrackId}", Description = "Second category" }
+        };
+        categoriesQueryable = categories.AsQueryable();
+        StateHasChanged();
+    }
+
+    private async Task SelectCategory(LearningTrackCategory category)
+    {
+        await OnLearningTrackCategorySelected.InvokeAsync(category);
+    }
+
+    private void AddNewCategory() { /* TODO */ }
+}

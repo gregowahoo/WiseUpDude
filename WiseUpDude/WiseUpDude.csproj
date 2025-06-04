@@ -65,6 +65,8 @@
 	<ItemGroup>
 	  <Content Remove="..\WiseUpDude.Client\wwwroot\appsettings.Development.json" />
 	  <Content Remove="..\WiseUpDude.Client\wwwroot\appsettings.json" />
+	  <Content Remove="Components\Pages\LearningTrackMaint_HELLO.razor" />
+	  <Content Remove="Components\Pages\LearningTracks.razor" />
 	</ItemGroup>
 
 	<ItemGroup>

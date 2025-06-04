@@ -1,0 +1,106 @@
+@using WiseUpDude.Model
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-secondary mb-0"><i class="bi bi-patch-question me-2"></i>Quizzes for Source ID: @LearningTrackSourceId</h4>
+    <button class="btn btn-success" @onclick="AddNewQuiz">
+        <i class="bi bi-plus-circle-fill me-1"></i> Add New Quiz
+    </button>
+</div>
+
+@if (quizzes == null)
+{
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 150px;">
+        <div class="spinner-border text-success" role="status"><span class="visually-hidden">Loading...</span></div>
+        <strong class="ms-2">Loading quizzes...</strong>
+    </div>
+}
+else if (!quizzes.Any())
+{
+     <div class="alert alert-light text-center" role="alert">
+        <i class="bi bi-info-circle me-2"></i> No quizzes found for this source.
+        <button class="btn btn-link p-0 ms-1" @onclick="AddNewQuiz">Add one now!</button>
+    </div>
+}
+else
+{
+    <QuickGrid Items="@quizzesQueryable" ResizableColumns="true" Pagination="@paginationState" Class="table table-hover table-sm table-bordered">
+        <PropertyColumn Property="@(q => q.Name)" Sortable="true" Title="Quiz Name">
+            <ColumnOptions>
+                <div class="custom-header"><i class="bi bi-type me-1"></i> Quiz Name</div>
+            </ColumnOptions>
+        </PropertyColumn>
+        <PropertyColumn Property="@(q => q.Description)" Title="Description">
+            <ColumnOptions>
+                <div class="custom-header"><i class="bi bi-text-paragraph me-1"></i> Description</div>
+            </ColumnOptions>
+        </PropertyColumn>
+        <PropertyColumn Property="@(q => q.CreationDate)" Format="yyyy-MM-dd HH:mm" Sortable="true" Title="Created On">
+            <ColumnOptions>
+                <div class="custom-header"><i class="bi bi-calendar-event me-1"></i> Created On</div>
+            </ColumnOptions>
+        </PropertyColumn>
+        <TemplateColumn Title="Actions" Class="text-center" HeaderClass="text-center">
+            <ColumnOptions>
+                <div class="custom-header"><i class="bi bi-tools me-1"></i> Actions</div>
+            </ColumnOptions>
+            <ChildContent Context="quiz">
+                <button class="btn btn-sm btn-primary me-1" @onclick="() => SelectQuiz(quiz)" title="Select Quiz">
+                    <i class="bi bi-check-circle-fill"></i> Select
+                </button>
+                <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => EditQuiz(quiz)" title="Edit Quiz">
+                    <i class="bi bi-pencil-square"></i> Edit
+                </button>
+                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteQuiz(quiz)" title="Delete Quiz">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </ChildContent>
+        </TemplateColumn>
+    </QuickGrid>
+    <Paginator State="@paginationState" />
+}
+
+@code {
+    [Parameter] public int LearningTrackSourceId { get; set; }
+    [Parameter] public EventCallback<LearningTrackQuiz> OnLearningTrackQuizSelected { get; set; }
+
+    private List<LearningTrackQuiz>? quizzes;
+    private IQueryable<LearningTrackQuiz>? quizzesQueryable;
+    private PaginationState paginationState = new PaginationState { ItemsPerPage = 5 };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadQuizzes();
+    }
+
+    private async Task LoadQuizzes()
+    {
+        quizzes = null;
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(300); 
+
+        quizzes = new List<LearningTrackQuiz>
+        {
+            new LearningTrackQuiz { Id = 301, LearningTrackSourceId = LearningTrackSourceId, Name = $"Component Quiz for Source {LearningTrackSourceId}", Description = "Test your component knowledge.", CreationDate = DateTime.UtcNow.AddDays(-LearningTrackSourceId) },
+            new LearningTrackQuiz { Id = 302, LearningTrackSourceId = LearningTrackSourceId, Name = $"Lifecycle Quiz for Source {LearningTrackSourceId}", Description = "Understanding Blazor lifecycle methods.", CreationDate = DateTime.UtcNow.AddDays(-LearningTrackSourceId -1) }
+        }.Where(q => q.LearningTrackSourceId == LearningTrackSourceId).ToList();
+        quizzesQueryable = quizzes.AsQueryable();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SelectQuiz(LearningTrackQuiz quiz)
+    {
+        await OnLearningTrackQuizSelected.InvokeAsync(quiz);
+    }
+
+    private void AddNewQuiz() { Console.WriteLine($"Add New Quiz for Source ID: {LearningTrackSourceId}"); }
+    private void EditQuiz(LearningTrackQuiz quiz) { Console.WriteLine($"Edit Quiz: {quiz.Name}"); }
+    private async Task DeleteQuiz(LearningTrackQuiz quiz) {
+        Console.WriteLine($"Delete Quiz: {quiz.Name}");
+         if (quizzes != null) {
+            quizzes.Remove(quiz);
+            quizzesQueryable = quizzes.AsQueryable();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}

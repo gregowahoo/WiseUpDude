@@ -1,0 +1,114 @@
+@using WiseUpDude.Model
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-secondary mb-0"><i class="bi bi-link-45deg me-2"></i>Sources for Category ID: @LearningTrackCategoryId</h4>
+    <button class="btn btn-success" @onclick="AddNewSource">
+        <i class="bi bi-plus-circle-fill me-1"></i> Add New Source
+    </button>
+</div>
+
+@if (sources == null)
+{
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 150px;">
+        <div class="spinner-border text-info" role="status"><span class="visually-hidden">Loading...</span></div>
+        <strong class="ms-2">Loading sources...</strong>
+    </div>
+}
+else if (!sources.Any())
+{
+     <div class="alert alert-light text-center" role="alert">
+        <i class="bi bi-info-circle me-2"></i> No sources found for this category.
+        <button class="btn btn-link p-0 ms-1" @onclick="AddNewSource">Add one now!</button>
+    </div>
+}
+else
+{
+    <QuickGrid Items="@sourcesQueryable" ResizableColumns="true" Pagination="@paginationState" Class="table table-hover table-sm table-bordered">
+        <PropertyColumn Property="@(s => s.Name)" Sortable="true" Title="Source Name">
+            <ColumnOptions><div class="custom-header"><i class="bi bi-type me-1"></i> Source Name</div></ColumnOptions>
+        </PropertyColumn>
+        <PropertyColumn Property="@(s => s.SourceType)" Sortable="true" Title="Type">
+            <ColumnOptions><div class="custom-header"><i class="bi bi-tag me-1"></i> Type</div></ColumnOptions>
+        </PropertyColumn>
+        <TemplateColumn Title="URL">
+            <ColumnOptions><div class="custom-header"><i class="bi bi-link me-1"></i> URL</div></ColumnOptions>
+            <ChildContent Context="source">
+                @if (!string.IsNullOrWhiteSpace(source.Url))
+                {
+                    <a href="@source.Url" target="_blank">@source.Url</a>
+                }
+            </ChildContent>
+        </TemplateColumn>
+        <PropertyColumn Property="@(s => s.Description)" Title="Description">
+            <ColumnOptions><div class="custom-header"><i class="bi bi-text-paragraph me-1"></i> Description</div></ColumnOptions>
+        </PropertyColumn>
+        <PropertyColumn Property="@(s => s.CreationDate)" Format="yyyy-MM-dd HH:mm" Sortable="true" Title="Created On">
+            <ColumnOptions><div class="custom-header"><i class="bi bi-calendar-event me-1"></i> Created On</div></ColumnOptions>
+        </PropertyColumn>
+        <TemplateColumn Title="Actions" Class="text-center" HeaderClass="text-center">
+            <ColumnOptions><div class="custom-header"><i class="bi bi-tools me-1"></i> Actions</div></ColumnOptions>
+            <ChildContent Context="source">
+                <button class="btn btn-sm btn-primary me-1" @onclick="() => SelectSource(source)" title="Select Source">
+                    <i class="bi bi-check-circle-fill"></i> Select
+                </button>
+                <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => EditSource(source)" title="Edit Source">
+                    <i class="bi bi-pencil-square"></i> Edit
+                </button>
+                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteSource(source)" title="Delete Source">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </ChildContent>
+        </TemplateColumn>
+    </QuickGrid>
+    <Paginator State="@paginationState" />
+}
+
+@code {
+    [Parameter] public int LearningTrackCategoryId { get; set; }
+    [Parameter] public EventCallback<LearningTrackSource> OnLearningTrackSourceSelected { get; set; }
+
+    private List<LearningTrackSource>? sources;
+    private IQueryable<LearningTrackSource>? sourcesQueryable;
+    private PaginationState paginationState = new PaginationState { ItemsPerPage = 5 };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadSources();
+    }
+
+    private async Task LoadSources()
+    {
+        sources = null;
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(300);
+
+        sources = new List<LearningTrackSource>
+        {
+            new LearningTrackSource { Id = 201, LearningTrackCategoryId = LearningTrackCategoryId, Name = "Official Blazor Docs", SourceType = "Documentation", Url = "https://docs.microsoft.com/aspnet/core/blazor/", Description = "Microsoft's official Blazor documentation.", CreationDate = DateTime.UtcNow.AddDays(-LearningTrackCategoryId) },
+            new LearningTrackSource { Id = 202, LearningTrackCategoryId = LearningTrackCategoryId, Name = "Blazor University", SourceType = "Website", Url = "https://blazor-university.com/", Description = "Community-driven Blazor learning site.", CreationDate = DateTime.UtcNow.AddDays(-LearningTrackCategoryId -1) }
+        }.Where(s => s.LearningTrackCategoryId == LearningTrackCategoryId).ToList();
+        
+        if (LearningTrackCategoryId == 101) {
+             sources.Add(new LearningTrackSource { Id = 203, LearningTrackCategoryId = LearningTrackCategoryId, Name = "YouTube - Blazor Crash Course", SourceType = "Video", Url = "https://youtube.com", Description = "A video tutorial.", CreationDate = DateTime.UtcNow.AddDays(-LearningTrackCategoryId - 2) });
+        }
+        sourcesQueryable = sources.AsQueryable();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SelectSource(LearningTrackSource source)
+    {
+        await OnLearningTrackSourceSelected.InvokeAsync(source);
+    }
+
+    private void AddNewSource() { Console.WriteLine($"Add New Source for Category ID: {LearningTrackCategoryId}"); }
+    private void EditSource(LearningTrackSource source) { Console.WriteLine($"Edit Source: {source.Name}"); }
+    private async Task DeleteSource(LearningTrackSource source) {
+        Console.WriteLine($"Delete Source: {source.Name}");
+        if (sources != null) {
+            sources.Remove(source);
+            sourcesQueryable = sources.AsQueryable();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}

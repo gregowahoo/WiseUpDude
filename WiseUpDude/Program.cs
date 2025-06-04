@@ -106,6 +106,18 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 #endregion
 
 
+#region Perplexity AI Configuration
+
+builder.Services.AddHttpClient("PerplexityAI", client =>
+{
+    client.BaseAddress = new Uri("https://api.perplexity.ai/");
+    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {builder.Configuration["Perplexity:ApiKey"]}");
+    client.DefaultRequestHeaders.Add("accept", "application/json");
+});
+
+#endregion
+
+
 #region Chat Client Configuration
 
 var innerChatClientAzure = new AzureOpenAIClient(

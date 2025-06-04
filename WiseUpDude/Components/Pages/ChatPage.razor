@@ -1,0 +1,99 @@
+﻿@page "/chat"
+
+@inject IHttpClientFactory _httpClientFactory
+
+@rendermode InteractiveServer
+
+<h3>Perplexity AI Chat</h3>
+
+<EditForm Model="@request" OnValidSubmit="HandleRequest">
+    <div class="mb-3">
+        <label class="form-label">Enter your prompt:</label>
+        <InputText @bind-Value="request.Prompt" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary" disabled="@isLoading">
+        @(isLoading ? "Processing..." : "Ask")
+    </button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(response))
+{
+    <div class="mt-3 alert alert-success">
+        <h4>Response:</h4>
+        <p>@response</p>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="mt-3 alert alert-danger">
+        @errorMessage
+    </div>
+}
+
+@code {
+    private ChatRequest request = new();
+    private string response = "";
+    private string errorMessage = "";
+    private bool isLoading = false;
+
+    private async Task HandleRequest()
+    {
+        isLoading = true;
+        errorMessage = "";
+        response = "";
+
+        try
+        {
+            var client = _httpClientFactory.CreateClient("PerplexityAI");
+
+            var requestBody = new
+            {
+                model = "sonar-pro",
+                messages = new[]
+                {
+                    new { role = "user", content = request.Prompt }
+                }
+            };
+
+            var response = await client.PostAsJsonAsync("/chat/completions", requestBody);
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadFromJsonAsync<PerplexityResponse>();
+            this.response = content?.choices?.FirstOrDefault()?.message?.content ?? "No response";
+        }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = $"API Error: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private class ChatRequest
+    {
+        public string Prompt { get; set; } = "";
+    }
+
+    private class PerplexityResponse
+    {
+        public List<Choice> choices { get; set; } = new();
+
+        public class Choice
+        {
+            public Message message { get; set; } = new();
+        }
+
+        public class Message
+        {
+            public string role { get; set; } = "";
+            public string content { get; set; } = "";
+        }
+    }
+}

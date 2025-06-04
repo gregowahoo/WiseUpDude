@@ -1,0 +1,62 @@
+@page "/examroom"
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using System.IO
+@using Microsoft.AspNetCore.Components.Forms
+@using UglyToad.PdfPig
+@using UglyToad.PdfPig.Content
+
+<h1>Exam Room</h1>
+<p>Upload a PDF to generate quizzes from its content.</p>
+
+<InputFile OnChange="OnInputFileChange" accept="application/pdf" />
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+@if (!string.IsNullOrEmpty(ExtractedText))
+{
+    <div class="card mt-3">
+        <div class="card-header">Extracted PDF Text (first 10000 chars)</div>
+        <div class="card-body">
+            <pre>@ExtractedText.Substring(0, Math.Min(ExtractedText.Length, 10000))...</pre>
+        </div>
+    </div>
+    <button class="btn btn-success mt-2" @onclick="SendToOpenAI">Send to OpenAI API</button>
+}
+
+@code {
+    private string ErrorMessage = string.Empty;
+    private string ExtractedText = string.Empty;
+    private IBrowserFile? uploadedFile;
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        ErrorMessage = string.Empty;
+        ExtractedText = string.Empty;
+        uploadedFile = e.File;
+        try
+        {
+            using var stream = uploadedFile.OpenReadStream(maxAllowedSize: 100 * 1024 * 1024); // 100MB max
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            ms.Position = 0;
+            using var pdf = PdfDocument.Open(ms);
+            var text = string.Join("\n", pdf.GetPages().Select(p => p.Text));
+            ExtractedText = text;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to read PDF: {ex.Message}";
+        }
+    }
+
+    private async Task SendToOpenAI()
+    {
+        // TODO: Implement sending ExtractedText to OpenAI API for quiz generation
+        await Task.Yield();
+        ErrorMessage = "[Stub] Would send extracted text to OpenAI API here.";
+    }
+}

@@ -1,6 +1,8 @@
 @using WiseUpDude.Model
 @using Microsoft.AspNetCore.Components.QuickGrid
 
+@rendermode InteractiveServer
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="text-secondary mb-0"><i class="bi bi-list-task me-2"></i>Learning Tracks</h4>
     <button class="btn btn-success" @onclick="AddNewTrack">
@@ -48,22 +50,24 @@ else
                 </div>
             </ColumnOptions>
         </PropertyColumn>
-        <TemplateColumn Title="Actions" Class="text-center" HeaderClass="text-center">
+        <TemplateColumn Title="Actions">
             <ColumnOptions>
-                <div class="custom-header">
+                <div class="custom-header text-center">
                     <i class="bi bi-tools me-1"></i> Actions
                 </div>
             </ColumnOptions>
             <ChildContent Context="track">
-                <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => SelectTrack(track)" title="Select Track">
-                    <i class="bi bi-check-circle"></i> Select
-                </button>
-                <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => EditTrack(track)" title="Edit Track">
-                    <i class="bi bi-pencil-square"></i> Edit
-                </button>
-                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteTrack(track)" title="Delete Track">
-                    <i class="bi bi-trash"></i> Delete
-                </button>
+                <div class="text-center">
+                    <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => SelectTrack(track)" title="Select Track">
+                        <i class="bi bi-check-circle"></i> Select
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => EditTrack(track)" title="Edit Track">
+                        <i class="bi bi-pencil-square"></i> Edit
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteTrack(track)" title="Delete Track">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </div>
             </ChildContent>
         </TemplateColumn>
     </QuickGrid>

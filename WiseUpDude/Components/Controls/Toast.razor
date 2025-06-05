@@ -1,0 +1,50 @@
+﻿@inject WiseUpDude.Shared.Services.ToastService ToastService
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+    @if (visible)
+    {
+        <div class="toast show @GetToastClass()" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-body">
+                @message
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string message = "";
+    private bool visible = false;
+    private ToastLevel level = ToastLevel.Info;
+    private System.Timers.Timer? timer;
+
+    protected override void OnInitialized()
+    {
+        ToastService.OnShow += ShowToast;
+    }
+
+    private async Task ShowToast(string msg, ToastLevel toastLevel)
+    {
+        message = msg;
+        level = toastLevel;
+        visible = true;
+        StateHasChanged();
+
+        timer?.Dispose();
+        timer = new System.Timers.Timer(3000);
+        timer.Elapsed += (s, e) =>
+        {
+            visible = false;
+            timer?.Dispose();
+            InvokeAsync(StateHasChanged);
+        };
+        timer.Start();
+    }
+
+    private string GetToastClass() => level switch
+    {
+        ToastLevel.Success => "bg-success text-white",
+        ToastLevel.Error => "bg-danger text-white",
+        ToastLevel.Warning => "bg-warning text-dark",
+        _ => "bg-info text-white"
+    };
+}

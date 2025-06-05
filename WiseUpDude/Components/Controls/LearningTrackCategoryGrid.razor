@@ -1,7 +1,10 @@
 @using WiseUpDude.Model
 @using Microsoft.AspNetCore.Components.QuickGrid
+@inject WiseUpDude.Data.Repositories.Interfaces.ILearningTrackCategoryRepository LearningTrackCategoryRepo
+@inject WiseUpDude.Shared.Services.ToastService ToastService
 
 @rendermode InteractiveServer
+
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="text-secondary mb-0"><i class="bi bi-diagram-3 me-2"></i>Categories for Track ID: @LearningTrackId</h4>
@@ -12,23 +15,161 @@
 
 @if (categories == null)
 {
-    <p><em>Loading categories...</em></p>
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 120px;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <strong class="ms-2">Loading categories...</strong>
+    </div>
+}
+else if (!categories.Any())
+{
+    <div class="alert alert-light text-center" role="alert">
+        <i class="bi bi-info-circle me-2"></i> No categories found for this track.
+        <button class="btn btn-link p-0 ms-1" @onclick="AddNewCategory">Add one now!</button>
+    </div>
 }
 else
 {
     <QuickGrid Items="@categoriesQueryable" ResizableColumns="true" Pagination="@paginationState" Class="table table-hover table-sm table-bordered">
-        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Title="Category Name" />
-        <PropertyColumn Property="@(c => c.Description)" Title="Description" />
-        <TemplateColumn Title="Actions" Class="text-center">
+        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Title="Category Name">
+            <ColumnOptions>
+                <div class="custom-header">
+                    <i class="bi bi-type me-1"></i> Category Name
+                </div>
+            </ColumnOptions>
+        </PropertyColumn>
+        <PropertyColumn Property="@(c => c.Description)" Title="Description">
+            <ColumnOptions>
+                <div class="custom-header">
+                    <i class="bi bi-text-paragraph me-1"></i> Description
+                </div>
+            </ColumnOptions>
+        </PropertyColumn>
+        <TemplateColumn Title="Actions">
+            <ColumnOptions>
+                <div class="custom-header text-center">
+                    <i class="bi bi-tools me-1"></i> Actions
+                </div>
+            </ColumnOptions>
             <ChildContent Context="category">
-                <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => SelectCategory(category)">
-                    <i class="bi bi-check-circle"></i> Select
-                </button>
-                <!-- Edit/Delete buttons -->
+                <div class="text-center">
+                    <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => SelectCategory(category)" title="Select Category">
+                        <i class="bi bi-check-circle"></i> Select
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => EditCategory(category)" title="Edit Category">
+                        <i class="bi bi-pencil-square"></i> Edit
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteCategory(category)" title="Delete Category">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </div>
             </ChildContent>
         </TemplateColumn>
     </QuickGrid>
     <Paginator State="@paginationState" />
+}
+
+<Modal IsVisible="@showModal" Title="@modalTitle" OnClose="CloseModal">
+    <EditForm Model="@modalCategory" OnValidSubmit="SaveCategory">
+        <div class="mb-3">
+            <label class="form-label">Name</label>
+            <InputText class="form-control" @bind-Value="modalCategory.Name" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <InputTextArea class="form-control" @bind-Value="modalCategory.Description" />
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-secondary ms-2" @onclick="CloseModal">Cancel</button>
+    </EditForm>
+</Modal>
+
+@code{
+    //Code related to the modal popup.
+    private bool showModal = false;
+    private string modalTitle = "Add/Edit Category";
+    private LearningTrackCategory modalCategory = new();
+
+    private void AddNewCategory()
+    {
+        modalTitle = "Add New Category";
+        modalCategory = new LearningTrackCategory { LearningTrackId = LearningTrackId };
+        showModal = true;
+    }
+
+    private void EditCategory(LearningTrackCategory category)
+    {
+        try
+        {
+            modalTitle = "Edit Category";
+            modalCategory = new LearningTrackCategory
+            {
+                Id = category.Id,
+                Name = category.Name,
+                Description = category.Description,
+                Difficulty = category.Difficulty,
+                LearningTrackId = category.LearningTrackId,
+                CreationDate = category.CreationDate
+            };
+            showModal = true;
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowToast($"Failed to open edit modal: {ex.Message}", ToastLevel.Error);
+        }
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private async Task SaveCategory()
+    {
+        try
+        {
+            if (modalCategory.Id == 0)
+                await LearningTrackCategoryRepo.AddAsync(modalCategory);
+            else
+                await LearningTrackCategoryRepo.UpdateAsync(modalCategory);
+
+            await ToastService.ShowToast("Category saved!", ToastLevel.Success);
+            showModal = false;
+            await LoadCategories();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to save category: {ex.Message}", ToastLevel.Error);
+        }
+    }
+
+    private async Task SelectCategory(LearningTrackCategory category)
+    {
+        try
+        {
+            await OnLearningTrackCategorySelected.InvokeAsync(category);
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to select category: {ex.Message}", ToastLevel.Error);
+        }
+    }
+
+    private async Task DeleteCategory(LearningTrackCategory category)
+    {
+        try
+        {
+            await LearningTrackCategoryRepo.DeleteAsync(category.Id);
+            await ToastService.ShowToast($"Category deleted: {category.Name}", ToastLevel.Success);
+            await LoadCategories();
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to delete category: {ex.Message}", ToastLevel.Error);
+        }
+    }
 }
 
 @code {
@@ -39,29 +180,32 @@ else
     private IQueryable<LearningTrackCategory>? categoriesQueryable;
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 5 };
 
-
-    protected override async Task OnParametersSetAsync() // Use OnParametersSetAsync to react to parent ID changes
+    protected override async Task OnParametersSetAsync()
     {
-        await LoadCategories();
+        try
+        {
+            await LoadCategories();
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to load categories: {ex.Message}", ToastLevel.Error);
+        }
     }
 
     private async Task LoadCategories()
     {
-        // TODO: Replace with actual data loading filtered by LearningTrackId
-        await Task.Delay(300); 
-        categories = new List<LearningTrackCategory>
+        try
         {
-            new LearningTrackCategory { Id = 101, LearningTrackId = LearningTrackId, Name = $"Category A for Track {LearningTrackId}", Description = "First category" },
-            new LearningTrackCategory { Id = 102, LearningTrackId = LearningTrackId, Name = $"Category B for Track {LearningTrackId}", Description = "Second category" }
-        };
-        categoriesQueryable = categories.AsQueryable();
-        StateHasChanged();
+            var allCategories = await LearningTrackCategoryRepo.GetAllAsync();
+            categories = allCategories.Where(c => c.LearningTrackId == LearningTrackId).ToList();
+            categoriesQueryable = categories.AsQueryable();
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to load categories: {ex.Message}", ToastLevel.Error);
+            categories = new List<LearningTrackCategory>();
+            categoriesQueryable = categories.AsQueryable();
+        }
     }
-
-    private async Task SelectCategory(LearningTrackCategory category)
-    {
-        await OnLearningTrackCategorySelected.InvokeAsync(category);
-    }
-
-    private void AddNewCategory() { /* TODO */ }
 }
+

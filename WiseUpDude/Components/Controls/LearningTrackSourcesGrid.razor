@@ -46,7 +46,7 @@ else
         <PropertyColumn Property="@(s => s.CreationDate)" Format="yyyy-MM-dd HH:mm" Sortable="true" Title="Created On">
             <ColumnOptions><div class="custom-header"><i class="bi bi-calendar-event me-1"></i> Created On</div></ColumnOptions>
         </PropertyColumn>
-        <TemplateColumn Title="Actions" Class="text-center" HeaderClass="text-center">
+        <TemplateColumn Title="Actions" Class="text-center">
             <ColumnOptions><div class="custom-header"><i class="bi bi-tools me-1"></i> Actions</div></ColumnOptions>
             <ChildContent Context="source">
                 <button class="btn btn-sm btn-primary me-1" @onclick="() => SelectSource(source)" title="Select Source">

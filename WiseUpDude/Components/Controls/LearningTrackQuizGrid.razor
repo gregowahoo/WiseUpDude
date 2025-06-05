@@ -42,7 +42,7 @@ else
                 <div class="custom-header"><i class="bi bi-calendar-event me-1"></i> Created On</div>
             </ColumnOptions>
         </PropertyColumn>
-        <TemplateColumn Title="Actions" Class="text-center" HeaderClass="text-center">
+        <TemplateColumn Title="Actions" Class="text-center">
             <ColumnOptions>
                 <div class="custom-header"><i class="bi bi-tools me-1"></i> Actions</div>
             </ColumnOptions>
@@ -65,6 +65,7 @@ else
 @code {
     [Parameter] public int LearningTrackSourceId { get; set; }
     [Parameter] public EventCallback<LearningTrackQuiz> OnLearningTrackQuizSelected { get; set; }
+    [Parameter] public int LearningTrackCategoryId { get; set; }
 
     private List<LearningTrackQuiz>? quizzes;
     private IQueryable<LearningTrackQuiz>? quizzesQueryable;

@@ -1,6 +1,7 @@
 ﻿@inject WiseUpDude.Shared.Services.ToastService ToastService
-
 @implements IDisposable
+
+@rendermode InteractiveServer
 
 <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
     @if (visible)
@@ -17,7 +18,7 @@
     private string message = "";
     private bool visible = false;
     private ToastLevel level = ToastLevel.Info;
-    private System.Threading.Timer? timer;
+    private CancellationTokenSource? cts;
 
     protected override void OnInitialized()
     {
@@ -28,28 +29,28 @@
     {
         try
         {
-
-            Console.Error.WriteLine($"In Show Toast");
-
             message = msg;
             level = toastLevel;
             visible = true;
             await InvokeAsync(StateHasChanged);
 
-            timer?.Dispose();
-            timer = new System.Threading.Timer(async _ =>
+            cts?.Cancel();
+            cts = new CancellationTokenSource();
+            var token = cts.Token;
+
+            try
             {
-                try
+                await Task.Delay(3000, token);
+                if (!token.IsCancellationRequested)
                 {
                     visible = false;
                     await InvokeAsync(StateHasChanged);
-                    timer?.Dispose();
                 }
-                catch (Exception timerEx)
-                {
-                    Console.Error.WriteLine($"[Toast Timer Error] {timerEx}");
-                }
-            }, null, 3000, System.Threading.Timeout.Infinite);
+            }
+            catch (TaskCanceledException)
+            {
+                // Ignore, another toast was shown
+            }
         }
         catch (Exception ex)
         {
@@ -57,11 +58,11 @@
         }
     }
 
-    // Unsubscribe and dispose timer when the component is disposed
     public void Dispose()
     {
         ToastService.OnShow -= ShowToast;
-        timer?.Dispose();
+        cts?.Cancel();
+        cts?.Dispose();
     }
 
     private string GetToastClass() => level switch

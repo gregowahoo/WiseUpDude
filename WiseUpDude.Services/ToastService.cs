@@ -8,16 +8,7 @@ namespace WiseUpDude.Shared.Services
         public event Func<string, ToastLevel, Task>? OnShow;
 
         public Task ShowToast(string message, ToastLevel level = ToastLevel.Info)
-        {
-            return OnShow?.Invoke(message, level) ?? Task.CompletedTask;
-        }
+            => OnShow?.Invoke(message, level) ?? Task.CompletedTask;
     }
-
-    public enum ToastLevel
-    {
-        Info,
-        Success,
-        Warning,
-        Error
-    }
+    public enum ToastLevel { Info, Success, Warning, Error }
 }

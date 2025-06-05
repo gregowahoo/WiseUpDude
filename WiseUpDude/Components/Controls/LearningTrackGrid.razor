@@ -1,7 +1,10 @@
 @using WiseUpDude.Model
 @using Microsoft.AspNetCore.Components.QuickGrid
+@inject WiseUpDude.Data.Repositories.Interfaces.ILearningTrackRepository LearningTrackRepo
+@inject WiseUpDude.Shared.Services.ToastService ToastService
 
 @rendermode InteractiveServer
+
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="text-secondary mb-0"><i class="bi bi-list-task me-2"></i>Learning Tracks</h4>
@@ -74,26 +77,54 @@ else
     <Paginator State="@paginationState" />
 }
 
-<!-- TODO: Add Modals for Add/Edit operations -->
+
+<Modal IsVisible="@showModal" Title="@modalTitle" OnClose="CloseModal">
+    <EditForm Model="@modalTrack" OnValidSubmit="SaveTrack">
+        <div class="mb-3">
+            <label class="form-label">Name</label>
+            <InputText class="form-control" @bind-Value="modalTrack.Name" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <InputTextArea class="form-control" @bind-Value="modalTrack.Description" />
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-secondary ms-2" @onclick="CloseModal">Cancel</button>
+    </EditForm>
+</Modal>
 
 @code {
     private List<LearningTrack>? tracks;
     private IQueryable<LearningTrack>? tracksQueryable;
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 };
 
+    private bool showModal = false;
+    private string modalTitle = "Add/Edit Track";
+    private LearningTrack modalTrack = new();
+
     [Parameter] public EventCallback<LearningTrack> OnLearningTrackSelected { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        // Simulate data loading
-        await Task.Delay(500); // Simulate network latency
-        tracks = new List<LearningTrack>
+        await LoadTracksFromRepo();
+
+        await ToastService.ShowToast("In OnInitializedAsync", ToastLevel.Info);
+    }
+
+    private async Task LoadTracksFromRepo()
+    {
+        try
         {
-            new LearningTrack { Id = 1, Name = "Blazor Fundamentals", Description = "Learn the basics of Blazor.", CreationDate = DateTime.UtcNow.AddDays(-10) },
-            new LearningTrack { Id = 2, Name = "Advanced C#", Description = "Deep dive into C# features.", CreationDate = DateTime.UtcNow.AddDays(-5) },
-            new LearningTrack { Id = 3, Name = "ASP.NET Core Web API", Description = "Building robust APIs.", CreationDate = DateTime.UtcNow.AddDays(-20) }
-        };
-        tracksQueryable = tracks.AsQueryable();
+            var result = await LearningTrackRepo.GetAllAsync();
+            tracks = result.ToList();
+            tracksQueryable = tracks.AsQueryable();
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to load tracks: {ex.Message}", ToastLevel.Error);
+            tracks = new List<LearningTrack>();
+            tracksQueryable = tracks.AsQueryable();
+        }
     }
 
     private async Task SelectTrack(LearningTrack track)
@@ -103,27 +134,53 @@ else
 
     private void AddNewTrack()
     {
-        // TODO: Implement logic to show an "Add New Track" modal/form
-        Console.WriteLine("Add New Track clicked");
+        modalTitle = "Add New Track";
+        modalTrack = new LearningTrack();
+        showModal = true;
     }
 
     private void EditTrack(LearningTrack track)
     {
-        // TODO: Implement logic to show an "Edit Track" modal/form, pre-filled with track data
-        Console.WriteLine($"Edit Track clicked for: {track.Name}");
+        modalTitle = "Edit Track";
+        modalTrack = new LearningTrack
+        {
+            Id = track.Id,
+            Name = track.Name,
+            Description = track.Description,
+            CreationDate = track.CreationDate
+        };
+        showModal = true;
+    }
+
+    private async Task SaveTrack()
+    {
+        if (modalTrack.Id == 0)
+            await LearningTrackRepo.AddAsync(modalTrack);
+        else
+            await LearningTrackRepo.UpdateAsync(modalTrack);
+
+        await ToastService.ShowToast("Track saved!", ToastLevel.Success);
+        showModal = false;
+        await LoadTracksFromRepo();
+        StateHasChanged(); // Ensure UI updates
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
     }
 
     private async Task DeleteTrack(LearningTrack track)
     {
-        // TODO: Implement confirmation and deletion logic
-        // For now, just remove from list and refresh
-        Console.WriteLine($"Delete Track clicked for: {track.Name}");
-        bool confirmed = true; // Replace with actual confirmation dialog (e.g., using JS interop or a Blazor modal component)
-        if (confirmed && tracks != null)
+        try
         {
-            tracks.Remove(track);
-            tracksQueryable = tracks.AsQueryable();
-            StateHasChanged(); // Refresh the grid
+            await LearningTrackRepo.DeleteAsync(track.Id);
+            await ToastService.ShowToast($"Track deleted: {track.Name}", ToastLevel.Success);
+            await LoadTracksFromRepo();
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to delete track: {ex.Message}", ToastLevel.Error);
         }
     }
 }

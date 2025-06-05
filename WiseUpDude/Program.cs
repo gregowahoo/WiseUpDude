@@ -191,7 +191,7 @@ builder.Services.AddScoped<ILearningTrackCategoryRepository, LearningTrackCatego
 builder.Services.AddScoped<ILearningTrackSourceRepository, LearningTrackSourceRepository>();
 builder.Services.AddScoped<ILearningTrackQuizRepository, LearningTrackQuizRepository>();
 
-builder.Services.AddSingleton<ToastService>();
+builder.Services.AddSingleton<WiseUpDude.Shared.Services.ToastService>();
 
 #endregion
 

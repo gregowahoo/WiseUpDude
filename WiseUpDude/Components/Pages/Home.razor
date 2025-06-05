@@ -21,6 +21,17 @@
 @rendermode InteractiveServer
 @attribute [Authorize]
 
+@inject WiseUpDude.Shared.Services.ToastService ToastService
+
+<button @onclick="ShowTestToast">Show Toast</button>
+
+@code {
+    private async Task ShowTestToast()
+    {
+        await ToastService.ShowToast("Test Toast", ToastLevel.Success);
+    }
+}
+
 <h1 class="text-center mb-4">Welcome to Wise Up Dude!</h1>
 
 <div class="container">

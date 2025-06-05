@@ -1,5 +1,7 @@
 ﻿@inject WiseUpDude.Shared.Services.ToastService ToastService
 
+@implements IDisposable
+
 <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
     @if (visible)
     {
@@ -15,7 +17,7 @@
     private string message = "";
     private bool visible = false;
     private ToastLevel level = ToastLevel.Info;
-    private System.Timers.Timer? timer;
+    private System.Threading.Timer? timer;
 
     protected override void OnInitialized()
     {
@@ -24,20 +26,42 @@
 
     private async Task ShowToast(string msg, ToastLevel toastLevel)
     {
-        message = msg;
-        level = toastLevel;
-        visible = true;
-        StateHasChanged();
-
-        timer?.Dispose();
-        timer = new System.Timers.Timer(3000);
-        timer.Elapsed += (s, e) =>
+        try
         {
-            visible = false;
+
+            Console.Error.WriteLine($"In Show Toast");
+
+            message = msg;
+            level = toastLevel;
+            visible = true;
+            await InvokeAsync(StateHasChanged);
+
             timer?.Dispose();
-            InvokeAsync(StateHasChanged);
-        };
-        timer.Start();
+            timer = new System.Threading.Timer(async _ =>
+            {
+                try
+                {
+                    visible = false;
+                    await InvokeAsync(StateHasChanged);
+                    timer?.Dispose();
+                }
+                catch (Exception timerEx)
+                {
+                    Console.Error.WriteLine($"[Toast Timer Error] {timerEx}");
+                }
+            }, null, 3000, System.Threading.Timeout.Infinite);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[Toast ShowToast Error] {ex}");
+        }
+    }
+
+    // Unsubscribe and dispose timer when the component is disposed
+    public void Dispose()
+    {
+        ToastService.OnShow -= ShowToast;
+        timer?.Dispose();
     }
 
     private string GetToastClass() => level switch

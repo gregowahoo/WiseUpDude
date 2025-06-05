@@ -1,6 +1,8 @@
 @using WiseUpDude.Model
 @using Microsoft.AspNetCore.Components.QuickGrid
 
+@rendermode InteractiveServer
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="text-secondary mb-0"><i class="bi bi-link-45deg me-2"></i>Sources for Category ID: @LearningTrackCategoryId</h4>
     <button class="btn btn-success" @onclick="AddNewSource">
@@ -43,9 +45,9 @@ else
         <PropertyColumn Property="@(s => s.Description)" Title="Description">
             <ColumnOptions><div class="custom-header"><i class="bi bi-text-paragraph me-1"></i> Description</div></ColumnOptions>
         </PropertyColumn>
-        <PropertyColumn Property="@(s => s.CreationDate)" Format="yyyy-MM-dd HH:mm" Sortable="true" Title="Created On">
+@*         <PropertyColumn Property="@(s => s.CreationDate)" Format="yyyy-MM-dd HH:mm" Sortable="true" Title="Created On">
             <ColumnOptions><div class="custom-header"><i class="bi bi-calendar-event me-1"></i> Created On</div></ColumnOptions>
-        </PropertyColumn>
+        </PropertyColumn> *@
         <TemplateColumn Title="Actions" Class="text-center">
             <ColumnOptions><div class="custom-header"><i class="bi bi-tools me-1"></i> Actions</div></ColumnOptions>
             <ChildContent Context="source">

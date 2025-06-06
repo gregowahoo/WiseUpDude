@@ -10,19 +10,19 @@ namespace WiseUpDude.Data.Repositories
 {
     public class CategoryRepository : ICategoryRepository
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
-        public CategoryRepository(ApplicationDbContext context)
+        public CategoryRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
         {
-            _context = context;
+            _dbContextFactory = dbContextFactory;
         }
 
         public async Task<IEnumerable<WiseUpDude.Model.Category>> GetAllAsync()
         {
-            var entities = await _context.Categories
-                .Include(c => c.Topics) // Include related Topics if needed
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entities = await context.Categories
+                .Include(c => c.Topics)
                 .ToListAsync();
-
             return entities.Select(e => new WiseUpDude.Model.Category
             {
                 Id = e.Id,
@@ -33,13 +33,12 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task<WiseUpDude.Model.Category?> GetByIdAsync(int id)
         {
-            var entity = await _context.Categories
-                .Include(c => c.Topics) // Include related Topics if needed
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.Categories
+                .Include(c => c.Topics)
                 .FirstOrDefaultAsync(c => c.Id == id);
-
             if (entity == null)
                 return null;
-
             return new WiseUpDude.Model.Category
             {
                 Id = entity.Id,
@@ -50,39 +49,37 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task AddAsync(WiseUpDude.Model.Category category)
         {
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
             var entity = new Entities.Category
             {
                 Name = category.Name,
                 Description = category.Description
             };
-
-            await _context.Categories.AddAsync(entity);
-            await _context.SaveChangesAsync();
-
+            await context.Categories.AddAsync(entity);
+            await context.SaveChangesAsync();
             category.Id = entity.Id;
         }
 
         public async Task UpdateAsync(WiseUpDude.Model.Category category)
         {
-            var entity = await _context.Categories.FirstOrDefaultAsync(c => c.Id == category.Id);
-
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.Categories.FirstOrDefaultAsync(c => c.Id == category.Id);
             if (entity == null)
                 throw new KeyNotFoundException($"Category with Id {category.Id} not found.");
-
             entity.Name = category.Name;
             entity.Description = category.Description;
-
-            _context.Entry(entity).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            context.Entry(entity).State = EntityState.Modified;
+            await context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)
         {
-            var entity = await _context.Categories.FindAsync(id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.Categories.FindAsync(id);
             if (entity != null)
             {
-                _context.Categories.Remove(entity);
-                await _context.SaveChangesAsync();
+                context.Categories.Remove(entity);
+                await context.SaveChangesAsync();
             }
         }
     }

@@ -12,16 +12,17 @@ namespace WiseUpDude.Data.Repositories
 {
     public class QuizRepository : IRepository<WiseUpDude.Model.Quiz>
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
-        public QuizRepository(ApplicationDbContext context)
+        public QuizRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
         {
-            _context = context;
+            _dbContextFactory = dbContextFactory;
         }
 
         public async Task<IEnumerable<WiseUpDude.Model.Quiz>> GetAllAsync()
         {
-            var entities = await _context.Quizzes
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entities = await context.Quizzes
                 .Include(q => q.Questions)
                 .Include(q => q.User) // Include the User to access UserName
                 .Include(q => q.Topic) // Include the Topic
@@ -53,7 +54,8 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task<WiseUpDude.Model.Quiz> GetByIdAsync(int id)
         {
-            var entity = await _context.Quizzes
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.Quizzes
                 .Include(q => q.Questions)
                 .Include(q => q.User) // Include the User to access UserName
                 .Include(q => q.Topic) // Include the Topic
@@ -88,7 +90,8 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task<IEnumerable<WiseUpDude.Model.Quiz>> GetQuizzesByTopicIdAsync(int topicId)
         {
-            var quizzes = await _context.Quizzes
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var quizzes = await context.Quizzes
                 .Include(q => q.Questions)
                 .Include(q => q.User) // Include User for UserName
                 .Include(q => q.Topic) // Include Topic for Topic details
@@ -123,6 +126,7 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task AddAsync(WiseUpDude.Model.Quiz quiz)
         {
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
             // Create a new Quiz entity
             var entity = new Entities.Quiz
             {
@@ -136,8 +140,8 @@ namespace WiseUpDude.Data.Repositories
             };
 
             // Add the Quiz to the database first to generate its ID
-            _context.Quizzes.Add(entity);
-            await _context.SaveChangesAsync();
+            context.Quizzes.Add(entity);
+            await context.SaveChangesAsync();
 
             // Add Questions with the Quiz reference
             entity.Questions = quiz.Questions.Select(q => new Entities.QuizQuestion
@@ -154,14 +158,15 @@ namespace WiseUpDude.Data.Repositories
             }).ToList();
 
             // Update the Quiz entity with its questions
-            _context.Entry(entity).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            context.Entry(entity).State = EntityState.Modified;
+            await context.SaveChangesAsync();
 
             quiz.Id = entity.Id;
         }
 
         public async Task<int> AddQuizAsync(QuizResponse quizResponse)
         {
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
             var quizName = string.IsNullOrWhiteSpace(quizResponse.Topic)
                 ? $"Quiz_{DateTime.UtcNow:yyyyMMdd_HHmmss}"
                 : quizResponse.Topic;
@@ -173,7 +178,7 @@ namespace WiseUpDude.Data.Repositories
             //}
 
             // Find the Topic by its Name
-            var topic = await _context.Topics.FirstOrDefaultAsync(t => t.Name == quizResponse.Topic);
+            var topic = await context.Topics.FirstOrDefaultAsync(t => t.Name == quizResponse.Topic);
             if (topic == null)
                 throw new KeyNotFoundException($"Topic with Name '{quizResponse.Topic}' not found.");
 
@@ -188,8 +193,8 @@ namespace WiseUpDude.Data.Repositories
             };
 
             // Add the Quiz to the database first to generate its ID
-            _context.Quizzes.Add(quiz);
-            await _context.SaveChangesAsync();
+            context.Quizzes.Add(quiz);
+            await context.SaveChangesAsync();
 
             // Add Questions with the Quiz reference
             quiz.Questions = quizResponse.Questions.Select(q => new Entities.QuizQuestion
@@ -205,15 +210,16 @@ namespace WiseUpDude.Data.Repositories
             }).ToList();
 
             // Update the Quiz entity with its questions
-            _context.Entry(quiz).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            context.Entry(quiz).State = EntityState.Modified;
+            await context.SaveChangesAsync();
 
             return quiz.Id;
         }
 
         public async Task UpdateAsync(WiseUpDude.Model.Quiz model)
         {
-            var entity = await _context.Quizzes
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.Quizzes
                 .Include(q => q.Questions)
                 .FirstOrDefaultAsync(q => q.Id == model.Id);
 
@@ -237,23 +243,24 @@ namespace WiseUpDude.Data.Repositories
                 Difficulty = q.Difficulty // Update question-level difficulty
             }).ToList();
 
-            _context.Entry(entity).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            context.Entry(entity).State = EntityState.Modified;
+            await context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)
         {
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
             // Find the quiz by its ID
-            var quiz = await _context.Quizzes
+            var quiz = await context.Quizzes
                 .FirstOrDefaultAsync(q => q.Id == id);
 
             if (quiz != null)
             {
                 // Remove the quiz
-                _context.Quizzes.Remove(quiz);
+                context.Quizzes.Remove(quiz);
 
                 // Save changes to the database
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
             }
         }
 

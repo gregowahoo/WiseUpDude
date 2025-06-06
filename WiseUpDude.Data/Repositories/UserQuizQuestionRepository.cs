@@ -10,16 +10,17 @@ namespace WiseUpDude.Data.Repositories
 {
     public class UserQuizQuestionRepository :  IUserQuizQuestionRepository<WiseUpDude.Model.QuizQuestion>
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
-        public UserQuizQuestionRepository(ApplicationDbContext context)
+        public UserQuizQuestionRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
         {
-            _context = context;
+            _dbContextFactory = dbContextFactory;
         }
 
         public async Task<IEnumerable<WiseUpDude.Model.QuizQuestion>> GetAllAsync()
         {
-            var userQuizQuestions = await _context.UserQuizQuestions.ToListAsync();
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var userQuizQuestions = await context.UserQuizQuestions.ToListAsync();
             return userQuizQuestions.Select(uqq => new WiseUpDude.Model.QuizQuestion
             {
                 Id = uqq.Id,
@@ -35,7 +36,8 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task<WiseUpDude.Model.QuizQuestion> GetByIdAsync(int id)
         {
-            var userQuizQuestion = await _context.UserQuizQuestions.FirstOrDefaultAsync(uqq => uqq.Id == id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var userQuizQuestion = await context.UserQuizQuestions.FirstOrDefaultAsync(uqq => uqq.Id == id);
             if (userQuizQuestion == null)
                 throw new KeyNotFoundException($"UserQuizQuestion with Id {id} not found.");
 
@@ -54,7 +56,8 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task AddAsync(WiseUpDude.Model.QuizQuestion quizQuestion)
         {
-            var userQuiz = await _context.UserQuizzes.FirstOrDefaultAsync(uq => uq.Id == quizQuestion.QuizId);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var userQuiz = await context.UserQuizzes.FirstOrDefaultAsync(uq => uq.Id == quizQuestion.QuizId);
             if (userQuiz == null)
                 throw new KeyNotFoundException($"UserQuiz with Id {quizQuestion.QuizId} not found.");
 
@@ -70,13 +73,14 @@ namespace WiseUpDude.Data.Repositories
                 Quiz = userQuiz // Set the Quiz property
             };
 
-            _context.UserQuizQuestions.Add(userQuizQuestion);
-            await _context.SaveChangesAsync();
+            context.UserQuizQuestions.Add(userQuizQuestion);
+            await context.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(WiseUpDude.Model.QuizQuestion quizQuestion)
         {
-            var userQuizQuestion = await _context.UserQuizQuestions.FirstOrDefaultAsync(uqq => uqq.Id == quizQuestion.Id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var userQuizQuestion = await context.UserQuizQuestions.FirstOrDefaultAsync(uqq => uqq.Id == quizQuestion.Id);
             if (userQuizQuestion == null)
                 throw new KeyNotFoundException($"UserQuizQuestion with Id {quizQuestion.Id} not found.");
 
@@ -87,28 +91,30 @@ namespace WiseUpDude.Data.Repositories
             userQuizQuestion.Explanation = quizQuestion.Explanation;
             userQuizQuestion.UserAnswer = quizQuestion.UserAnswer;
 
-            _context.Entry(userQuizQuestion).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            context.Entry(userQuizQuestion).State = EntityState.Modified;
+            await context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)
         {
-            var userQuizQuestion = await _context.UserQuizQuestions.FindAsync(id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var userQuizQuestion = await context.UserQuizQuestions.FindAsync(id);
             if (userQuizQuestion != null)
             {
-                _context.UserQuizQuestions.Remove(userQuizQuestion);
-                await _context.SaveChangesAsync();
+                context.UserQuizQuestions.Remove(userQuizQuestion);
+                await context.SaveChangesAsync();
             }
         }
 
         public async Task ClearUserAnswersByQuizIdAsync(int quizId)
         {
-            var questions = await _context.UserQuizQuestions.Where(q => q.QuizId == quizId).ToListAsync();
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var questions = await context.UserQuizQuestions.Where(q => q.QuizId == quizId).ToListAsync();
             foreach (var question in questions)
             {
                 question.UserAnswer = null;
             }
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
     }
 }

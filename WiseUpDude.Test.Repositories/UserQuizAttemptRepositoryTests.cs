@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WiseUpDude.Data;
-//using WiseUpDude.Data.Entities;
 using WiseUpDude.Data.Repositories;
 using WiseUpDude.Model;
 using Xunit;
@@ -15,25 +14,30 @@ namespace WiseUpDude.Test.Repositories
 {
     public class UserQuizAttemptRepositoryTests
     {
-        private ApplicationDbContext GetInMemoryDbContext()
+        private IDbContextFactory<ApplicationDbContext> GetInMemoryDbContextFactory()
         {
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
-            return new ApplicationDbContext(options);
+            var context = new ApplicationDbContext(options);
+            var factoryMock = new Mock<IDbContextFactory<ApplicationDbContext>>();
+            factoryMock.Setup(f => f.CreateDbContextAsync(default)).ReturnsAsync(context);
+            factoryMock.Setup(f => f.CreateDbContext()).Returns(context);
+            return factoryMock.Object;
         }
 
-        private UserQuizAttemptRepository GetRepository(ApplicationDbContext dbContext)
+        private UserQuizAttemptRepository GetRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
         {
             var loggerMock = new Mock<ILogger<UserQuizAttemptRepository>>();
-            return new UserQuizAttemptRepository(dbContext, loggerMock.Object);
+            return new UserQuizAttemptRepository(dbContextFactory, loggerMock.Object);
         }
 
         [Fact]
         public async Task AddAsync_AddsUserQuizAttemptWithQuestions()
         {
-            using var dbContext = GetInMemoryDbContext();
-            var repository = GetRepository(dbContext);
+            var dbContextFactory = GetInMemoryDbContextFactory();
+            var repository = GetRepository(dbContextFactory);
+            var context = await dbContextFactory.CreateDbContextAsync();
             var userQuizAttempt = new UserQuizAttempt
             {
                 UserQuizId = 1,
@@ -48,14 +52,14 @@ namespace WiseUpDude.Test.Repositories
             };
             var addResult = await repository.AddAsync(userQuizAttempt);
             Assert.True(addResult.Id > 0);
-            Assert.Equal(2, dbContext.UserQuizAttemptQuestions.Count());
+            Assert.Equal(2, context.UserQuizAttemptQuestions.Count());
         }
 
         [Fact]
         public async Task GetByIdAsync_ReturnsUserQuizAttemptWithQuestions()
         {
-            using var dbContext = GetInMemoryDbContext();
-            var repository = GetRepository(dbContext);
+            var dbContextFactory = GetInMemoryDbContextFactory();
+            var repository = GetRepository(dbContextFactory);
             var userQuizAttempt = new UserQuizAttempt
             {
                 UserQuizId = 2,
@@ -77,8 +81,8 @@ namespace WiseUpDude.Test.Repositories
         [Fact]
         public async Task UpdateAsync_UpdatesUserQuizAttemptAndQuestions()
         {
-            using var dbContext = GetInMemoryDbContext();
-            var repository = GetRepository(dbContext);
+            var dbContextFactory = GetInMemoryDbContextFactory();
+            var repository = GetRepository(dbContextFactory);
             var userQuizAttempt = new UserQuizAttempt
             {
                 UserQuizId = 3,
@@ -102,8 +106,9 @@ namespace WiseUpDude.Test.Repositories
         [Fact]
         public async Task DeleteAsync_RemovesUserQuizAttemptAndQuestions()
         {
-            using var dbContext = GetInMemoryDbContext();
-            var repository = GetRepository(dbContext);
+            var dbContextFactory = GetInMemoryDbContextFactory();
+            var repository = GetRepository(dbContextFactory);
+            var context = await dbContextFactory.CreateDbContextAsync();
             var userQuizAttempt = new UserQuizAttempt
             {
                 UserQuizId = 4,
@@ -119,7 +124,7 @@ namespace WiseUpDude.Test.Repositories
             await repository.DeleteAsync(addedAttempt.Id);
             var deletedAttempt = await repository.GetByIdAsync(addedAttempt.Id);
             Assert.Null(deletedAttempt);
-            Assert.Empty(dbContext.UserQuizAttemptQuestions.Where(q => q.UserQuizAttemptId == addedAttempt.Id));
+            Assert.Empty(context.UserQuizAttemptQuestions.Where(q => q.UserQuizAttemptId == addedAttempt.Id));
         }
     }
 }

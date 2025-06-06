@@ -10,15 +10,16 @@ namespace WiseUpDude.Data.Repositories
 {
     public class TopicCreationRunRepository : ITopicCreationRunRepository<WiseUpDude.Model.TopicCreationRun>
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
-        public TopicCreationRunRepository(ApplicationDbContext context)
+        public TopicCreationRunRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
         {
-            _context = context;
+            _dbContextFactory = dbContextFactory;
         }
 
         public async Task AddAsync(WiseUpDude.Model.TopicCreationRun entity)
         {
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
             var entityTopicCreationRun = new WiseUpDude.Data.Entities.TopicCreationRun
             {
                 CreationDate = entity.CreationDate,
@@ -44,20 +45,21 @@ namespace WiseUpDude.Data.Repositories
                 }).ToList() ?? new List<WiseUpDude.Data.Entities.Topic>()
             };
 
-            await _context.TopicCreationRuns.AddAsync(entityTopicCreationRun);
-            await _context.SaveChangesAsync();
+            await context.TopicCreationRuns.AddAsync(entityTopicCreationRun);
+            await context.SaveChangesAsync();
 
             entity.Id = entityTopicCreationRun.Id;
         }
 
         public async Task AddAsync(WiseUpDude.Model.TopicCreationRun topicCreationRun, List<WiseUpDude.Model.Topic> modelTopics)
         {
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
             var categoryMap = new Dictionary<string, WiseUpDude.Data.Entities.Category>();
             foreach (var topic in modelTopics)
             {
                 if (!string.IsNullOrWhiteSpace(topic.Category))
                 {
-                    var existingCategory = await _context.Categories
+                    var existingCategory = await context.Categories
                         .FirstOrDefaultAsync(c => c.Name == topic.Category);
 
                     if (existingCategory == null)
@@ -68,8 +70,8 @@ namespace WiseUpDude.Data.Repositories
                             Description = topic.CategoryDescription
                         };
 
-                        _context.Categories.Add(newCategory);
-                        await _context.SaveChangesAsync();
+                        context.Categories.Add(newCategory);
+                        await context.SaveChangesAsync();
 
                         categoryMap[topic.Category] = newCategory;
                     }
@@ -103,15 +105,16 @@ namespace WiseUpDude.Data.Repositories
                 Topics = entityTopics
             };
 
-            await _context.TopicCreationRuns.AddAsync(entityTopicCreationRun);
-            await _context.SaveChangesAsync();
+            await context.TopicCreationRuns.AddAsync(entityTopicCreationRun);
+            await context.SaveChangesAsync();
 
             topicCreationRun.Id = entityTopicCreationRun.Id;
         }
 
         public async Task<WiseUpDude.Model.TopicCreationRun> GetByIdAsync(int id)
         {
-            var entity = await _context.TopicCreationRuns
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.TopicCreationRuns
                 .Include(t => t.Topics)
                 .ThenInclude(t => t.Category) // Ensure Category is included
                 .FirstOrDefaultAsync(t => t.Id == id);
@@ -138,7 +141,8 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task<IEnumerable<WiseUpDude.Model.TopicCreationRun>> GetAllAsync()
         {
-            var entities = await _context.TopicCreationRuns
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entities = await context.TopicCreationRuns
                 .Include(t => t.Topics)
                 .ThenInclude(t => t.Category) // Ensure Category is included
                 .ToListAsync();
@@ -162,7 +166,8 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task UpdateAsync(WiseUpDude.Model.TopicCreationRun model)
         {
-            var entity = await _context.TopicCreationRuns
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.TopicCreationRuns
                 .Include(t => t.Topics)
                 .FirstOrDefaultAsync(t => t.Id == model.Id);
 
@@ -191,17 +196,18 @@ namespace WiseUpDude.Data.Repositories
                 }).ToList();
             }
 
-            _context.TopicCreationRuns.Update(entity);
-            await _context.SaveChangesAsync();
+            context.TopicCreationRuns.Update(entity);
+            await context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)
         {
-            var entity = await _context.TopicCreationRuns.FindAsync(id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.TopicCreationRuns.FindAsync(id);
             if (entity != null)
             {
-                _context.TopicCreationRuns.Remove(entity);
-                await _context.SaveChangesAsync();
+                context.TopicCreationRuns.Remove(entity);
+                await context.SaveChangesAsync();
             }
         }
     }

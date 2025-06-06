@@ -10,88 +10,98 @@ namespace WiseUpDude.Data.Repositories
 {
     public class LearningTrackQuizRepository : ILearningTrackQuizRepository
     {
-        private readonly ApplicationDbContext _context;
-        public LearningTrackQuizRepository(ApplicationDbContext context) => _context = context;
+        private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
+        public LearningTrackQuizRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory) => _dbContextFactory = dbContextFactory;
 
         public async Task<IEnumerable<Model.LearningTrackQuiz>> GetAllQuizzesAsync()
         {
-            var entities = await _context.LearningTrackQuizzes.Include(q => q.Questions).ToListAsync();
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entities = await context.LearningTrackQuizzes.Include(q => q.Questions).ToListAsync();
             return entities.Select(EntityToModel);
         }
 
         public async Task<Model.LearningTrackQuiz?> GetQuizByIdAsync(int id)
         {
-            var entity = await _context.LearningTrackQuizzes.Include(q => q.Questions).FirstOrDefaultAsync(q => q.Id == id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.LearningTrackQuizzes.Include(q => q.Questions).FirstOrDefaultAsync(q => q.Id == id);
             return entity == null ? null : EntityToModel(entity);
         }
 
         public async Task AddQuizAsync(Model.LearningTrackQuiz model)
         {
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
             var entity = ModelToEntity(model);
-            _context.LearningTrackQuizzes.Add(entity);
-            await _context.SaveChangesAsync();
+            context.LearningTrackQuizzes.Add(entity);
+            await context.SaveChangesAsync();
             model.Id = entity.Id;
         }
 
         public async Task UpdateQuizAsync(Model.LearningTrackQuiz model)
         {
-            var entity = await _context.LearningTrackQuizzes.Include(q => q.Questions).FirstOrDefaultAsync(q => q.Id == model.Id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.LearningTrackQuizzes.Include(q => q.Questions).FirstOrDefaultAsync(q => q.Id == model.Id);
             if (entity == null) return;
             entity.Name = model.Name;
             entity.Description = model.Description;
             // Update other fields as needed
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
 
         public async Task DeleteQuizAsync(int id)
         {
-            var entity = await _context.LearningTrackQuizzes.FindAsync(id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.LearningTrackQuizzes.FindAsync(id);
             if (entity != null)
             {
-                _context.LearningTrackQuizzes.Remove(entity);
-                await _context.SaveChangesAsync();
+                context.LearningTrackQuizzes.Remove(entity);
+                await context.SaveChangesAsync();
             }
         }
 
         public async Task<IEnumerable<Model.LearningTrackQuizQuestion>> GetQuestionsByQuizIdAsync(int quizId)
         {
-            var entities = await _context.LearningTrackQuizQuestions.Where(q => q.LearningTrackQuizId == quizId).ToListAsync();
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entities = await context.LearningTrackQuizQuestions.Where(q => q.LearningTrackQuizId == quizId).ToListAsync();
             return entities.Select(EntityToModel);
         }
 
         public async Task<Model.LearningTrackQuizQuestion?> GetQuestionByIdAsync(int id)
         {
-            var entity = await _context.LearningTrackQuizQuestions.FirstOrDefaultAsync(q => q.Id == id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.LearningTrackQuizQuestions.FirstOrDefaultAsync(q => q.Id == id);
             return entity == null ? null : EntityToModel(entity);
         }
 
         public async Task AddQuestionAsync(Model.LearningTrackQuizQuestion model)
         {
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
             var entity = ModelToEntity(model);
-            _context.LearningTrackQuizQuestions.Add(entity);
-            await _context.SaveChangesAsync();
+            context.LearningTrackQuizQuestions.Add(entity);
+            await context.SaveChangesAsync();
             model.Id = entity.Id;
         }
 
         public async Task UpdateQuestionAsync(Model.LearningTrackQuizQuestion model)
         {
-            var entity = await _context.LearningTrackQuizQuestions.FirstOrDefaultAsync(q => q.Id == model.Id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.LearningTrackQuizQuestions.FirstOrDefaultAsync(q => q.Id == model.Id);
             if (entity == null) return;
             entity.Question = model.Question;
             entity.Answer = model.Answer;
             entity.Explanation = model.Explanation;
             entity.OptionsJson = model.OptionsJson;
             entity.Difficulty = model.Difficulty;
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
 
         public async Task DeleteQuestionAsync(int id)
         {
-            var entity = await _context.LearningTrackQuizQuestions.FindAsync(id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.LearningTrackQuizQuestions.FindAsync(id);
             if (entity != null)
             {
-                _context.LearningTrackQuizQuestions.Remove(entity);
-                await _context.SaveChangesAsync();
+                context.LearningTrackQuizQuestions.Remove(entity);
+                await context.SaveChangesAsync();
             }
         }
 

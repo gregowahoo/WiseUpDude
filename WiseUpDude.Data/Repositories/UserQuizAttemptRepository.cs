@@ -11,18 +11,19 @@ namespace WiseUpDude.Data.Repositories
 {
     public class UserQuizAttemptRepository : IUserQuizAttemptRepository<Model.UserQuizAttempt>
     {
-        private readonly ApplicationDbContext _dbContext;
+        private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
         private readonly ILogger<UserQuizAttemptRepository> _logger;
 
-        public UserQuizAttemptRepository(ApplicationDbContext dbContext, ILogger<UserQuizAttemptRepository> logger)
+        public UserQuizAttemptRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory, ILogger<UserQuizAttemptRepository> logger)
         {
-            _dbContext = dbContext;
+            _dbContextFactory = dbContextFactory;
             _logger = logger;
         }
 
         public async Task<Model.UserQuizAttempt?> GetByIdAsync(int id)
         {
-            var userQuizAttemptEntity = await _dbContext.UserQuizAttempts
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var userQuizAttemptEntity = await context.UserQuizAttempts
                 .Include(userQuizAttempt => userQuizAttempt.AttemptQuestions)
                 .FirstOrDefaultAsync(userQuizAttempt => userQuizAttempt.Id == id);
             if (userQuizAttemptEntity == null)
@@ -53,7 +54,8 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task<IEnumerable<Model.UserQuizAttempt>> GetByUserQuizIdAsync(int userQuizId)
         {
-            var userQuizAttemptEntities = await _dbContext.UserQuizAttempts
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var userQuizAttemptEntities = await context.UserQuizAttempts
                 .Include(userQuizAttempt => userQuizAttempt.AttemptQuestions)
                 .Where(userQuizAttempt => userQuizAttempt.UserQuizId == userQuizId)
                 .ToListAsync();
@@ -80,6 +82,7 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task<Model.UserQuizAttempt> AddAsync(Model.UserQuizAttempt userQuizAttemptModel)
         {
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
             var userQuizAttemptEntity = new Entities.UserQuizAttempt
             {
                 UserQuizId = userQuizAttemptModel.UserQuizId,
@@ -88,8 +91,8 @@ namespace WiseUpDude.Data.Repositories
                 Duration = userQuizAttemptModel.Duration,
                 IsComplete = userQuizAttemptModel.IsComplete
             };
-            _dbContext.UserQuizAttempts.Add(userQuizAttemptEntity);
-            await _dbContext.SaveChangesAsync();
+            context.UserQuizAttempts.Add(userQuizAttemptEntity);
+            await context.SaveChangesAsync();
 
             if (userQuizAttemptModel.AttemptQuestions != null && userQuizAttemptModel.AttemptQuestions.Any())
             {
@@ -101,8 +104,8 @@ namespace WiseUpDude.Data.Repositories
                     IsCorrect = attemptQuestionModel.IsCorrect,
                     TimeTakenSeconds = attemptQuestionModel.TimeTakenSeconds
                 }).ToList();
-                _dbContext.Entry(userQuizAttemptEntity).State = EntityState.Modified;
-                await _dbContext.SaveChangesAsync();
+                context.Entry(userQuizAttemptEntity).State = EntityState.Modified;
+                await context.SaveChangesAsync();
             }
             userQuizAttemptModel.Id = userQuizAttemptEntity.Id;
             _logger.LogInformation($"Added UserQuizAttempt with Id {userQuizAttemptEntity.Id} and {(userQuizAttemptEntity.AttemptQuestions?.Count ?? 0)} questions.");
@@ -111,7 +114,8 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task UpdateAsync(Model.UserQuizAttempt userQuizAttemptModel)
         {
-            var userQuizAttemptEntity = await _dbContext.UserQuizAttempts
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var userQuizAttemptEntity = await context.UserQuizAttempts
                 .Include(userQuizAttempt => userQuizAttempt.AttemptQuestions)
                 .FirstOrDefaultAsync(userQuizAttempt => userQuizAttempt.Id == userQuizAttemptModel.Id);
             if (userQuizAttemptEntity == null)
@@ -134,20 +138,21 @@ namespace WiseUpDude.Data.Repositories
                 IsCorrect = attemptQuestionModel.IsCorrect,
                 TimeTakenSeconds = attemptQuestionModel.TimeTakenSeconds
             }).ToList() ?? new List<Entities.UserQuizAttemptQuestion>();
-            _dbContext.Entry(userQuizAttemptEntity).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
+            context.Entry(userQuizAttemptEntity).State = EntityState.Modified;
+            await context.SaveChangesAsync();
             _logger.LogInformation($"Updated UserQuizAttempt with Id {userQuizAttemptEntity.Id}.");
         }
 
         public async Task DeleteAsync(int id)
         {
-            var userQuizAttemptEntity = await _dbContext.UserQuizAttempts
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var userQuizAttemptEntity = await context.UserQuizAttempts
                 .Include(userQuizAttempt => userQuizAttempt.AttemptQuestions)
                 .FirstOrDefaultAsync(userQuizAttempt => userQuizAttempt.Id == id);
             if (userQuizAttemptEntity != null)
             {
-                _dbContext.UserQuizAttempts.Remove(userQuizAttemptEntity);
-                await _dbContext.SaveChangesAsync();
+                context.UserQuizAttempts.Remove(userQuizAttemptEntity);
+                await context.SaveChangesAsync();
                 _logger.LogInformation($"Deleted UserQuizAttempt with Id {id}.");
             }
             else

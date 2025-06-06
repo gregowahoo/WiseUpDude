@@ -12,16 +12,17 @@ namespace WiseUpDude.Data.Repositories
 {
     public class QuizQuestionRepository : IQuizQuestionRepository<WiseUpDude.Model.QuizQuestion>
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
-        public QuizQuestionRepository(ApplicationDbContext context)
+        public QuizQuestionRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
         {
-            _context = context;
+            _dbContextFactory = dbContextFactory;
         }
 
         public async Task<IEnumerable<WiseUpDude.Model.QuizQuestion>> GetAllAsync()
         {
-            var entities = await _context.QuizQuestions.ToListAsync();
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entities = await context.QuizQuestions.ToListAsync();
             return entities.Select(e => new WiseUpDude.Model.QuizQuestion
             {
                 Id = e.Id,
@@ -37,7 +38,8 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task<WiseUpDude.Model.QuizQuestion> GetByIdAsync(int id)
         {
-            var entity = await _context.QuizQuestions.FirstOrDefaultAsync(q => q.Id == id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.QuizQuestions.FirstOrDefaultAsync(q => q.Id == id);
             if (entity == null)
                 throw new KeyNotFoundException($"QuizQuestion with Id {id} not found.");
 
@@ -56,8 +58,9 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task AddAsync(WiseUpDude.Model.QuizQuestion model)
         {
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
             // Fetch the associated Quiz entity to set the required Quiz property
-            var quizEntity = await _context.Quizzes.FirstOrDefaultAsync(q => q.Id == model.QuizId);
+            var quizEntity = await context.Quizzes.FirstOrDefaultAsync(q => q.Id == model.QuizId);
             if (quizEntity == null)
             {
                 throw new KeyNotFoundException($"Quiz with Id {model.QuizId} not found.");
@@ -75,13 +78,14 @@ namespace WiseUpDude.Data.Repositories
                 Quiz = quizEntity // Set the required Quiz property
             };
 
-            _context.QuizQuestions.Add(entity);
-            await _context.SaveChangesAsync();
+            context.QuizQuestions.Add(entity);
+            await context.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(WiseUpDude.Model.QuizQuestion model)
         {
-            var entity = await _context.QuizQuestions.FirstOrDefaultAsync(q => q.Id == model.Id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.QuizQuestions.FirstOrDefaultAsync(q => q.Id == model.Id);
             if (entity == null)
             {
                 throw new KeyNotFoundException($"QuizQuestion with Id {model.Id} not found.");
@@ -96,17 +100,18 @@ namespace WiseUpDude.Data.Repositories
             entity.UserAnswer = model.UserAnswer; // Ensure UserAnswer is updated
             entity.QuizId = model.QuizId;
 
-            _context.Entry(entity).State = EntityState.Modified; // Mark entity as modified
-            await _context.SaveChangesAsync();
+            context.Entry(entity).State = EntityState.Modified; // Mark entity as modified
+            await context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)
         {
-            var entity = await _context.QuizQuestions.FindAsync(id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.QuizQuestions.FindAsync(id);
             if (entity != null)
             {
-                _context.QuizQuestions.Remove(entity);
-                await _context.SaveChangesAsync();
+                context.QuizQuestions.Remove(entity);
+                await context.SaveChangesAsync();
             }
         }
 

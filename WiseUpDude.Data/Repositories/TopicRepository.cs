@@ -10,172 +10,167 @@ namespace WiseUpDude.Data.Repositories
 {
     public class TopicRepository : ITopicRepository<WiseUpDude.Model.Topic>
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
-        public TopicRepository(ApplicationDbContext context)
+        public TopicRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
         {
-            _context = context;
+            _dbContextFactory = dbContextFactory;
         }
         public string? Category { get; set; }
         public string? CategoryDescription { get; set; }
 
         public async Task<IEnumerable<WiseUpDude.Model.Topic>> GetAllAsync()
         {
-            var entities = await _context.Topics
-                .Include(t => t.Category) // Include the related Category
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entities = await context.Topics
+                .Include(t => t.Category)
                 .ToListAsync();
-
             return entities.Select(e => new WiseUpDude.Model.Topic
             {
                 Id = e.Id,
                 Name = e.Name,
                 Description = e.Description,
-                CategoryId = e.CategoryId ?? 0, // Handle nullable CategoryId
-                Category = e.Category?.Name ?? "Uncategorized", // Handle null Category
-                CategoryDescription = e.Category?.Description ?? string.Empty // Handle null Category
+                CategoryId = e.CategoryId ?? 0,
+                Category = e.Category?.Name ?? "Uncategorized",
+                CategoryDescription = e.Category?.Description ?? string.Empty
             });
         }
 
         public async Task<IEnumerable<WiseUpDude.Model.Topic>> GetUniqueTopicsAsync()
         {
-            var uniqueTopics = await _context.Topics
-                .Include(t => t.Category) // Include the related Category
-                .GroupBy(t => t.Name) // Group by the Name property to ensure uniqueness
-                .Select(g => g.First()) // Select the first topic in each group
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var uniqueTopics = await context.Topics
+                .Include(t => t.Category)
+                .GroupBy(t => t.Name)
+                .Select(g => g.First())
                 .ToListAsync();
-
             return uniqueTopics.Select(topic => new WiseUpDude.Model.Topic
             {
                 Id = topic.Id,
                 Name = topic.Name,
                 Description = topic.Description,
-                CategoryId = topic.CategoryId ?? 0, // Handle nullable CategoryId
-                Category = topic.Category?.Name ?? "Uncategorized", // Handle null Category
-                CategoryDescription = topic.Category?.Description ?? string.Empty // Handle null Category
+                CategoryId = topic.CategoryId ?? 0,
+                Category = topic.Category?.Name ?? "Uncategorized",
+                CategoryDescription = topic.Category?.Description ?? string.Empty
             });
         }
 
         public async Task<WiseUpDude.Model.Topic> GetByIdAsync(int id)
         {
-            var entity = await _context.Topics
-                .Include(t => t.Category) // Include the related Category
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.Topics
+                .Include(t => t.Category)
                 .FirstOrDefaultAsync(t => t.Id == id);
-
             if (entity == null)
                 throw new KeyNotFoundException($"Topic with Id {id} not found.");
-
             return new WiseUpDude.Model.Topic
             {
                 Id = entity.Id,
                 Name = entity.Name,
                 Description = entity.Description,
-                CategoryId = entity.CategoryId ?? 0, // Handle nullable CategoryId
-                Category = entity.Category?.Name ?? "Uncategorized", // Handle null Category
-                CategoryDescription = entity.Category?.Description ?? string.Empty // Handle null Category
+                CategoryId = entity.CategoryId ?? 0,
+                Category = entity.Category?.Name ?? "Uncategorized",
+                CategoryDescription = entity.Category?.Description ?? string.Empty
             };
         }
 
         public async Task<IEnumerable<WiseUpDude.Model.Topic>> GetTopicsAsync(int count)
         {
-            var topics = await _context.Topics
-                .Include(t => t.Category) // Include the related Category
-                .Take(count) // Limit the number of topics returned
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var topics = await context.Topics
+                .Include(t => t.Category)
+                .Take(count)
                 .ToListAsync();
-
             return topics.Select(topic => new WiseUpDude.Model.Topic
             {
                 Id = topic.Id,
                 Name = topic.Name,
                 Description = topic.Description,
-                CategoryId = topic.CategoryId ?? 0, // Handle nullable CategoryId
-                Category = topic.Category?.Name ?? "Uncategorized", // Handle null Category
-                CategoryDescription = topic.Category?.Description ?? string.Empty // Handle null Category
+                CategoryId = topic.CategoryId ?? 0,
+                Category = topic.Category?.Name ?? "Uncategorized",
+                CategoryDescription = topic.Category?.Description ?? string.Empty
             });
         }
 
         public async Task<IEnumerable<WiseUpDude.Model.Topic>> GetTopicsWithoutQuestionsAsync()
         {
-            var topicsWithoutQuestions = await _context.Topics
-                .Include(t => t.Category) // Include the related Category
-                .Where(topic => !topic.Quizzes.Any()) // Check if the topic has no associated quizzes
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var topicsWithoutQuestions = await context.Topics
+                .Include(t => t.Category)
+                .Where(topic => !topic.Quizzes.Any())
                 .ToListAsync();
-
             return topicsWithoutQuestions.Select(topic => new WiseUpDude.Model.Topic
             {
                 Id = topic.Id,
                 Name = topic.Name,
                 Description = topic.Description,
-                CategoryId = topic.CategoryId ?? 0, // Handle nullable CategoryId
-                Category = topic.Category?.Name ?? "Uncategorized", // Handle null Category
-                CategoryDescription = topic.Category?.Description ?? string.Empty // Handle null Category
+                CategoryId = topic.CategoryId ?? 0,
+                Category = topic.Category?.Name ?? "Uncategorized",
+                CategoryDescription = topic.Category?.Description ?? string.Empty
             });
         }
 
         public async Task<IEnumerable<WiseUpDude.Model.Topic>> GetTopicsByCategoryAsync(int categoryId)
         {
-            var topics = await _context.Topics
-                .Include(t => t.Category) // Include the related Category
-                .Where(t => t.CategoryId == categoryId) // Filter by CategoryId
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var topics = await context.Topics
+                .Include(t => t.Category)
+                .Where(t => t.CategoryId == categoryId)
                 .ToListAsync();
-
             return topics.Select(topic => new WiseUpDude.Model.Topic
             {
                 Id = topic.Id,
                 Name = topic.Name,
                 Description = topic.Description,
-                CategoryId = topic.CategoryId ?? 0, // Handle nullable CategoryId
-                Category = topic.Category?.Name ?? "Uncategorized", // Handle null Category
-                CategoryDescription = topic.Category?.Description ?? string.Empty // Handle null Category.Description
+                CategoryId = topic.CategoryId ?? 0,
+                Category = topic.Category?.Name ?? "Uncategorized",
+                CategoryDescription = topic.Category?.Description ?? string.Empty
             });
         }
 
         public async Task AddAsync(WiseUpDude.Model.Topic topic)
         {
-            var categoryEntity = await _context.Categories.FindAsync(topic.CategoryId);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var categoryEntity = await context.Categories.FindAsync(topic.CategoryId);
             if (categoryEntity == null)
                 throw new KeyNotFoundException($"Category with Id {topic.CategoryId} not found.");
-
             var entity = new Entities.Topic
             {
                 Name = topic.Name,
                 Description = topic.Description,
-                CategoryId = topic.CategoryId, // No change needed here
-                Category = categoryEntity, // Set required Category navigation property
+                CategoryId = topic.CategoryId,
+                Category = categoryEntity,
                 TopicCreationRun = new Entities.TopicCreationRun
                 {
                     Llm = "DefaultLlmValue"
                 }
             };
-
-            _context.Topics.Add(entity);
-            await _context.SaveChangesAsync();
-
+            context.Topics.Add(entity);
+            await context.SaveChangesAsync();
             topic.Id = entity.Id;
         }
 
         public async Task UpdateAsync(WiseUpDude.Model.Topic topic)
         {
-            var entity = await _context.Topics.FirstOrDefaultAsync(t => t.Id == topic.Id);
-
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.Topics.FirstOrDefaultAsync(t => t.Id == topic.Id);
             if (entity == null)
                 throw new KeyNotFoundException($"Topic with Id {topic.Id} not found.");
-
             entity.Name = topic.Name;
             entity.Description = topic.Description;
-            entity.CategoryId = topic.CategoryId; // No change needed here
-
-            _context.Entry(entity).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            entity.CategoryId = topic.CategoryId;
+            context.Entry(entity).State = EntityState.Modified;
+            await context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)
         {
-            var entity = await _context.Topics.FirstOrDefaultAsync(t => t.Id == id);
-
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.Topics.FirstOrDefaultAsync(t => t.Id == id);
             if (entity != null)
             {
-                _context.Topics.Remove(entity);
-                await _context.SaveChangesAsync();
+                context.Topics.Remove(entity);
+                await context.SaveChangesAsync();
             }
         }
     }

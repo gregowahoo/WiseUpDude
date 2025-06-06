@@ -1,7 +1,9 @@
 @using WiseUpDude.Model
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.AspNetCore.Components.Authorization
 @inject WiseUpDude.Data.Repositories.Interfaces.ILearningTrackRepository LearningTrackRepo
 @inject WiseUpDude.Shared.Services.ToastService ToastService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 @rendermode InteractiveServer
 
@@ -65,28 +67,14 @@ else
                     </div>
                 </ChildContent>
             </TemplateColumn>
-@*             <TemplateColumn Title="Created On">
-                <ColumnOptions>
-                    <div class="custom-header">
-                        <i class="bi bi-calendar-event me-1"></i> Created On
-                    </div>
-                </ColumnOptions>
-                <ChildContent Context="track">
-                    <div class="clickable-cell"
-                         style="width:100%;height:100%;display:flex;align-items:center;cursor:pointer;text-decoration:none !important;"
-                         @onclick="() => SelectTrack(track)">
-                        @track.CreationDate.ToString("yyyy-MM-dd")
-                    </div>
-                </ChildContent>
-            </TemplateColumn> *@
             <TemplateColumn Title="Actions">
                 <ColumnOptions>
-                    <div class="custom-header text-center">
+                    <div class="custom-header text-center" style="width:110px; min-width:90px; max-width:130px;">
                         <i class="bi bi-tools me-1"></i> Actions
                     </div>
                 </ColumnOptions>
                 <ChildContent Context="track">
-                    <div class="action-buttons">
+                    <div class="action-buttons" style="width:110px; min-width:90px; max-width:130px;">
                         <button class="btn btn-link btn-sm text-primary me-1 p-0" @onclick="() => SelectTrack(track)" title="Select Track">
                             Select
                         </button>
@@ -162,10 +150,16 @@ else
         await OnLearningTrackSelected.InvokeAsync(track);
     }
 
-    private void AddNewTrack()
+    private async void AddNewTrack()
     {
         modalTitle = "Add New Track";
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         modalTrack = new LearningTrack();
+        if (!string.IsNullOrEmpty(userId))
+        {
+            modalTrack.UserId = userId;
+        }
         showModal = true;
     }
 

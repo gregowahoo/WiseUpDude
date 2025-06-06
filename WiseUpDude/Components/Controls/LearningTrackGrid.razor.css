@@ -1,0 +1,33 @@
+﻿/* Highlight the active tab with a custom background and text color */
+.nav-tabs .nav-link.active,
+.nav-pills .nav-link.active {
+    background-color: #0d6efd !important; /* Bootstrap primary */
+    color: #fff !important;
+    font-weight: bold;
+    border-radius: 0.5rem 0.5rem 0 0;
+    box-shadow: 0 2px 8px rgba(13,110,253,0.08);
+}
+
+/*.table-active {
+    background-color: #e3f0ff !important;
+}*/
+
+/* Custom highlight for selected grid row */
+.table-active, .custom-selected-row {
+    background-color: #e3f0ff !important; /* Light blue */
+    color: #212529;
+    font-weight: 500;
+}
+
+.custom-selected-row {
+    background-color: #e3f0ff !important;
+    color: #212529;
+    font-weight: 500;
+}
+
+.grid-background {
+    background-color: #f8f9fa; /* Bootstrap light */
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}

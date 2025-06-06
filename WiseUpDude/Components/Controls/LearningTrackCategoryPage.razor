@@ -34,25 +34,26 @@ else
         <div class="list-group list-group-flush">
             @foreach (var category in categories)
             {
-                <div class="list-group-item list-group-item-action @(category == selectedCategory ? "active" : "")" @onclick="() => HandleCategorySelection(category)" style="cursor:pointer;">
+                // FIX 1: Compare by ID for active class and text color
+                <div class="list-group-item list-group-item-action @(category.Id == selectedCategory?.Id ? "active" : "")" @onclick="() => HandleCategorySelection(category)" style="cursor:pointer;">
                     <div class="d-flex w-100 justify-content-between align-items-start">
                         <div>
-                            <h5 class="mb-1 @(category == selectedCategory ? "text-white" : "")">
+                            <h5 class="mb-1 @(category.Id == selectedCategory?.Id ? "text-white" : "")">
                                 <i class="bi bi-type me-1"></i> @category.Name
                             </h5>
                             @if (!string.IsNullOrWhiteSpace(category.Description))
                             {
-                                <p class="mb-1 small @(category == selectedCategory ? "text-white-75" : "text-muted")">
+                                <p class="mb-1 small @(category.Id == selectedCategory?.Id ? "text-white-75" : "text-muted")">
                                     <i class="bi bi-text-paragraph me-1"></i> @category.Description
                                 </p>
                             }
                         </div>
                         <div class="action-buttons-list ms-2">
-                            <button class="btn btn-sm @(category == selectedCategory ? "btn-light" : "btn-outline-secondary") me-1 mb-1 mb-md-0"
+                            <button class="btn btn-sm @(category.Id == selectedCategory?.Id ? "btn-light" : "btn-outline-secondary") me-1 mb-1 mb-md-0"
                                     @onclick:stopPropagation="true" @onclick="() => EditCategory(category)" title="Edit Category">
                                 <i class="bi bi-pencil-square"></i> <span class="d-none d-md-inline">Edit</span>
                             </button>
-                            <button class="btn btn-sm @(category == selectedCategory ? "btn-warning" : "btn-outline-danger")"
+                            <button class="btn btn-sm @(category.Id == selectedCategory?.Id ? "btn-warning" : "btn-outline-danger")"
                                     @onclick:stopPropagation="true" @onclick="() => DeleteCategory(category)" title="Delete Category">
                                 <i class="bi bi-trash"></i> <span class="d-none d-md-inline">Delete</span>
                             </button>
@@ -74,7 +75,6 @@ else
             <label class="form-label">Description</label>
             <InputTextArea class="form-control" @bind-Value="modalCategory.Description" />
         </div>
-        @* Add other fields for LearningTrackCategory if they need editing, e.g., Difficulty *@
         <button type="submit" class="btn btn-primary">Save</button>
         <button type="button" class="btn btn-secondary ms-2" @onclick="CloseModal">Cancel</button>
     </EditForm>
@@ -85,7 +85,7 @@ else
     [Parameter] public EventCallback<LearningTrackCategory> OnLearningTrackCategorySelected { get; set; }
 
     private List<LearningTrackCategory>? categories;
-    private LearningTrackCategory? selectedCategory; // To track the visually selected category
+    private LearningTrackCategory? selectedCategory;
     private bool showModal = false;
     private string modalTitle = "Add/Edit Category";
     private LearningTrackCategory modalCategory = new();
@@ -95,9 +95,13 @@ else
     {
         try
         {
-            selectedCategory = null;
+            // If LearningTrackId has changed, clear the selection from the previous track
+            if (LearningTrackId != (selectedCategory?.LearningTrackId ?? 0))
+            {
+                selectedCategory = null;
+            }
             await LoadLearningTrackName();
-            await LoadCategories();
+            await LoadCategories(); // LoadCategories will now attempt to maintain selection
         }
         catch (Exception ex)
         {
@@ -109,27 +113,49 @@ else
     {
         var track = await LearningTrackRepo.GetByIdAsync(LearningTrackId);
         learningTrackName = track?.Name ?? $"ID: {LearningTrackId}";
+        // StateHasChanged(); // Potentially call if name update needs immediate UI refresh before categories load
     }
 
     private async Task LoadCategories()
     {
         try
         {
+            // FIX 3: Maintain selection by ID
+            int? previouslySelectedCategoryId = selectedCategory?.Id;
+
             var allCategories = await LearningTrackCategoryRepo.GetAllAsync();
             categories = allCategories.Where(c => c.LearningTrackId == LearningTrackId).ToList();
+
+            if (previouslySelectedCategoryId.HasValue)
+            {
+                selectedCategory = categories.FirstOrDefault(c => c.Id == previouslySelectedCategoryId.Value);
+            }
+            // If not found (e.g., it was deleted or track changed), selectedCategory will be/remain null.
         }
         catch (Exception ex)
         {
             await ToastService.ShowToast($"Failed to load categories: {ex.Message}", ToastLevel.Error);
             categories = new List<LearningTrackCategory>();
+            selectedCategory = null; // Ensure selection is cleared on error
         }
-        StateHasChanged();
+        StateHasChanged(); // Crucial: Ensure UI updates after loading and potentially re-selecting
     }
 
     private async Task HandleCategorySelection(LearningTrackCategory category)
     {
-        selectedCategory = category;
-        await OnLearningTrackCategorySelected.InvokeAsync(category);
+        if (selectedCategory?.Id == category.Id)
+        {
+            // Optional: If you want to deselect by clicking the same item again
+            // selectedCategory = null;
+            // await OnLearningTrackCategorySelected.InvokeAsync(null);
+        }
+        else
+        {
+            selectedCategory = category;
+            await OnLearningTrackCategorySelected.InvokeAsync(category);
+        }
+        // FIX 2: Call StateHasChanged to update UI with the new selection
+        StateHasChanged();
     }
 
     private void AddNewCategory()
@@ -141,24 +167,17 @@ else
 
     private void EditCategory(LearningTrackCategory category)
     {
-        try
+        modalTitle = "Edit Category";
+        modalCategory = new LearningTrackCategory
         {
-            modalTitle = "Edit Category";
-            modalCategory = new LearningTrackCategory
-            {
-                Id = category.Id,
-                Name = category.Name,
-                Description = category.Description,
-                Difficulty = category.Difficulty,
-                LearningTrackId = category.LearningTrackId,
-                CreationDate = category.CreationDate
-            };
-            showModal = true;
-        }
-        catch (Exception ex)
-        {
-            ToastService.ShowToast($"Failed to open edit modal: {ex.Message}", ToastLevel.Error);
-        }
+            Id = category.Id,
+            Name = category.Name,
+            Description = category.Description,
+            Difficulty = category.Difficulty,
+            LearningTrackId = category.LearningTrackId,
+            CreationDate = category.CreationDate
+        };
+        showModal = true;
     }
 
     private void CloseModal()
@@ -172,22 +191,19 @@ else
         {
             modalCategory.LearningTrackId = LearningTrackId;
 
-            if (modalCategory.Id == 0) // New category
+            if (modalCategory.Id == 0)
             {
-                // *** FIX APPLIED HERE ***
-                // No longer assigning the result of AddAsync to a variable
                 await LearningTrackCategoryRepo.AddAsync(modalCategory);
-                // The commented-out line below is also not strictly needed if LoadCategories handles selection well
-                // selectedCategory = addedCategory;
             }
-            else // Existing category
+            else
             {
                 await LearningTrackCategoryRepo.UpdateAsync(modalCategory);
             }
 
             await ToastService.ShowToast("Category saved!", ToastLevel.Success);
             showModal = false;
-            await LoadCategories(); // This will refresh the list and attempt to maintain/set selection by ID
+            // LoadCategories will refresh and attempt to maintain selection by ID
+            await LoadCategories();
         }
         catch (Exception ex)
         {
@@ -195,16 +211,14 @@ else
         }
     }
 
-    private async Task DeleteCategory(LearningTrackCategory category)
+    private async Task DeleteCategory(LearningTrackCategory categoryToDelete)
     {
         try
         {
-            await LearningTrackCategoryRepo.DeleteAsync(category.Id);
-            await ToastService.ShowToast($"Category deleted: {category.Name}", ToastLevel.Success);
-            if (selectedCategory == category)
-            {
-                selectedCategory = null;
-            }
+            await LearningTrackCategoryRepo.DeleteAsync(categoryToDelete.Id);
+            await ToastService.ShowToast($"Category deleted: {categoryToDelete.Name}", ToastLevel.Success);
+
+            // selectedCategory will be updated (or cleared if it was the one deleted) by LoadCategories
             await LoadCategories();
         }
         catch (Exception ex)

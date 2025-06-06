@@ -31,3 +31,18 @@
     padding: 1rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
+
+.clickable-cell {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    text-decoration: none !important;
+    /* Optional: subtle hover effect */
+    transition: background 0.15s;
+}
+
+    .clickable-cell:hover {
+        background: rgba(0,0,0,0.03);
+    }

@@ -37,28 +37,48 @@ else
                    Pagination="@paginationState"
                    Class="table table-hover table-striped table-bordered"
                    RowClass="@( (LearningTrack track) => track == selectedTrack ? "custom-selected-row" : null )">
-
-            <PropertyColumn Property="@(t => t.Name)" Sortable="true" Title="Track Name">
+            <TemplateColumn Title="Track Name">
                 <ColumnOptions>
                     <div class="custom-header">
                         <i class="bi bi-type me-1"></i> Track Name
                     </div>
                 </ColumnOptions>
-            </PropertyColumn>
-            <PropertyColumn Property="@(t => t.Description)" Title="Description">
+                <ChildContent Context="track">
+                    <div class="clickable-cell"
+                         style="width:100%;height:100%;display:flex;align-items:center;cursor:pointer;text-decoration:none !important;"
+                         @onclick="() => SelectTrack(track)">
+                        @track.Name
+                    </div>
+                </ChildContent>
+            </TemplateColumn>
+            <TemplateColumn Title="Description">
                 <ColumnOptions>
                     <div class="custom-header">
                         <i class="bi bi-text-paragraph me-1"></i> Description
                     </div>
                 </ColumnOptions>
-            </PropertyColumn>
-    @*         <PropertyColumn Property="@(t => t.CreationDate)" Format="yyyy-MM-dd" Sortable="true" Title="Created On">
+                <ChildContent Context="track">
+                    <div class="clickable-cell"
+                         style="width:100%;height:100%;display:flex;align-items:center;cursor:pointer;text-decoration:none !important;"
+                         @onclick="() => SelectTrack(track)">
+                        @track.Description
+                    </div>
+                </ChildContent>
+            </TemplateColumn>
+            <TemplateColumn Title="Created On">
                 <ColumnOptions>
                     <div class="custom-header">
                         <i class="bi bi-calendar-event me-1"></i> Created On
                     </div>
                 </ColumnOptions>
-            </PropertyColumn> *@
+                <ChildContent Context="track">
+                    <div class="clickable-cell"
+                         style="width:100%;height:100%;display:flex;align-items:center;cursor:pointer;text-decoration:none !important;"
+                         @onclick="() => SelectTrack(track)">
+                        @track.CreationDate.ToString("yyyy-MM-dd")
+                    </div>
+                </ChildContent>
+            </TemplateColumn>
             <TemplateColumn Title="Actions">
                 <ColumnOptions>
                     <div class="custom-header text-center">

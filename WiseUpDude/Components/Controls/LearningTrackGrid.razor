@@ -86,15 +86,15 @@ else
                     </div>
                 </ColumnOptions>
                 <ChildContent Context="track">
-                    <div class="text-center">
-                        <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => SelectTrack(track)" title="Select Track">
-                            <i class="bi bi-check-circle"></i> Select
+                    <div class="action-buttons">
+                        <button class="btn btn-link btn-sm text-primary me-1 p-0" @onclick="() => SelectTrack(track)" title="Select Track">
+                            Select
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => EditTrack(track)" title="Edit Track">
-                            <i class="bi bi-pencil-square"></i> Edit
+                        <button class="btn btn-link btn-sm text-secondary me-1 p-0" @onclick="() => EditTrack(track)" title="Edit Track">
+                            Edit
                         </button>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteTrack(track)" title="Delete Track">
-                            <i class="bi bi-trash"></i> Delete
+                        <button class="btn btn-link btn-sm text-danger p-0" @onclick="() => DeleteTrack(track)" title="Delete Track">
+                            Delete
                         </button>
                     </div>
                 </ChildContent>

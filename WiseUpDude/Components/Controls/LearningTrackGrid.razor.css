@@ -13,3 +13,27 @@
     border-radius: 0.5rem 0.5rem 0 0;
     box-shadow: 0 2px 8px rgba(13,110,253,0.08);
 }
+
+.action-buttons {
+    font-size: 0.85em;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 38px;
+}
+
+.action-buttons .btn-link {
+    text-decoration: none;
+}
+.action-buttons .btn-link:hover,
+.action-buttons .btn-link:focus {
+    text-decoration: underline;
+}
+
+/* Ensure QuickGrid cell containing action-buttons stretches to full height */
+td:has(.action-buttons) {
+    height: 100%;
+    vertical-align: middle !important;
+}

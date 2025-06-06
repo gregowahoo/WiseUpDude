@@ -1,11 +1,12 @@
 ﻿@using WiseUpDude.Model
 @inject WiseUpDude.Data.Repositories.Interfaces.ILearningTrackCategoryRepository LearningTrackCategoryRepo
+@inject WiseUpDude.Data.Repositories.Interfaces.ILearningTrackRepository LearningTrackRepo
 @inject WiseUpDude.Shared.Services.ToastService ToastService
 
 @rendermode InteractiveServer
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="text-secondary mb-0"><i class="bi bi-diagram-3 me-2"></i>Categories for Track ID: @LearningTrackId</h4>
+    <h4 class="text-secondary mb-0"><i class="bi bi-diagram-3 me-2"></i>Categories for Track: @learningTrackName</h4>
     <button class="btn btn-success" @onclick="AddNewCategory">
         <i class="bi bi-plus-circle-fill me-1"></i> Add New Category
     </button>
@@ -84,22 +85,18 @@ else
     [Parameter] public EventCallback<LearningTrackCategory> OnLearningTrackCategorySelected { get; set; }
 
     private List<LearningTrackCategory>? categories;
-    // private IQueryable<LearningTrackCategory>? categoriesQueryable; // No longer needed for list view
-    // private PaginationState paginationState = new PaginationState { ItemsPerPage = 5 }; // No longer needed
-
     private LearningTrackCategory? selectedCategory; // To track the visually selected category
-
-    //Code related to the modal popup.
     private bool showModal = false;
     private string modalTitle = "Add/Edit Category";
     private LearningTrackCategory modalCategory = new();
+    private string? learningTrackName;
 
     protected override async Task OnParametersSetAsync()
     {
         try
         {
-            // Clear previous selection when parameters change (e.g., different LearningTrackId)
             selectedCategory = null;
+            await LoadLearningTrackName();
             await LoadCategories();
         }
         catch (Exception ex)
@@ -108,28 +105,31 @@ else
         }
     }
 
+    private async Task LoadLearningTrackName()
+    {
+        var track = await LearningTrackRepo.GetByIdAsync(LearningTrackId);
+        learningTrackName = track?.Name ?? $"ID: {LearningTrackId}";
+    }
+
     private async Task LoadCategories()
     {
         try
         {
             var allCategories = await LearningTrackCategoryRepo.GetAllAsync();
             categories = allCategories.Where(c => c.LearningTrackId == LearningTrackId).ToList();
-            // categoriesQueryable = categories.AsQueryable(); // No longer needed
         }
         catch (Exception ex)
         {
             await ToastService.ShowToast($"Failed to load categories: {ex.Message}", ToastLevel.Error);
             categories = new List<LearningTrackCategory>();
-            // categoriesQueryable = categories.AsQueryable(); // No longer needed
         }
-        StateHasChanged(); // Ensure UI updates after loading
+        StateHasChanged();
     }
 
     private async Task HandleCategorySelection(LearningTrackCategory category)
     {
-        selectedCategory = category; // Update for visual highlight
-        // StateHasChanged(); // Already called by the invoking method or not strictly needed if parent re-renders
-        await OnLearningTrackCategorySelected.InvokeAsync(category); // Notify parent component
+        selectedCategory = category;
+        await OnLearningTrackCategorySelected.InvokeAsync(category);
     }
 
     private void AddNewCategory()
@@ -149,7 +149,7 @@ else
                 Id = category.Id,
                 Name = category.Name,
                 Description = category.Description,
-                Difficulty = category.Difficulty, // Make sure to include all relevant properties
+                Difficulty = category.Difficulty,
                 LearningTrackId = category.LearningTrackId,
                 CreationDate = category.CreationDate
             };
@@ -170,30 +170,30 @@ else
     {
         try
         {
-            modalCategory.LearningTrackId = LearningTrackId; // Ensure LearningTrackId is set
+            modalCategory.LearningTrackId = LearningTrackId;
 
-            if (modalCategory.Id == 0)
+            if (modalCategory.Id == 0) // New category
+            {
+                // *** FIX APPLIED HERE ***
+                // No longer assigning the result of AddAsync to a variable
                 await LearningTrackCategoryRepo.AddAsync(modalCategory);
-            else
+                // The commented-out line below is also not strictly needed if LoadCategories handles selection well
+                // selectedCategory = addedCategory;
+            }
+            else // Existing category
+            {
                 await LearningTrackCategoryRepo.UpdateAsync(modalCategory);
+            }
 
             await ToastService.ShowToast("Category saved!", ToastLevel.Success);
             showModal = false;
-            await LoadCategories(); // Reload and refresh the list
-            // If the saved category was the selected one, or if it's a new one,
-            // you might want to re-select it or clear selection.
-            // For simplicity, current selection is maintained if item still exists or cleared if list reloads.
+            await LoadCategories(); // This will refresh the list and attempt to maintain/set selection by ID
         }
         catch (Exception ex)
         {
             await ToastService.ShowToast($"Failed to save category: {ex.Message}", ToastLevel.Error);
         }
     }
-
-    // This method is now HandleCategorySelection, the original SelectCategory was primarily for invoking the callback.
-    // The explicit "Select" button has been removed as the entire item is clickable.
-    // private async Task SelectCategory(LearningTrackCategory category)
-    // { ... }
 
     private async Task DeleteCategory(LearningTrackCategory category)
     {
@@ -204,10 +204,8 @@ else
             if (selectedCategory == category)
             {
                 selectedCategory = null;
-                // Optionally, notify parent about deselection if needed:
-                // await OnLearningTrackCategorySelected.InvokeAsync(null);
             }
-            await LoadCategories(); // Reload and refresh the list
+            await LoadCategories();
         }
         catch (Exception ex)
         {

@@ -1,0 +1,55 @@
+﻿/* Reusable from previous component - ensure this is in your global CSS or component's style */
+.grid-background {
+    background-color: #f8f9fa; /* Bootstrap light */
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.list-group-item.active .text-muted {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.list-group-item.active h5 {
+    color: #fff !important;
+}
+
+.action-buttons-list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    white-space: nowrap;
+}
+
+    .action-buttons-list .btn {
+        min-width: 75px; /* Adjusted slightly if needed */
+        font-size: 0.8rem;
+    }
+
+        .action-buttons-list .btn .d-md-inline {
+            margin-left: 0.25rem;
+        }
+
+@media (min-width: 768px) {
+    .action-buttons-list {
+        flex-direction: row;
+    }
+
+        .action-buttons-list .btn {
+            margin-bottom: 0 !important;
+        }
+
+            .action-buttons-list .btn:not(:last-child) {
+                margin-right: 0.5rem;
+            }
+}
+
+.list-group-item .d-flex > div:first-child {
+    flex-grow: 1;
+}
+
+.list-group-item h5 .bi,
+.list-group-item p .bi {
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+}

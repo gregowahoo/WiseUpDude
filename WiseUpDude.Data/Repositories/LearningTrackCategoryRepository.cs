@@ -1,10 +1,10 @@
-using Microsoft.EntityFrameworkCore; // Make sure this is present
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WiseUpDude.Data.Entities; // Assuming your entities are here
+using WiseUpDude.Data.Entities;
 using WiseUpDude.Data.Repositories.Interfaces;
-using WiseUpDude.Model; // Your DTO/Model namespace
+using WiseUpDude.Model;
 
 namespace WiseUpDude.Data.Repositories
 {

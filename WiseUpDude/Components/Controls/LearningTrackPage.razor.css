@@ -1,0 +1,61 @@
+﻿/* Keep your existing .grid-background if you like it */
+.grid-background {
+    background-color: #f8f9fa; /* Bootstrap light */
+    border-radius: 0.5rem;
+    /* padding: 1rem; /* The list-group-flush removes need for padding on the container */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.list-group-item.active .text-muted {
+    color: rgba(255, 255, 255, 0.75) !important; /* Ensure muted text is readable on active background */
+}
+
+.list-group-item.active h5 {
+    color: #fff !important;
+}
+
+
+.action-buttons-list {
+    display: flex;
+    flex-direction: column; /* Stack buttons vertically on very small screens */
+    align-items: flex-end; /* Align buttons to the right */
+    white-space: nowrap;
+}
+
+    .action-buttons-list .btn {
+        min-width: 80px; /* Ensure buttons have a decent tap target */
+        font-size: 0.8rem; /* Slightly smaller text for compact buttons */
+    }
+
+        .action-buttons-list .btn .d-md-inline {
+            margin-left: 0.25rem;
+        }
+
+
+/* On medium screens and up, make buttons horizontal */
+@media (min-width: 768px) {
+    .action-buttons-list {
+        flex-direction: row; /* Align buttons horizontally */
+    }
+
+        .action-buttons-list .btn {
+            margin-bottom: 0 !important; /* Remove bottom margin when horizontal */
+        }
+
+            .action-buttons-list .btn:not(:last-child) {
+                margin-right: 0.5rem; /* Add some space between horizontal buttons */
+            }
+}
+
+/* Adjustments for the overall list item content alignment */
+.list-group-item .d-flex > div:first-child {
+    flex-grow: 1; /* Allow text content to take available space */
+}
+
+/* Ensure icons are vertically aligned with text if needed */
+.list-group-item h5 .bi,
+.list-group-item p .bi {
+    vertical-align: middle;
+    position: relative;
+    top: -1px; /* Fine-tune alignment */
+}

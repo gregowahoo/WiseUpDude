@@ -10,32 +10,47 @@ namespace WiseUpDude.Data.Repositories
 {
     public class LearningTrackSourceRepository : ILearningTrackSourceRepository
     {
-        private readonly ApplicationDbContext _context;
-        public LearningTrackSourceRepository(ApplicationDbContext context) => _context = context;
+        private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
+
+        public LearningTrackSourceRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
+        {
+            _dbContextFactory = dbContextFactory;
+        }
 
         public async Task<IEnumerable<Model.LearningTrackSource>> GetAllAsync()
         {
+            await using var _context = await _dbContextFactory.CreateDbContextAsync();
+
             var entities = await _context.LearningTrackSources.Include(x => x.Quizzes).ToListAsync();
             return entities.Select(EntityToModel);
         }
 
         public async Task<Model.LearningTrackSource?> GetByIdAsync(int id)
         {
+            await using var _context = await _dbContextFactory.CreateDbContextAsync();
+
             var entity = await _context.LearningTrackSources.Include(x => x.Quizzes).FirstOrDefaultAsync(x => x.Id == id);
             return entity == null ? null : EntityToModel(entity);
         }
 
         public async Task AddAsync(Model.LearningTrackSource model)
         {
+            await using var _context = await _dbContextFactory.CreateDbContextAsync();
+
             var entity = ModelToEntity(model);
+
             _context.LearningTrackSources.Add(entity);
             await _context.SaveChangesAsync();
+
             model.Id = entity.Id;
         }
 
         public async Task UpdateAsync(Model.LearningTrackSource model)
         {
+            await using var _context = await _dbContextFactory.CreateDbContextAsync();
+
             var entity = await _context.LearningTrackSources.Include(x => x.Quizzes).FirstOrDefaultAsync(x => x.Id == model.Id);
+
             if (entity == null) return;
             entity.Name = model.Name;
             entity.SourceType = model.SourceType;
@@ -47,6 +62,8 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task DeleteAsync(int id)
         {
+            await using var _context = await _dbContextFactory.CreateDbContextAsync();
+
             var entity = await _context.LearningTrackSources.FindAsync(id);
             if (entity != null)
             {

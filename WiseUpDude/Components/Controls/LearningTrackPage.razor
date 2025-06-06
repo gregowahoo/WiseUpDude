@@ -121,6 +121,7 @@ else
     {
         selectedTrack = track;
         StateHasChanged();
+
         await OnLearningTrackSelected.InvokeAsync(track);
     }
 

@@ -77,7 +77,8 @@
             {
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <LearningTrackSourcesGrid LearningTrackCategoryId="@selectedLearningTrackCategoryId.Value" OnLearningTrackSourceSelected="HandleLearningTrackSourceSelected" />
+                        @* <LearningTrackSourcesGrid LearningTrackCategoryId="@selectedLearningTrackCategoryId.Value" OnLearningTrackSourceSelected="HandleLearningTrackSourceSelected" /> *@
+                        <LearningTrackSourcesPage LearningTrackCategoryId="@selectedLearningTrackCategoryId.Value" OnLearningTrackSourceSelected="HandleLearningTrackSourceSelected" />
                     </div>
                 </div>
             }

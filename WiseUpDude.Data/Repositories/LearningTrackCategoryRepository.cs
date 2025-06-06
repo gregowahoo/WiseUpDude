@@ -1,102 +1,117 @@
+using Microsoft.EntityFrameworkCore; // Make sure this is present
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using WiseUpDude.Data.Entities;
+using WiseUpDude.Data.Entities; // Assuming your entities are here
 using WiseUpDude.Data.Repositories.Interfaces;
-using Model = WiseUpDude.Model;
+using WiseUpDude.Model; // Your DTO/Model namespace
 
 namespace WiseUpDude.Data.Repositories
 {
     public class LearningTrackCategoryRepository : ILearningTrackCategoryRepository
     {
-        private readonly ApplicationDbContext _context;
-        public LearningTrackCategoryRepository(ApplicationDbContext context) => _context = context;
+        private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
+
+        public LearningTrackCategoryRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
+        {
+            _dbContextFactory = dbContextFactory;
+        }
 
         public async Task<IEnumerable<Model.LearningTrackCategory>> GetAllAsync()
         {
-            var entities = await _context.LearningTrackCategories.Include(x => x.Sources).ToListAsync();
-            return entities.Select(EntityToModel);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+
+            var entities = await context.LearningTrackCategories
+                                        .Include(x => x.Sources) // If you need to include related entities
+                                        .ToListAsync();
+
+            // Assuming you have an EntityToModel mapping method or similar
+            // If not, you'd map properties manually or use a library like AutoMapper
+            return entities.Select(entity => EntityToModel(entity));
         }
 
-        public async Task<Model.LearningTrackCategory?> GetByIdAsync(int id)
+        public async Task<Model.LearningTrackCategory?> GetByIdAsync(int id) // Assuming your interface returns Model.LearningTrackCategory?
         {
-            var entity = await _context.LearningTrackCategories.Include(x => x.Sources).FirstOrDefaultAsync(x => x.Id == id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.LearningTrackCategories
+                                      .Include(x => x.Sources) // Example include
+                                      .FirstOrDefaultAsync(x => x.Id == id);
             return entity == null ? null : EntityToModel(entity);
         }
 
-        public async Task AddAsync(Model.LearningTrackCategory model)
+        public async Task AddAsync(Model.LearningTrackCategory model) // Assuming your interface takes Model.LearningTrackCategory
         {
-            var entity = ModelToEntity(model);
-            _context.LearningTrackCategories.Add(entity);
-            await _context.SaveChangesAsync();
-            model.Id = entity.Id;
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = ModelToEntity(model); // You'll need a method to map from Model to Entity
+            context.LearningTrackCategories.Add(entity);
+            await context.SaveChangesAsync();
+            // If you need to update the model with the new ID:
+            // model.Id = entity.Id; // EF Core populates the ID on the tracked entity after SaveChangesAsync
         }
+
 
         public async Task UpdateAsync(Model.LearningTrackCategory model)
         {
-            var entity = await _context.LearningTrackCategories.Include(x => x.Sources).FirstOrDefaultAsync(x => x.Id == model.Id);
-            if (entity == null) return;
-            entity.Name = model.Name;
-            entity.Description = model.Description;
-            entity.Difficulty = model.Difficulty;
-            // Update sources if needed
-            await _context.SaveChangesAsync();
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            // You might need to fetch the existing entity first to ensure it's tracked
+            var entity = await context.LearningTrackCategories.FindAsync(model.Id);
+            if (entity != null)
+            {
+                // Update properties from model to entity
+                entity.Name = model.Name;
+                entity.Description = model.Description;
+                entity.Difficulty = model.Difficulty;
+                // Update other properties as needed, but be careful with navigation properties
+                // context.Entry(entity).State = EntityState.Modified; // Not always needed if you modify properties on a tracked entity
+                await context.SaveChangesAsync();
+            }
         }
 
         public async Task DeleteAsync(int id)
         {
-            var entity = await _context.LearningTrackCategories.FindAsync(id);
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var entity = await context.LearningTrackCategories.FindAsync(id);
             if (entity != null)
             {
-                _context.LearningTrackCategories.Remove(entity);
-                await _context.SaveChangesAsync();
+                context.LearningTrackCategories.Remove(entity);
+                await context.SaveChangesAsync();
             }
         }
 
-        // --- Mapping helpers ---
-        private static Model.LearningTrackCategory EntityToModel(LearningTrackCategory entity) => new()
+        // Placeholder for your mapping logic (Model = DTO/ViewModel, Entity = EF Core DB class)
+        // You would implement these based on your specific Model and Entity structures.
+        private Model.LearningTrackCategory EntityToModel(Entities.LearningTrackCategory entity)
         {
-            Id = entity.Id,
-            Name = entity.Name,
-            Description = entity.Description,
-            Difficulty = entity.Difficulty,
-            LearningTrackId = entity.LearningTrackId,
-            CreationDate = entity.CreationDate,
-            Sources = entity.Sources?.Select(EntityToModel).ToList() ?? new()
-        };
+            if (entity == null) return null;
+            return new Model.LearningTrackCategory
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Description = entity.Description,
+                Difficulty = entity.Difficulty,
+                LearningTrackId = entity.LearningTrackId,
+                CreationDate = entity.CreationDate,
+                // Map Sources if needed
+                Sources = entity.Sources?.Select(s => new Model.LearningTrackSource { /* map source properties */ Id = s.Id, Name = s.Name, Url = s.Url, Description = s.Description, SourceType = s.SourceType, LearningTrackCategoryId = s.LearningTrackCategoryId }).ToList()
+            };
+        }
 
-        private static Model.LearningTrackSource EntityToModel(LearningTrackSource entity) => new()
+        private Entities.LearningTrackCategory ModelToEntity(Model.LearningTrackCategory model)
         {
-            Id = entity.Id,
-            Name = entity.Name,
-            SourceType = entity.SourceType,
-            Url = entity.Url,
-            Description = entity.Description,
-            LearningTrackCategoryId = entity.LearningTrackCategoryId,
-            CreationDate = entity.CreationDate
-        };
-
-        private static LearningTrackCategory ModelToEntity(Model.LearningTrackCategory model) => new()
-        {
-            Id = model.Id,
-            Name = model.Name,
-            Description = model.Description,
-            Difficulty = model.Difficulty,
-            LearningTrackId = model.LearningTrackId,
-            CreationDate = model.CreationDate,
-            Sources = model.Sources?.Select(ModelToEntity).ToList() ?? new()
-        };
-
-        private static LearningTrackSource ModelToEntity(Model.LearningTrackSource model) => new()
-        {
-            Id = model.Id,
-            Name = model.Name,
-            SourceType = model.SourceType,
-            Url = model.Url,
-            Description = model.Description,
-            LearningTrackCategoryId = model.LearningTrackCategoryId,
-            CreationDate = model.CreationDate
-        };
+            if (model == null) return null; // Or throw argument null exception
+            // When creating a new entity from a model for an Add operation,
+            // you generally don't set the Id if it's database-generated.
+            return new Entities.LearningTrackCategory
+            {
+                Id = model.Id, // For updates, Id is important. For adds, it might be 0.
+                Name = model.Name,
+                Description = model.Description,
+                Difficulty = model.Difficulty,
+                LearningTrackId = model.LearningTrackId,
+                CreationDate = model.CreationDate == DateTime.MinValue ? DateTime.UtcNow : model.CreationDate // Handle CreationDate
+                // Do NOT map navigation properties like 'Sources' here if you're just adding/updating the category itself.
+                // Managing relationships is a separate concern.
+            };
+        }
     }
 }

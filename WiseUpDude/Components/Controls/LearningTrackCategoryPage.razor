@@ -65,6 +65,7 @@ else
     </div>
 }
 
+
 <Modal IsVisible="@showModal" Title="@modalTitle" OnClose="CloseModal">
     <EditForm Model="@modalCategory" OnValidSubmit="SaveCategory">
         <div class="mb-3">
@@ -90,6 +91,7 @@ else
     private string modalTitle = "Add/Edit Category";
     private LearningTrackCategory modalCategory = new();
     private string? learningTrackName;
+    private bool isLoading = false;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -113,16 +115,17 @@ else
     {
         var track = await LearningTrackRepo.GetByIdAsync(LearningTrackId);
         learningTrackName = track?.Name ?? $"ID: {LearningTrackId}";
+
         // StateHasChanged(); // Potentially call if name update needs immediate UI refresh before categories load
     }
 
     private async Task LoadCategories()
     {
+        if (isLoading) return;
+        isLoading = true;
         try
         {
-            // FIX 3: Maintain selection by ID
             int? previouslySelectedCategoryId = selectedCategory?.Id;
-
             var allCategories = await LearningTrackCategoryRepo.GetAllAsync();
             categories = allCategories.Where(c => c.LearningTrackId == LearningTrackId).ToList();
 
@@ -130,15 +133,18 @@ else
             {
                 selectedCategory = categories.FirstOrDefault(c => c.Id == previouslySelectedCategoryId.Value);
             }
-            // If not found (e.g., it was deleted or track changed), selectedCategory will be/remain null.
         }
         catch (Exception ex)
         {
             await ToastService.ShowToast($"Failed to load categories: {ex.Message}", ToastLevel.Error);
             categories = new List<LearningTrackCategory>();
-            selectedCategory = null; // Ensure selection is cleared on error
+            selectedCategory = null;
         }
-        StateHasChanged(); // Crucial: Ensure UI updates after loading and potentially re-selecting
+        finally
+        {
+            isLoading = false;
+        }
+        StateHasChanged();
     }
 
     private async Task HandleCategorySelection(LearningTrackCategory category)

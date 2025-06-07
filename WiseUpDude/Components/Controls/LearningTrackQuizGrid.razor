@@ -1,11 +1,13 @@
 @using WiseUpDude.Model
 @using Microsoft.AspNetCore.Components.QuickGrid
+@inject WiseUpDude.Data.Repositories.Interfaces.ILearningTrackQuizRepository QuizRepo
+@inject WiseUpDude.Shared.Services.ToastService ToastService
 
 @rendermode InteractiveServer
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="text-secondary mb-0"><i class="bi bi-patch-question me-2"></i>Quizzes for Source ID: @LearningTrackSourceId</h4>
-    <button class="btn btn-success" @onclick="AddNewQuiz">
+    <button class="btn btn-success" @onclick="ShowAddModal">
         <i class="bi bi-plus-circle-fill me-1"></i> Add New Quiz
     </button>
 </div>
@@ -21,7 +23,7 @@ else if (!quizzes.Any())
 {
      <div class="alert alert-light text-center" role="alert">
         <i class="bi bi-info-circle me-2"></i> No quizzes found for this source.
-        <button class="btn btn-link p-0 ms-1" @onclick="AddNewQuiz">Add one now!</button>
+        <button class="btn btn-link p-0 ms-1" @onclick="ShowAddModal">Add one now!</button>
     </div>
 }
 else
@@ -50,7 +52,7 @@ else
                 <button class="btn btn-sm btn-primary me-1" @onclick="() => SelectQuiz(quiz)" title="Select Quiz">
                     <i class="bi bi-check-circle-fill"></i> Select
                 </button>
-                <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => EditQuiz(quiz)" title="Edit Quiz">
+                <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => ShowEditModal(quiz)" title="Edit Quiz">
                     <i class="bi bi-pencil-square"></i> Edit
                 </button>
                 <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteQuiz(quiz)" title="Delete Quiz">
@@ -62,6 +64,21 @@ else
     <Paginator State="@paginationState" />
 }
 
+<Modal IsVisible="@showModal" Title="@modalTitle" OnClose="CloseModal">
+    <EditForm Model="@modalQuiz" OnValidSubmit="SaveQuiz">
+        <div class="mb-3">
+            <label class="form-label">Name</label>
+            <InputText class="form-control" @bind-Value="modalQuiz.Name" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <InputTextArea class="form-control" @bind-Value="modalQuiz.Description" />
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-secondary ms-2" @onclick="CloseModal">Cancel</button>
+    </EditForm>
+</Modal>
+
 @code {
     [Parameter] public int LearningTrackSourceId { get; set; }
     [Parameter] public EventCallback<LearningTrackQuiz> OnLearningTrackQuizSelected { get; set; }
@@ -70,6 +87,10 @@ else
     private List<LearningTrackQuiz>? quizzes;
     private IQueryable<LearningTrackQuiz>? quizzesQueryable;
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 5 };
+    private bool showModal = false;
+    private string modalTitle = "Add/Edit Quiz";
+    private LearningTrackQuiz modalQuiz = new();
+    private bool isEdit = false;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -80,14 +101,18 @@ else
     {
         quizzes = null;
         await InvokeAsync(StateHasChanged);
-        await Task.Delay(300); 
-
-        quizzes = new List<LearningTrackQuiz>
+        try
         {
-            new LearningTrackQuiz { Id = 301, LearningTrackSourceId = LearningTrackSourceId, Name = $"Component Quiz for Source {LearningTrackSourceId}", Description = "Test your component knowledge.", CreationDate = DateTime.UtcNow.AddDays(-LearningTrackSourceId) },
-            new LearningTrackQuiz { Id = 302, LearningTrackSourceId = LearningTrackSourceId, Name = $"Lifecycle Quiz for Source {LearningTrackSourceId}", Description = "Understanding Blazor lifecycle methods.", CreationDate = DateTime.UtcNow.AddDays(-LearningTrackSourceId -1) }
-        }.Where(q => q.LearningTrackSourceId == LearningTrackSourceId).ToList();
-        quizzesQueryable = quizzes.AsQueryable();
+            var allQuizzes = await QuizRepo.GetAllQuizzesAsync();
+            quizzes = allQuizzes.Where(q => q.LearningTrackSourceId == LearningTrackSourceId).ToList();
+            quizzesQueryable = quizzes.AsQueryable();
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to load quizzes: {ex.Message}", ToastLevel.Error);
+            quizzes = new List<LearningTrackQuiz>();
+            quizzesQueryable = quizzes.AsQueryable();
+        }
         await InvokeAsync(StateHasChanged);
     }
 
@@ -96,14 +121,69 @@ else
         await OnLearningTrackQuizSelected.InvokeAsync(quiz);
     }
 
-    private void AddNewQuiz() { Console.WriteLine($"Add New Quiz for Source ID: {LearningTrackSourceId}"); }
-    private void EditQuiz(LearningTrackQuiz quiz) { Console.WriteLine($"Edit Quiz: {quiz.Name}"); }
-    private async Task DeleteQuiz(LearningTrackQuiz quiz) {
-        Console.WriteLine($"Delete Quiz: {quiz.Name}");
-         if (quizzes != null) {
-            quizzes.Remove(quiz);
-            quizzesQueryable = quizzes.AsQueryable();
-            await InvokeAsync(StateHasChanged);
+    private void ShowAddModal()
+    {
+        modalTitle = "Add New Quiz";
+        modalQuiz = new LearningTrackQuiz { LearningTrackSourceId = LearningTrackSourceId };
+        isEdit = false;
+        showModal = true;
+    }
+
+    private void ShowEditModal(LearningTrackQuiz quiz)
+    {
+        modalTitle = "Edit Quiz";
+        modalQuiz = new LearningTrackQuiz
+        {
+            Id = quiz.Id,
+            Name = quiz.Name,
+            Description = quiz.Description,
+            LearningTrackSourceId = quiz.LearningTrackSourceId,
+            CreationDate = quiz.CreationDate
+        };
+        isEdit = true;
+        showModal = true;
+    }
+
+    private async Task SaveQuiz()
+    {
+        try
+        {
+            modalQuiz.LearningTrackSourceId = LearningTrackSourceId;
+            if (isEdit)
+            {
+                await QuizRepo.UpdateQuizAsync(modalQuiz);
+                await ToastService.ShowToast("Quiz updated!", ToastLevel.Success);
+            }
+            else
+            {
+                await QuizRepo.AddQuizAsync(modalQuiz);
+                await ToastService.ShowToast("Quiz added!", ToastLevel.Success);
+            }
+            showModal = false;
+            await LoadQuizzes();
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to save quiz: {ex.Message}", ToastLevel.Error);
+        }
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private async Task DeleteQuiz(LearningTrackQuiz quiz)
+    {
+        try
+        {
+            await QuizRepo.DeleteQuizAsync(quiz.Id);
+            await ToastService.ShowToast($"Quiz deleted: {quiz.Name}", ToastLevel.Success);
+            await LoadQuizzes();
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to delete quiz: {ex.Message}", ToastLevel.Error);
         }
     }
 }

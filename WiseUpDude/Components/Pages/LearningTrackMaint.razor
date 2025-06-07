@@ -91,11 +91,11 @@
         </div>
 
         <div class="tab-pane fade" id="quizzes-tab-pane" role="tabpanel" aria-labelledby="quizzes-tab" tabindex="0">
-            @if (selectedLearningTrackCategoryId != null)
+            @if (selectedLearningTrackSourceId != null)
             {
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <LearningTrackQuizGrid LearningTrackCategoryId="@selectedLearningTrackCategoryId.Value" OnLearningTrackQuizSelected="HandleLearningTrackQuizSelected" />
+                        <LearningTrackQuizGrid LearningTrackSourceId="@selectedLearningTrackSourceId.Value" OnLearningTrackQuizSelected="HandleLearningTrackQuizSelected" />
                     </div>
                 </div>
             }

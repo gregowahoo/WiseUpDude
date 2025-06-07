@@ -9,7 +9,6 @@
 
 .list-group-item.active {
     z-index: 2; /* To ensure active item's border overlaps others */
-    color: #fff;
     background-color: #0d6efd; /* Bootstrap primary blue, or your preferred active color */
     border-color: #0d6efd;
 }
@@ -26,6 +25,20 @@
     .list-group-item.active h5 {
         color: #fff !important;
     }
+
+/* --- Fix: Action buttons on selected row should remain visible and colored --- */
+.list-group-item.active .action-buttons-list .btn {
+    background-color: #fff !important;
+    color: inherit !important;
+    border-color: #dee2e6 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.list-group-item.active .action-buttons-list .btn.btn-outline-danger {
+    color: #dc3545 !important;
+}
+.list-group-item.active .action-buttons-list .btn.btn-outline-secondary {
+    color: #6c757d !important;
+}
 
 .action-buttons-list { /* Assuming you'll use this class name or similar in the HTML if not already */
     display: flex;

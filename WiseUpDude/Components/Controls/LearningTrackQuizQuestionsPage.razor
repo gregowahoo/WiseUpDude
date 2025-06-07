@@ -1,0 +1,228 @@
+@page "/learningtrack/{LearningTrackId:int}/quiz/{LearningTrackQuizId:int}/questions"
+@using WiseUpDude.Model
+@using Microsoft.AspNetCore.Components.Forms
+@inject WiseUpDude.Data.Repositories.Interfaces.ILearningTrackQuizQuestionRepository QuizQuestionRepo
+@inject WiseUpDude.Shared.Services.ToastService ToastService
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <button class="btn btn-sm btn-outline-secondary mb-2" @onclick="GoBackToQuiz">
+            <i class="bi bi-arrow-left"></i> Back to Quiz Details
+        </button>
+        <h4 class="text-secondary mb-0"><i class="bi bi-card-list me-2"></i>Questions for Quiz ID: @LearningTrackQuizId</h4>
+    </div>
+    <button class="btn btn-success" @onclick="ShowAddModal">
+        <i class="bi bi-plus-circle-fill me-1"></i> Add New Question
+    </button>
+</div>
+
+@if (questions == null)
+{
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 150px;">
+        <div class="spinner-border text-warning" role="status"><span class="visually-hidden">Loading...</span></div>
+        <strong class="ms-2">Loading questions...</strong>
+    </div>
+}
+else if (!questions.Any())
+{
+     <div class="alert alert-light text-center" role="alert">
+        <i class="bi bi-info-circle me-2"></i> No questions found for this quiz.
+        <button class="btn btn-link p-0 ms-1" @onclick="ShowAddModal">Add one now!</button>
+    </div>
+}
+else
+{
+    <div class="card shadow border-0 mb-4 quiz-question-list-card-background">
+        <div class="list-group list-group-flush">
+            @foreach (var question in questions.OrderByDescending(q => q.CreationDate)) // Retain sorting if desired
+            {
+                <div class="list-group-item" @key="question.Id">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1 me-3 question-content">
+                            <div class="question-block mb-2">
+                                <h6 class="question-title mb-0">
+                                    <i class="bi bi-question-circle-fill me-1"></i> Question:
+                                </h6>
+                                <p class="question-text ms-3 mb-0">@question.Question</p>
+                            </div>
+
+                            <div class="answer-block mb-2">
+                                <h6 class="answer-title mb-0">
+                                    <i class="bi bi-check2-circle-fill me-1"></i> Answer:
+                                </h6>
+                                <p class="answer-text ms-3 mb-0">@question.Answer</p>
+                            </div>
+                            
+                            <div class="details-block d-flex justify-content-between small text-muted mt-2">
+                                <span>
+                                    <i class="bi bi-bar-chart-steps me-1"></i> Difficulty: @question.Difficulty
+                                </span>
+                                <span>
+                                    <i class="bi bi-calendar-event me-1"></i> Created: @question.CreationDate.ToString("yyyy-MM-dd HH:mm")
+                                </span>
+                            </div>
+                        </div>
+                        <div class="ms-2 text-nowrap action-buttons-list">
+                            <button class="btn btn-sm btn-outline-secondary me-1 mb-1 mb-md-0" @onclick="() => ShowEditModal(question)" title="Edit Question">
+                                <i class="bi bi-pencil-square"></i> <span class="d-none d-md-inline">Edit</span>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteQuestion(question)" title="Delete Question">
+                                <i class="bi bi-trash"></i> <span class="d-none d-md-inline">Delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<Modal IsVisible="@showModal" Title="@modalTitle" OnClose="CloseModal">
+    <EditForm Model="@modalQuestion" OnValidSubmit="SaveQuestion">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="mb-3">
+            <label class="form-label">Question</label>
+            <InputTextArea class="form-control" @bind-Value="modalQuestion.Question" rows="3" />
+            <ValidationMessage For="@(() => modalQuestion.Question)" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Answer</label>
+            <InputTextArea class="form-control" @bind-Value="modalQuestion.Answer" rows="3" />
+            <ValidationMessage For="@(() => modalQuestion.Answer)" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Difficulty</label>
+            <InputText class="form-control" @bind-Value="modalQuestion.Difficulty" />
+            <ValidationMessage For="@(() => modalQuestion.Difficulty)" />
+        </div>
+        <div class="d-flex justify-content-end mt-3">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-secondary ms-2" @onclick="CloseModal">Cancel</button>
+        </div>
+    </EditForm>
+</Modal>
+
+@code {
+    [Parameter] public int LearningTrackId { get; set; } // Added for "Back to Quiz" navigation
+    [Parameter] public int LearningTrackQuizId { get; set; }
+
+    private List<LearningTrackQuizQuestion>? questions;
+    // private IQueryable<LearningTrackQuizQuestion>? questionsQueryable; // Removed for Bootstrap list
+    // private PaginationState paginationState = new PaginationState { ItemsPerPage = 5 }; // Removed
+
+    private bool showModal = false;
+    private string modalTitle = "Add/Edit Question"; // Default title
+    private LearningTrackQuizQuestion modalQuestion = new();
+    private bool isEdit = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadQuestions();
+    }
+
+    private async Task LoadQuestions()
+    {
+        questions = null; // Triggers loading spinner
+        await InvokeAsync(StateHasChanged); 
+        try
+        {
+            // Assuming GetQuestionsByQuizIdAsync returns IEnumerable or IReadOnlyList
+            var allQuestions = await QuizQuestionRepo.GetQuestionsByQuizIdAsync(LearningTrackQuizId);
+            questions = allQuestions.ToList();
+            // questionsQueryable = questions.AsQueryable(); // Removed
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to load questions: {ex.Message}", ToastLevel.Error);
+            questions = new List<LearningTrackQuizQuestion>(); // Ensure not null for UI
+            // questionsQueryable = questions.AsQueryable(); // Removed
+        }
+        await InvokeAsync(StateHasChanged); // Update UI with data or empty message
+    }
+
+    private void ShowAddModal()
+    {
+        modalTitle = "Add New Question";
+        modalQuestion = new LearningTrackQuizQuestion { LearningTrackQuizId = LearningTrackQuizId, CreationDate = DateTime.UtcNow }; // Set CreationDate
+        isEdit = false;
+        showModal = true;
+    }
+
+    private void ShowEditModal(LearningTrackQuizQuestion question)
+    {
+        modalTitle = "Edit Question";
+        // Create a new instance for editing to avoid modifying the original object in the list directly
+        modalQuestion = new LearningTrackQuizQuestion
+        {
+            Id = question.Id,
+            LearningTrackQuizId = question.LearningTrackQuizId,
+            Question = question.Question,
+            Answer = question.Answer,
+            Difficulty = question.Difficulty,
+            CreationDate = question.CreationDate // Preserve original creation date
+        };
+        isEdit = true;
+        showModal = true;
+    }
+
+    private async Task SaveQuestion()
+    {
+        try
+        {
+            // modalQuestion.LearningTrackQuizId is already set in ShowAddModal or ShowEditModal
+            if (isEdit)
+            {
+                // CreationDate should not be updated on edit, it's already set from ShowEditModal
+                await QuizQuestionRepo.UpdateQuestionAsync(modalQuestion);
+                await ToastService.ShowToast("Question updated!", ToastLevel.Success);
+            }
+            else
+            {
+                // CreationDate is set in ShowAddModal
+                await QuizQuestionRepo.AddQuestionAsync(modalQuestion);
+                await ToastService.ShowToast("Question added!", ToastLevel.Success);
+            }
+            showModal = false;
+            await LoadQuestions(); // Refresh list
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to save question: {ex.Message}", ToastLevel.Error);
+        }
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private async Task DeleteQuestion(LearningTrackQuizQuestion question)
+    {
+        // Optional: Add a confirmation dialog here using JavaScript interop if desired
+        // var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete question: '{question.Question}'?");
+        // if (!confirmed) return;
+
+        try
+        {
+            await QuizQuestionRepo.DeleteQuestionAsync(question.Id);
+            await ToastService.ShowToast($"Question deleted: {question.Question}", ToastLevel.Success);
+            await LoadQuestions(); // Refresh list
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to delete question: {ex.Message}", ToastLevel.Error);
+        }
+    }
+
+    private void GoBackToQuiz()
+    {
+        // Navigate back to the quiz details page, assuming a route like /learningtrack/{LearningTrackId}/quiz/{LearningTrackQuizId}
+        // Or, if the quiz details page is just one level up: /learningtrack/{LearningTrackId}/quizzes
+        // For this example, let's assume it's the quiz detail page for the current LearningTrack.
+        NavigationManager.NavigateTo($"/learningtrack/{LearningTrackId}/quiz/{LearningTrackQuizId}");
+    }
+}

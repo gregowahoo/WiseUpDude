@@ -58,53 +58,6 @@ namespace WiseUpDude.Data.Repositories
             }
         }
 
-        public async Task<IEnumerable<Model.LearningTrackQuizQuestion>> GetQuestionsByQuizIdAsync(int quizId)
-        {
-            await using var context = await _dbContextFactory.CreateDbContextAsync();
-            var entities = await context.LearningTrackQuizQuestions.Where(q => q.LearningTrackQuizId == quizId).ToListAsync();
-            return entities.Select(EntityToModel);
-        }
-
-        public async Task<Model.LearningTrackQuizQuestion?> GetQuestionByIdAsync(int id)
-        {
-            await using var context = await _dbContextFactory.CreateDbContextAsync();
-            var entity = await context.LearningTrackQuizQuestions.FirstOrDefaultAsync(q => q.Id == id);
-            return entity == null ? null : EntityToModel(entity);
-        }
-
-        public async Task AddQuestionAsync(Model.LearningTrackQuizQuestion model)
-        {
-            await using var context = await _dbContextFactory.CreateDbContextAsync();
-            var entity = ModelToEntity(model);
-            context.LearningTrackQuizQuestions.Add(entity);
-            await context.SaveChangesAsync();
-            model.Id = entity.Id;
-        }
-
-        public async Task UpdateQuestionAsync(Model.LearningTrackQuizQuestion model)
-        {
-            await using var context = await _dbContextFactory.CreateDbContextAsync();
-            var entity = await context.LearningTrackQuizQuestions.FirstOrDefaultAsync(q => q.Id == model.Id);
-            if (entity == null) return;
-            entity.Question = model.Question;
-            entity.Answer = model.Answer;
-            entity.Explanation = model.Explanation;
-            entity.OptionsJson = model.OptionsJson;
-            entity.Difficulty = model.Difficulty;
-            await context.SaveChangesAsync();
-        }
-
-        public async Task DeleteQuestionAsync(int id)
-        {
-            await using var context = await _dbContextFactory.CreateDbContextAsync();
-            var entity = await context.LearningTrackQuizQuestions.FindAsync(id);
-            if (entity != null)
-            {
-                context.LearningTrackQuizQuestions.Remove(entity);
-                await context.SaveChangesAsync();
-            }
-        }
-
         // --- Mapping helpers ---
         private static Model.LearningTrackQuiz EntityToModel(LearningTrackQuiz entity) => new()
         {

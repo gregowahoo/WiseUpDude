@@ -12,11 +12,5 @@ namespace WiseUpDude.Data.Repositories.Interfaces
         Task AddQuizAsync(Model.LearningTrackQuiz quiz);
         Task UpdateQuizAsync(Model.LearningTrackQuiz quiz);
         Task DeleteQuizAsync(int id);
-
-        Task<IEnumerable<Model.LearningTrackQuizQuestion>> GetQuestionsByQuizIdAsync(int quizId);
-        Task<Model.LearningTrackQuizQuestion?> GetQuestionByIdAsync(int id);
-        Task AddQuestionAsync(Model.LearningTrackQuizQuestion question);
-        Task UpdateQuestionAsync(Model.LearningTrackQuizQuestion question);
-        Task DeleteQuestionAsync(int id);
     }
 }

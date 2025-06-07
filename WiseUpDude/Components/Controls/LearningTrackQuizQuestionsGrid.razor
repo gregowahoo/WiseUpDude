@@ -1,6 +1,6 @@
 @using WiseUpDude.Model
 @using Microsoft.AspNetCore.Components.QuickGrid
-@inject WiseUpDude.Data.Repositories.Interfaces.ILearningTrackQuizRepository QuizRepo
+@inject WiseUpDude.Data.Repositories.Interfaces.ILearningTrackQuizQuestionRepository QuizQuestionRepo
 @inject WiseUpDude.Shared.Services.ToastService ToastService
 
 @rendermode InteractiveServer
@@ -107,7 +107,7 @@ else
         await InvokeAsync(StateHasChanged);
         try
         {
-            var allQuestions = await QuizRepo.GetQuestionsByQuizIdAsync(LearningTrackQuizId);
+            var allQuestions = await QuizQuestionRepo.GetQuestionsByQuizIdAsync(LearningTrackQuizId);
             questions = allQuestions.ToList();
             questionsQueryable = questions.AsQueryable();
         }
@@ -151,12 +151,12 @@ else
             modalQuestion.LearningTrackQuizId = LearningTrackQuizId;
             if (isEdit)
             {
-                await QuizRepo.UpdateQuestionAsync(modalQuestion);
+                await QuizQuestionRepo.UpdateQuestionAsync(modalQuestion);
                 await ToastService.ShowToast("Question updated!", ToastLevel.Success);
             }
             else
             {
-                await QuizRepo.AddQuestionAsync(modalQuestion);
+                await QuizQuestionRepo.AddQuestionAsync(modalQuestion);
                 await ToastService.ShowToast("Question added!", ToastLevel.Success);
             }
             showModal = false;
@@ -177,7 +177,7 @@ else
     {
         try
         {
-            await QuizRepo.DeleteQuestionAsync(question.Id);
+            await QuizQuestionRepo.DeleteQuestionAsync(question.Id);
             await ToastService.ShowToast($"Question deleted: {question.Question}", ToastLevel.Success);
             await LoadQuestions();
         }

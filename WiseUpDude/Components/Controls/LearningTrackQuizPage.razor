@@ -65,6 +65,7 @@ else if (quizzes != null && quizzes.Any())
 
 <Modal IsVisible="@showModal" Title="@modalTitle" OnClose="CloseModal">
     <EditForm Model="@modalQuiz" OnValidSubmit="SaveQuizAsync">
+        {/* Ensure async naming */}
         <DataAnnotationsValidator />
         <ValidationSummary />
         <div class="mb-3">
@@ -89,13 +90,13 @@ else if (quizzes != null && quizzes.Any())
 @code {
     [Parameter] public int LearningTrackSourceId { get; set; }
     [Parameter] public EventCallback<LearningTrackQuiz?> OnLearningTrackQuizSelected { get; set; }
-    [Parameter] public int LearningTrackCategoryId { get; set; } // Retained as per original file, evaluate if needed
+    [Parameter] public int LearningTrackCategoryId { get; set; } // Retained from original, assess if needed
 
     private List<LearningTrackQuiz>? quizzes;
     private LearningTrackQuiz? selectedQuiz;
 
     private bool isLoading = false;
-    private bool initialLoadAttempted = false;
+    private bool initialLoadAttempted = false; // Aligned with LearningTrackSourcesPage
 
     private bool showModal = false;
     private string modalTitle = "Add/Edit Quiz";
@@ -105,17 +106,18 @@ else if (quizzes != null && quizzes.Any())
     protected override async Task OnParametersSetAsync()
     {
         bool sourceIdChanged = LearningTrackSourceId != (selectedQuiz?.LearningTrackSourceId ?? 0);
+        bool isValidSourceId = LearningTrackSourceId > 0;
 
-        if (LearningTrackSourceId > 0)
+        if (isValidSourceId)
         {
-            if (sourceIdChanged)
+            if (sourceIdChanged && selectedQuiz != null) // If source changed and there was a selection
             {
                 selectedQuiz = null;
                 await OnLearningTrackQuizSelected.InvokeAsync(null); // Notify parent of cleared selection
             }
             await LoadQuizzesFromRepoAsync();
         }
-        else
+        else // Invalid or 0 SourceId
         {
             quizzes = new List<LearningTrackQuiz>();
             if (selectedQuiz != null) // If there was a selection for a previous valid sourceId
@@ -124,18 +126,20 @@ else if (quizzes != null && quizzes.Any())
                 await OnLearningTrackQuizSelected.InvokeAsync(null);
             }
             initialLoadAttempted = true;
-            isLoading = false; // Not loading if no ID
+            isLoading = false;
             StateHasChanged();
         }
     }
 
-    private async Task LoadQuizzesFromRepoAsync()
+    private async Task LoadQuizzesFromRepoAsync() // Renamed for consistency
     {
         if (isLoading) return;
 
         isLoading = true;
-        if (!initialLoadAttempted) // For the very first load triggered by OnParametersSetAsync
+        if (!initialLoadAttempted)
         {
+            // Only set quizzes to null for spinner on the very first load cycle for this component instance/parameter set
+            // This avoids flicker if list is already populated and we are just refreshing.
             quizzes = null;
         }
         StateHasChanged();
@@ -153,11 +157,18 @@ else if (quizzes != null && quizzes.Any())
             if (previouslySelectedQuizId.HasValue)
             {
                 var newlySelectedQuiz = quizzes.FirstOrDefault(q => q.Id == previouslySelectedQuizId.Value);
-                if (selectedQuiz?.Id != newlySelectedQuiz?.Id) // If selection changed (e.g. item deleted, or was null)
+                // Update selectedQuiz only if it actually changed (e.g., became null or a different instance)
+                if (selectedQuiz?.Id != newlySelectedQuiz?.Id)
                 {
                     selectedQuiz = newlySelectedQuiz;
-                    // No need to invoke OnLearningTrackQuizSelected here, as selection is just being restored or confirmed null.
-                    // The parent was already informed if it was cleared due to sourceId change.
+                    // If the selection was effectively cleared because the item is gone,
+                    // and the parent wasn't already notified (e.g. by OnParametersSetAsync), notify here.
+                    // However, OnParametersSetAsync should handle clearing if the SourceID changed.
+                    // This mainly covers the case where the item is deleted while the SourceID remains the same.
+                    if (selectedQuiz == null)
+                    {
+                        await OnLearningTrackQuizSelected.InvokeAsync(null);
+                    }
                 }
             }
         }
@@ -165,7 +176,7 @@ else if (quizzes != null && quizzes.Any())
         {
             await ToastService.ShowToast($"Failed to load quizzes: {ex.Message}", ToastLevel.Error);
             quizzes = new List<LearningTrackQuiz>();
-            if (selectedQuiz != null)
+            if (selectedQuiz != null) // If load failed, clear selection
             {
                 selectedQuiz = null;
                 await OnLearningTrackQuizSelected.InvokeAsync(null);
@@ -174,7 +185,7 @@ else if (quizzes != null && quizzes.Any())
         finally
         {
             isLoading = false;
-            initialLoadAttempted = true;
+            initialLoadAttempted = true; // Mark that a load has been attempted
             StateHasChanged();
         }
     }
@@ -192,7 +203,7 @@ else if (quizzes != null && quizzes.Any())
             selectedQuiz = quiz;
             await OnLearningTrackQuizSelected.InvokeAsync(selectedQuiz);
         }
-        StateHasChanged(); // Ensure UI updates for selection highlight
+        StateHasChanged(); // CRITICAL: Update UI for selection highlight
     }
 
     private void ShowAddModal()
@@ -218,7 +229,7 @@ else if (quizzes != null && quizzes.Any())
         showModal = true;
     }
 
-    private async Task SaveQuizAsync()
+    private async Task SaveQuizAsync() // Renamed for consistency
     {
         if (string.IsNullOrWhiteSpace(modalQuiz.Name))
         {
@@ -241,6 +252,7 @@ else if (quizzes != null && quizzes.Any())
                 await ToastService.ShowToast("Quiz added successfully!", ToastLevel.Success);
             }
             showModal = false;
+            // initialLoadAttempted = false; // No, keep this true. We want to reload, not reset the flag.
             await LoadQuizzesFromRepoAsync();
         }
         catch (Exception ex)
@@ -255,15 +267,15 @@ else if (quizzes != null && quizzes.Any())
         modalQuiz = new();
     }
 
-    private async Task DeleteQuizAsync(LearningTrackQuiz quizToDelete)
+    private async Task DeleteQuizAsync(LearningTrackQuiz quizToDelete) // Renamed for consistency
     {
         try
         {
             await QuizRepo.DeleteQuizAsync(quizToDelete.Id);
             await ToastService.ShowToast($"Quiz '{quizToDelete.Name}' deleted successfully.", ToastLevel.Success);
-            // Selection will be naturally handled by LoadQuizzesFromRepoAsync.
-            // If the deleted item was selected, selectedQuiz will become null, and parent
-            // would have been notified if it was previously non-null and now is.
+
+            // If the deleted quiz was the selected one, LoadQuizzesFromRepoAsync will handle
+            // setting selectedQuiz to null and notifying the parent if necessary.
             await LoadQuizzesFromRepoAsync();
         }
         catch (Exception ex)

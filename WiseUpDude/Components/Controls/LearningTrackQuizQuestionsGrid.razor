@@ -1,11 +1,13 @@
 @using WiseUpDude.Model
 @using Microsoft.AspNetCore.Components.QuickGrid
+@inject WiseUpDude.Data.Repositories.Interfaces.ILearningTrackQuizRepository QuizRepo
+@inject WiseUpDude.Shared.Services.ToastService ToastService
 
 @rendermode InteractiveServer
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="text-secondary mb-0"><i class="bi bi-card-list me-2"></i>Questions for Quiz ID: @LearningTrackQuizId</h4>
-    <button class="btn btn-success" @onclick="AddNewQuestion">
+    <button class="btn btn-success" @onclick="ShowAddModal">
         <i class="bi bi-plus-circle-fill me-1"></i> Add New Question
     </button>
 </div>
@@ -21,7 +23,7 @@ else if (!questions.Any())
 {
      <div class="alert alert-light text-center" role="alert">
         <i class="bi bi-info-circle me-2"></i> No questions found for this quiz.
-        <button class="btn btn-link p-0 ms-1" @onclick="AddNewQuestion">Add one now!</button>
+        <button class="btn btn-link p-0 ms-1" @onclick="ShowAddModal">Add one now!</button>
     </div>
 }
 else
@@ -52,7 +54,7 @@ else
                 <div class="custom-header"><i class="bi bi-tools me-1"></i> Actions</div>
             </ColumnOptions>
             <ChildContent Context="question">
-                <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => EditQuestion(question)" title="Edit Question">
+                <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => ShowEditModal(question)" title="Edit Question">
                     <i class="bi bi-pencil-square"></i> Edit
                 </button>
                 <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteQuestion(question)" title="Delete Question">
@@ -64,13 +66,35 @@ else
     <Paginator State="@paginationState" />
 }
 
+<Modal IsVisible="@showModal" Title="@modalTitle" OnClose="CloseModal">
+    <EditForm Model="@modalQuestion" OnValidSubmit="SaveQuestion">
+        <div class="mb-3">
+            <label class="form-label">Question</label>
+            <InputText class="form-control" @bind-Value="modalQuestion.Question" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Answer</label>
+            <InputText class="form-control" @bind-Value="modalQuestion.Answer" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Difficulty</label>
+            <InputText class="form-control" @bind-Value="modalQuestion.Difficulty" />
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-secondary ms-2" @onclick="CloseModal">Cancel</button>
+    </EditForm>
+</Modal>
+
 @code {
     [Parameter] public int LearningTrackQuizId { get; set; }
-    // No selection callback needed if this is the last grid
 
     private List<LearningTrackQuizQuestion>? questions;
     private IQueryable<LearningTrackQuizQuestion>? questionsQueryable;
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 5 };
+    private bool showModal = false;
+    private string modalTitle = "Add/Edit Question";
+    private LearningTrackQuizQuestion modalQuestion = new();
+    private bool isEdit = false;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -81,25 +105,85 @@ else
     {
         questions = null;
         await InvokeAsync(StateHasChanged);
-        await Task.Delay(300);
-
-        questions = new List<LearningTrackQuizQuestion>
+        try
         {
-            new LearningTrackQuizQuestion { Id = 401, LearningTrackQuizId = LearningTrackQuizId, Question = "What is Blazor?", Answer = "A web framework.", Difficulty = "Easy", CreationDate = DateTime.UtcNow.AddDays(-LearningTrackQuizId) },
-            new LearningTrackQuizQuestion { Id = 402, LearningTrackQuizId = LearningTrackQuizId, Question = "C# or JavaScript?", Answer = "C#", Difficulty = "Easy", CreationDate = DateTime.UtcNow.AddDays(-LearningTrackQuizId -1) }
-        }.Where(q => q.LearningTrackQuizId == LearningTrackQuizId).ToList();
-        questionsQueryable = questions.AsQueryable();
+            var allQuestions = await QuizRepo.GetQuestionsByQuizIdAsync(LearningTrackQuizId);
+            questions = allQuestions.ToList();
+            questionsQueryable = questions.AsQueryable();
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to load questions: {ex.Message}", ToastLevel.Error);
+            questions = new List<LearningTrackQuizQuestion>();
+            questionsQueryable = questions.AsQueryable();
+        }
         await InvokeAsync(StateHasChanged);
     }
 
-    private void AddNewQuestion() { Console.WriteLine($"Add New Question for Quiz ID: {LearningTrackQuizId}"); }
-    private void EditQuestion(LearningTrackQuizQuestion question) { Console.WriteLine($"Edit Question: {question.Question}"); }
-    private async Task DeleteQuestion(LearningTrackQuizQuestion question) {
-        Console.WriteLine($"Delete Question: {question.Question}");
-        if (questions != null) {
-            questions.Remove(question);
-            questionsQueryable = questions.AsQueryable();
-            await InvokeAsync(StateHasChanged);
+    private void ShowAddModal()
+    {
+        modalTitle = "Add New Question";
+        modalQuestion = new LearningTrackQuizQuestion { LearningTrackQuizId = LearningTrackQuizId };
+        isEdit = false;
+        showModal = true;
+    }
+
+    private void ShowEditModal(LearningTrackQuizQuestion question)
+    {
+        modalTitle = "Edit Question";
+        modalQuestion = new LearningTrackQuizQuestion
+        {
+            Id = question.Id,
+            LearningTrackQuizId = question.LearningTrackQuizId,
+            Question = question.Question,
+            Answer = question.Answer,
+            Difficulty = question.Difficulty,
+            CreationDate = question.CreationDate
+        };
+        isEdit = true;
+        showModal = true;
+    }
+
+    private async Task SaveQuestion()
+    {
+        try
+        {
+            modalQuestion.LearningTrackQuizId = LearningTrackQuizId;
+            if (isEdit)
+            {
+                await QuizRepo.UpdateQuestionAsync(modalQuestion);
+                await ToastService.ShowToast("Question updated!", ToastLevel.Success);
+            }
+            else
+            {
+                await QuizRepo.AddQuestionAsync(modalQuestion);
+                await ToastService.ShowToast("Question added!", ToastLevel.Success);
+            }
+            showModal = false;
+            await LoadQuestions();
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to save question: {ex.Message}", ToastLevel.Error);
+        }
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private async Task DeleteQuestion(LearningTrackQuizQuestion question)
+    {
+        try
+        {
+            await QuizRepo.DeleteQuestionAsync(question.Id);
+            await ToastService.ShowToast($"Question deleted: {question.Question}", ToastLevel.Success);
+            await LoadQuestions();
+        }
+        catch (Exception ex)
+        {
+            await ToastService.ShowToast($"Failed to delete question: {ex.Message}", ToastLevel.Error);
         }
     }
 }

@@ -95,7 +95,8 @@
             {
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <LearningTrackQuizGrid LearningTrackSourceId="@selectedLearningTrackSourceId.Value" OnLearningTrackQuizSelected="HandleLearningTrackQuizSelected" />
+                        @* <LearningTrackQuizGrid LearningTrackSourceId="@selectedLearningTrackSourceId.Value" OnLearningTrackQuizSelected="HandleLearningTrackQuizSelected" /> *@
+                        <LearningTrackQuizPage LearningTrackSourceId="@selectedLearningTrackSourceId.Value" OnLearningTrackQuizSelected="HandleLearningTrackQuizSelected" />
                     </div>
                 </div>
             }

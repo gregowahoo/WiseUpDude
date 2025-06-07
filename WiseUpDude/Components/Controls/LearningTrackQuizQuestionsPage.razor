@@ -35,49 +35,42 @@ else if (!questions.Any())
 }
 else
 {
-    <div class="card shadow border-0 mb-4 quiz-question-list-card-background">
-        <div class="list-group list-group-flush">
-            @foreach (var question in questions.OrderByDescending(q => q.CreationDate))
-            {
-                <div class="list-group-item list-group-item-action @(selectedQuestion?.Id == question.Id ? "active" : "")"
-                     @onclick="() => HandleQuestionSelection(question)" style="cursor:pointer;" @key="question.Id">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="flex-grow-1 me-3 question-content">
-                            <div class="question-block mb-2">
-                                <h6 class="question-title mb-0">
-                                    <i class="bi bi-question-circle-fill me-1"></i> Question:
-                                </h6>
-                                <p class="question-text ms-3 mb-0">@question.Question</p>
-                            </div>
-
-                            <div class="answer-block mb-2">
-                                <h6 class="answer-title mb-0">
-                                    <i class="bi bi-check2-circle-fill me-1"></i> Answer:
-                                </h6>
-                                <p class="answer-text ms-3 mb-0">@question.Answer</p>
-                            </div>
-                            
-                            <div class="details-block d-flex justify-content-between small text-muted mt-2">
-                                <span>
-                                    <i class="bi bi-bar-chart-steps me-1"></i> Difficulty: @question.Difficulty
-                                </span>
-                                <span>
-                                    <i class="bi bi-calendar-event me-1"></i> Created: @question.CreationDate.ToString("yyyy-MM-dd HH:mm")
-                                </span>
-                            </div>
+    <div class="list-group">
+        @foreach (var question in questions.OrderByDescending(q => q.CreationDate))
+        {
+            var isSelected = selectedQuestion?.Id == question.Id;
+            <div class="list-group-item list-group-item-action @(isSelected ? "active" : "")"
+                 @onclick="() => HandleQuestionSelection(question)" style="cursor:pointer;" @key="question.Id">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1 me-3">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1 @(isSelected ? "text-white" : "")">
+                                <i class="bi bi-question-circle-fill me-1"></i>@question.Question
+                            </h5>
+                            <small class="@(isSelected ? "text-white-50" : "text-muted")">
+                                <i class="bi bi-calendar-event me-1"></i>Created: @question.CreationDate.ToString("yyyy-MM-dd HH:mm")
+                            </small>
                         </div>
-                        <div class="ms-2 text-nowrap action-buttons-list">
-                            <button class="btn btn-sm btn-outline-secondary me-1 mb-1 mb-md-0" @onclick:stopPropagation="true" @onclick="() => ShowEditModal(question)" title="Edit Question">
-                                <i class="bi bi-pencil-square"></i> <span class="d-none d-md-inline">Edit</span>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" @onclick:stopPropagation="true" @onclick="() => DeleteQuestion(question)" title="Delete Question">
-                                <i class="bi bi-trash"></i> <span class="d-none d-md-inline">Delete</span>
-                            </button>
-                        </div>
+                        <p class="mb-1 @(isSelected ? "text-white-75" : "")">
+                            <i class="bi bi-check2-circle-fill me-1"></i>@question.Answer
+                        </p>
+                        <p class="mb-1 @(isSelected ? "text-white-75" : "text-muted")">
+                            <i class="bi bi-bar-chart-steps me-1"></i>Difficulty: @question.Difficulty
+                        </p>
+                    </div>
+                    <div class="ms-2 text-nowrap action-buttons-list">
+                        <button class="btn btn-sm @(isSelected ? "btn-outline-light" : "btn-outline-secondary") me-1 mb-1 mb-md-0"
+                                @onclick:stopPropagation="true" @onclick="() => ShowEditModal(question)" title="Edit Question">
+                            <i class="bi bi-pencil-square"></i> <span class="d-none d-md-inline">Edit</span>
+                        </button>
+                        <button class="btn btn-sm @(isSelected ? "btn-warning" : "btn-outline-danger")"
+                                @onclick:stopPropagation="true" @onclick="() => DeleteQuestion(question)" title="Delete Question">
+                            <i class="bi bi-trash"></i> <span class="d-none d-md-inline">Delete</span>
+                        </button>
                     </div>
                 </div>
-            }
-        </div>
+            </div>
+        }
     </div>
 }
 

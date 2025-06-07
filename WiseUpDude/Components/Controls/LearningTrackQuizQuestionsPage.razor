@@ -37,9 +37,10 @@ else
 {
     <div class="card shadow border-0 mb-4 quiz-question-list-card-background">
         <div class="list-group list-group-flush">
-            @foreach (var question in questions.OrderByDescending(q => q.CreationDate)) // Retain sorting if desired
+            @foreach (var question in questions.OrderByDescending(q => q.CreationDate))
             {
-                <div class="list-group-item" @key="question.Id">
+                <div class="list-group-item list-group-item-action @(selectedQuestion?.Id == question.Id ? "active" : "")"
+                     @onclick="() => HandleQuestionSelection(question)" style="cursor:pointer;" @key="question.Id">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1 me-3 question-content">
                             <div class="question-block mb-2">
@@ -66,10 +67,10 @@ else
                             </div>
                         </div>
                         <div class="ms-2 text-nowrap action-buttons-list">
-                            <button class="btn btn-sm btn-outline-secondary me-1 mb-1 mb-md-0" @onclick="() => ShowEditModal(question)" title="Edit Question">
+                            <button class="btn btn-sm btn-outline-secondary me-1 mb-1 mb-md-0" @onclick:stopPropagation="true" @onclick="() => ShowEditModal(question)" title="Edit Question">
                                 <i class="bi bi-pencil-square"></i> <span class="d-none d-md-inline">Edit</span>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteQuestion(question)" title="Delete Question">
+                            <button class="btn btn-sm btn-outline-danger" @onclick:stopPropagation="true" @onclick="() => DeleteQuestion(question)" title="Delete Question">
                                 <i class="bi bi-trash"></i> <span class="d-none d-md-inline">Delete</span>
                             </button>
                         </div>
@@ -107,15 +108,13 @@ else
 </Modal>
 
 @code {
-    [Parameter] public int LearningTrackId { get; set; } // Added for "Back to Quiz" navigation
+    [Parameter] public int LearningTrackId { get; set; }
     [Parameter] public int LearningTrackQuizId { get; set; }
 
     private List<LearningTrackQuizQuestion>? questions;
-    // private IQueryable<LearningTrackQuizQuestion>? questionsQueryable; // Removed for Bootstrap list
-    // private PaginationState paginationState = new PaginationState { ItemsPerPage = 5 }; // Removed
-
+    private LearningTrackQuizQuestion? selectedQuestion;
     private bool showModal = false;
-    private string modalTitle = "Add/Edit Question"; // Default title
+    private string modalTitle = "Add/Edit Question";
     private LearningTrackQuizQuestion modalQuestion = new();
     private bool isEdit = false;
 
@@ -126,28 +125,39 @@ else
 
     private async Task LoadQuestions()
     {
-        questions = null; // Triggers loading spinner
+        questions = null;
         await InvokeAsync(StateHasChanged); 
         try
         {
-            // Assuming GetQuestionsByQuizIdAsync returns IEnumerable or IReadOnlyList
             var allQuestions = await QuizQuestionRepo.GetQuestionsByQuizIdAsync(LearningTrackQuizId);
             questions = allQuestions.ToList();
-            // questionsQueryable = questions.AsQueryable(); // Removed
         }
         catch (Exception ex)
         {
             await ToastService.ShowToast($"Failed to load questions: {ex.Message}", ToastLevel.Error);
-            questions = new List<LearningTrackQuizQuestion>(); // Ensure not null for UI
-            // questionsQueryable = questions.AsQueryable(); // Removed
+            questions = new List<LearningTrackQuizQuestion>();
         }
-        await InvokeAsync(StateHasChanged); // Update UI with data or empty message
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleQuestionSelection(LearningTrackQuizQuestion question)
+    {
+        if (selectedQuestion?.Id == question.Id)
+        {
+            // Optionally deselect
+            // selectedQuestion = null;
+        }
+        else
+        {
+            selectedQuestion = question;
+        }
+        StateHasChanged();
     }
 
     private void ShowAddModal()
     {
         modalTitle = "Add New Question";
-        modalQuestion = new LearningTrackQuizQuestion { LearningTrackQuizId = LearningTrackQuizId, CreationDate = DateTime.UtcNow }; // Set CreationDate
+        modalQuestion = new LearningTrackQuizQuestion { LearningTrackQuizId = LearningTrackQuizId, CreationDate = DateTime.UtcNow };
         isEdit = false;
         showModal = true;
     }
@@ -155,7 +165,6 @@ else
     private void ShowEditModal(LearningTrackQuizQuestion question)
     {
         modalTitle = "Edit Question";
-        // Create a new instance for editing to avoid modifying the original object in the list directly
         modalQuestion = new LearningTrackQuizQuestion
         {
             Id = question.Id,
@@ -163,7 +172,7 @@ else
             Question = question.Question,
             Answer = question.Answer,
             Difficulty = question.Difficulty,
-            CreationDate = question.CreationDate // Preserve original creation date
+            CreationDate = question.CreationDate
         };
         isEdit = true;
         showModal = true;
@@ -173,21 +182,18 @@ else
     {
         try
         {
-            // modalQuestion.LearningTrackQuizId is already set in ShowAddModal or ShowEditModal
             if (isEdit)
             {
-                // CreationDate should not be updated on edit, it's already set from ShowEditModal
                 await QuizQuestionRepo.UpdateQuestionAsync(modalQuestion);
                 await ToastService.ShowToast("Question updated!", ToastLevel.Success);
             }
             else
             {
-                // CreationDate is set in ShowAddModal
                 await QuizQuestionRepo.AddQuestionAsync(modalQuestion);
                 await ToastService.ShowToast("Question added!", ToastLevel.Success);
             }
             showModal = false;
-            await LoadQuestions(); // Refresh list
+            await LoadQuestions();
         }
         catch (Exception ex)
         {
@@ -202,15 +208,11 @@ else
 
     private async Task DeleteQuestion(LearningTrackQuizQuestion question)
     {
-        // Optional: Add a confirmation dialog here using JavaScript interop if desired
-        // var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete question: '{question.Question}'?");
-        // if (!confirmed) return;
-
         try
         {
             await QuizQuestionRepo.DeleteQuestionAsync(question.Id);
             await ToastService.ShowToast($"Question deleted: {question.Question}", ToastLevel.Success);
-            await LoadQuestions(); // Refresh list
+            await LoadQuestions();
         }
         catch (Exception ex)
         {
@@ -220,9 +222,6 @@ else
 
     private void GoBackToQuiz()
     {
-        // Navigate back to the quiz details page, assuming a route like /learningtrack/{LearningTrackId}/quiz/{LearningTrackQuizId}
-        // Or, if the quiz details page is just one level up: /learningtrack/{LearningTrackId}/quizzes
-        // For this example, let's assume it's the quiz detail page for the current LearningTrack.
         NavigationManager.NavigateTo($"/learningtrack/{LearningTrackId}/quiz/{LearningTrackQuizId}");
     }
 }

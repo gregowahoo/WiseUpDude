@@ -174,10 +174,10 @@ else
         else
         {
             selectedSource = source;
-            StateHasChanged(); // Update UI for selection highlight
-
             await OnLearningTrackSourceSelected.InvokeAsync(source);
         }
+
+        StateHasChanged(); // Update UI for selection highlight
     }
 
     private void ShowAddModal()

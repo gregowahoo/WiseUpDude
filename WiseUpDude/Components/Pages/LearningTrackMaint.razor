@@ -95,8 +95,8 @@
             {
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        @* <LearningTrackQuizGrid LearningTrackSourceId="@selectedLearningTrackSourceId.Value" OnLearningTrackQuizSelected="HandleLearningTrackQuizSelected" /> *@
-                        <LearningTrackQuizPage LearningTrackSourceId="@selectedLearningTrackSourceId.Value" OnLearningTrackQuizSelected="HandleLearningTrackQuizSelected" />
+                        <LearningTrackQuizGrid LearningTrackSourceId="@selectedLearningTrackSourceId.Value" OnLearningTrackQuizSelected="HandleLearningTrackQuizSelected" />
+                        @* <LearningTrackQuizPage LearningTrackSourceId="@selectedLearningTrackSourceId.Value" OnLearningTrackQuizSelected="HandleLearningTrackQuizSelected" /> *@
                     </div>
                 </div>
             }
@@ -135,7 +135,7 @@
     private LearningTrackCategory? selectedLearningTrackCategory;
 
     private int? selectedLearningTrackSourceId;
-    // private LearningTrackSource? selectedLearningTrackSource; // If needed
+    private LearningTrackSource? selectedLearningTrackSource; // If needed
 
     private int? selectedLearningTrackQuizId;
     private LearningTrackQuiz? selectedLearningTrackQuiz;
@@ -170,8 +170,9 @@
 
     private void HandleLearningTrackSourceSelected(LearningTrackSource source)
     {
-        // selectedLearningTrackSource = source; // If you need to store the selected source
+        selectedLearningTrackSource = source; // If you need to store the selected source
         selectedLearningTrackSourceId = source?.Id;
+
         StateHasChanged();
     }
 
@@ -179,6 +180,7 @@
     {
         selectedLearningTrackQuiz = quiz;
         selectedLearningTrackQuizId = quiz?.Id;
+
         StateHasChanged();
     }
 

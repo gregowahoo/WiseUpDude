@@ -160,7 +160,7 @@ else
             selectedCategory = category;
             await OnLearningTrackCategorySelected.InvokeAsync(category);
         }
-        // FIX 2: Call StateHasChanged to update UI with the new selection
+
         StateHasChanged();
     }
 

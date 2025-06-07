@@ -3,6 +3,7 @@
 @inject WiseUpDude.Data.Repositories.Interfaces.ILearningTrackRepository LearningTrackRepo
 @inject WiseUpDude.Shared.Services.ToastService ToastService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 
 @rendermode InteractiveServer
 
@@ -48,14 +49,15 @@ else
                                 </p>
                             }
                         </div>
-                        <div class="action-buttons-list ms-2">
-                            <button class="btn btn-sm @(track == selectedTrack ? "btn-light" : "btn-outline-secondary") me-1 mb-1 mb-md-0"
-                                    @onclick:stopPropagation="true" @onclick="() => EditTrack(track)" title="Edit Track">
-                                <i class="bi bi-pencil-square"></i> <span class="d-none d-md-inline">Edit</span>
+                        <div class="action-buttons-list ms-2 d-flex flex-row align-items-center justify-content-end" style="font-size: 0.95em; gap: 0.5rem;">
+                            <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackSelected.InvokeAsync(track)" title="Categories">
+                                <i class="bi bi-diagram-3"></i> Categories
                             </button>
-                            <button class="btn btn-sm @(track == selectedTrack ? "btn-warning" : "btn-outline-danger")"
-                                    @onclick:stopPropagation="true" @onclick="() => DeleteTrack(track)" title="Delete Track">
-                                <i class="bi bi-trash"></i> <span class="d-none d-md-inline">Delete</span>
+                            <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => EditTrack(track)" title="Edit Track">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </button>
+                            <button class="btn btn-link p-0 text-danger" @onclick:stopPropagation="true" @onclick="() => DeleteTrack(track)" title="Delete Track">
+                                <i class="bi bi-trash"></i> Delete
                             </button>
                         </div>
                     </div>
@@ -83,17 +85,10 @@ else
 
 @code {
     private List<LearningTrack>? tracks;
-    // tracksQueryable might not be strictly necessary anymore if not using QuickGrid's IQueryable binding features,
-    // but LoadTracksFromRepo populates `tracks` which is then used.
-    // private IQueryable<LearningTrack>? tracksQueryable;
-    // private PaginationState paginationState = new PaginationState { ItemsPerPage = 10 }; // Removed as QuickGrid Paginator is removed
-
     private bool showModal = false;
     private string modalTitle = "Add/Edit Track";
     private LearningTrack modalTrack = new();
-
     private LearningTrack? selectedTrack;
-
     [Parameter] public EventCallback<LearningTrack> OnLearningTrackSelected { get; set; }
 
     protected override async Task OnInitializedAsync()
@@ -107,13 +102,11 @@ else
         {
             var result = await LearningTrackRepo.GetAllAsync();
             tracks = result.ToList();
-            // tracksQueryable = tracks.AsQueryable(); // Keep if other parts rely on it, otherwise can be removed
         }
         catch (Exception ex)
         {
             await ToastService.ShowToast($"Failed to load tracks: {ex.Message}", ToastLevel.Error);
             tracks = new List<LearningTrack>();
-            // tracksQueryable = tracks.AsQueryable(); // Keep if other parts rely on it, otherwise can be removed
         }
     }
 
@@ -121,7 +114,6 @@ else
     {
         selectedTrack = track;
         StateHasChanged();
-
         await OnLearningTrackSelected.InvokeAsync(track);
     }
 
@@ -147,14 +139,13 @@ else
             Name = track.Name,
             Description = track.Description,
             CreationDate = track.CreationDate,
-            UserId = track.UserId // Ensure UserId is preserved
+            UserId = track.UserId
         };
         showModal = true;
     }
 
     private async Task SaveTrack()
     {
-        // Ensure UserId is set if it's a new track and was set in AddNewTrack
         if (modalTrack.Id == 0 && string.IsNullOrEmpty(modalTrack.UserId))
         {
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -164,12 +155,10 @@ else
                 modalTrack.UserId = userId;
             }
         }
-
         if (modalTrack.Id == 0)
             await LearningTrackRepo.AddAsync(modalTrack);
         else
             await LearningTrackRepo.UpdateAsync(modalTrack);
-
         await ToastService.ShowToast("Track saved!", ToastLevel.Success);
         showModal = false;
         await LoadTracksFromRepo();
@@ -187,11 +176,10 @@ else
         {
             await LearningTrackRepo.DeleteAsync(track.Id);
             await ToastService.ShowToast($"Track deleted: {track.Name}", ToastLevel.Success);
-            // If the deleted track was the selected one, clear the selection
             if (selectedTrack == track)
             {
                 selectedTrack = null;
-                await OnLearningTrackSelected.InvokeAsync(null); // Notify parent if it cares about deselection
+                await OnLearningTrackSelected.InvokeAsync(null);
             }
             await LoadTracksFromRepo();
             StateHasChanged();
@@ -200,5 +188,10 @@ else
         {
             await ToastService.ShowToast($"Failed to delete track: {ex.Message}", ToastLevel.Error);
         }
+    }
+
+    private void NavToCategories(int trackId)
+    {
+        NavigationManager.NavigateTo($"/learningtrack/{trackId}/categories");
     }
 }

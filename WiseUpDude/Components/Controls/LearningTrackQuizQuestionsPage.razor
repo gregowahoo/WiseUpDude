@@ -28,7 +28,7 @@
 }
 else if (!questions.Any())
 {
-     <div class="alert alert-light text-center" role="alert">
+    <div class="alert alert-light text-center" role="alert">
         <i class="bi bi-info-circle me-2"></i> No questions found for this quiz.
         <button class="btn btn-link p-0 ms-1" @onclick="ShowAddModal">Add one now!</button>
     </div>
@@ -58,14 +58,12 @@ else
                             <i class="bi bi-bar-chart-steps me-1"></i>Difficulty: @question.Difficulty
                         </p>
                     </div>
-                    <div class="ms-2 text-nowrap action-buttons-list">
-                        <button class="btn btn-sm @(isSelected ? "btn-outline-light" : "btn-outline-secondary") me-1 mb-1 mb-md-0"
-                                @onclick:stopPropagation="true" @onclick="() => ShowEditModal(question)" title="Edit Question">
-                            <i class="bi bi-pencil-square"></i> <span class="d-none d-md-inline">Edit</span>
+                    <div class="action-buttons-list ms-2 d-flex flex-row align-items-center justify-content-end" style="font-size: 0.95em; gap: 0.5rem;">
+                        <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => ShowEditModal(question)" title="Edit Question">
+                            <i class="bi bi-pencil-square"></i> Edit
                         </button>
-                        <button class="btn btn-sm @(isSelected ? "btn-warning" : "btn-outline-danger")"
-                                @onclick:stopPropagation="true" @onclick="() => DeleteQuestion(question)" title="Delete Question">
-                            <i class="bi bi-trash"></i> <span class="d-none d-md-inline">Delete</span>
+                        <button class="btn btn-link p-0 text-danger" @onclick:stopPropagation="true" @onclick="() => DeleteQuestion(question)" title="Delete Question">
+                            <i class="bi bi-trash"></i> Delete
                         </button>
                     </div>
                 </div>
@@ -119,11 +117,11 @@ else
     private async Task LoadQuestions()
     {
         questions = null;
-        await InvokeAsync(StateHasChanged); 
+        await InvokeAsync(StateHasChanged);
         try
         {
             var allQuestions = await QuizQuestionRepo.GetQuestionsByQuizIdAsync(LearningTrackQuizId);
-            questions = allQuestions.ToList();
+            questions = allQuestions?.ToList() ?? new List<LearningTrackQuizQuestion>();
         }
         catch (Exception ex)
         {

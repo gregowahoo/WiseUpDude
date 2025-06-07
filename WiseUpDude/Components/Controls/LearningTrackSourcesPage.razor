@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @inject WiseUpDude.Data.Repositories.Interfaces.ILearningTrackSourceRepository SourceRepo
 @inject WiseUpDude.Shared.Services.ToastService ToastService
+@inject NavigationManager NavigationManager
 
 @rendermode InteractiveServer
 
@@ -12,14 +13,14 @@
     </button>
 </div>
 
-@if (sources == null && !initialLoadAttempted) // Show loading only on initial attempt
+@if (sources == null && !initialLoadAttempted)
 {
     <div class="d-flex justify-content-center align-items-center" style="min-height: 150px;">
         <div class="spinner-border text-info" role="status"><span class="visually-hidden">Loading...</span></div>
         <strong class="ms-2">Loading sources...</strong>
     </div>
 }
-else if (sources == null || !sources.Any()) // Covers both null after load attempt and empty list
+else if (sources == null || !sources.Any())
 {
     <div class="alert alert-light text-center" role="alert">
         <i class="bi bi-info-circle me-2"></i> No sources found for this category.
@@ -60,14 +61,15 @@ else
                                 </p>
                             }
                         </div>
-                        <div class="action-buttons-list ms-auto">
-                            <button class="btn btn-sm @(source.Id == selectedSource?.Id ? "btn-light" : "btn-outline-secondary") me-1 mb-1 mb-md-0"
-                                    @onclick:stopPropagation="true" @onclick="() => ShowEditModal(source)" title="Edit Source">
-                                <i class="bi bi-pencil-square"></i> <span class="d-none d-md-inline">Edit</span>
+                        <div class="action-buttons-list ms-auto d-flex flex-row align-items-center justify-content-end" style="font-size: 0.95em; gap: 0.5rem;">
+                            <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackSourceSelected.InvokeAsync(source)" title="Quizzes">
+                                <i class="bi bi-patch-question"></i> Quizzes
                             </button>
-                            <button class="btn btn-sm @(source.Id == selectedSource?.Id ? "btn-warning" : "btn-outline-danger")"
-                                    @onclick:stopPropagation="true" @onclick="() => DeleteSource(source)" title="Delete Source">
-                                <i class="bi bi-trash"></i> <span class="d-none d-md-inline">Delete</span>
+                            <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => ShowEditModal(source)" title="Edit Source">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </button>
+                            <button class="btn btn-link p-0 text-danger" @onclick:stopPropagation="true" @onclick="() => DeleteSource(source)" title="Delete Source">
+                                <i class="bi bi-trash"></i> Delete
                             </button>
                         </div>
                     </div>
@@ -80,7 +82,6 @@ else
 <Modal IsVisible="@showModal" Title="@modalTitle" OnClose="CloseModal">
     <EditForm Model="@modalSource" OnValidSubmit="SaveSource">
         <DataAnnotationsValidator />
-        @* <ValidationSummary /> *@ @* Consider if you want a summary or per-field messages *@
         <div class="mb-3">
             <label class="form-label">Name</label>
             <InputText class="form-control" @bind-Value="modalSource.Name" />
@@ -112,10 +113,7 @@ else
 
     private List<LearningTrackSource>? sources;
     private LearningTrackSource? selectedSource;
-    // private IQueryable<LearningTrackSource>? sourcesQueryable; // Not needed for list view
-    // private PaginationState paginationState = new PaginationState { ItemsPerPage = 5 }; // Not needed
     private bool isLoading = false;
-
     private bool showModal = false;
     private string modalTitle = "Add/Edit Source";
     private LearningTrackSource modalSource = new();
@@ -124,10 +122,9 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        // If LearningTrackCategoryId has changed, clear the selection from the previous category
-        if (LearningTrackCategoryId != (selectedSource?.LearningTrackCategoryId ?? 0) )
+        if (LearningTrackCategoryId != (selectedSource?.LearningTrackCategoryId ?? 0))
         {
-             selectedSource = null;
+            selectedSource = null;
         }
         await LoadSourcesFromRepo();
     }
@@ -160,14 +157,13 @@ else
         {
             isLoading = false;
         }
-        // StateHasChanged();
     }
 
     private async Task HandleSourceSelection(LearningTrackSource source)
     {
         if (selectedSource?.Id == source.Id)
         {
-            // Optional: deselect if clicking the same item
+            // Optionally: deselect if clicking the same item
             // selectedSource = null;
             // await OnLearningTrackSourceSelected.InvokeAsync(null);
         }
@@ -177,7 +173,7 @@ else
             await OnLearningTrackSourceSelected.InvokeAsync(source);
         }
 
-        StateHasChanged(); // Update UI for selection highlight
+        StateHasChanged();
     }
 
     private void ShowAddModal()
@@ -191,7 +187,7 @@ else
     private void ShowEditModal(LearningTrackSource source)
     {
         modalTitle = "Edit Source";
-        modalSource = new LearningTrackSource // Create a new instance for editing to avoid modifying the list item directly
+        modalSource = new LearningTrackSource
         {
             Id = source.Id,
             Name = source.Name,
@@ -209,7 +205,6 @@ else
     {
         try
         {
-            // Ensure LearningTrackCategoryId is assigned, especially for new sources
             modalSource.LearningTrackCategoryId = LearningTrackCategoryId;
 
             if (isEdit)
@@ -219,18 +214,15 @@ else
             }
             else
             {
-                // CreationDate is usually set by the database or repository on add
-                // modalSource.CreationDate = DateTime.UtcNow; 
                 await SourceRepo.AddAsync(modalSource);
                 await ToastService.ShowToast("Source added!", ToastLevel.Success);
             }
             showModal = false;
-            await LoadSourcesFromRepo(); // Reload to reflect changes and maintain selection
+            await LoadSourcesFromRepo();
         }
         catch (Exception ex)
         {
             await ToastService.ShowToast($"Failed to save source: {ex.Message}", ToastLevel.Error);
-            // Optionally, keep the modal open on error or provide more specific feedback
         }
     }
 
@@ -245,7 +237,6 @@ else
         {
             await SourceRepo.DeleteAsync(sourceToDelete.Id);
             await ToastService.ShowToast($"Source deleted: {sourceToDelete.Name}", ToastLevel.Success);
-            // selectedSource will be updated by LoadSourcesFromRepo if it was the one deleted
             await LoadSourcesFromRepo();
         }
         catch (Exception ex)
@@ -258,5 +249,10 @@ else
     {
         if (string.IsNullOrEmpty(url)) return string.Empty;
         return url.Length <= maxLength ? url : url.Substring(0, maxLength - 3) + "...";
+    }
+
+    private void NavToQuizzes(int sourceId)
+    {
+        NavigationManager.NavigateTo($"/learningtrack/source/{sourceId}/quizzes");
     }
 }

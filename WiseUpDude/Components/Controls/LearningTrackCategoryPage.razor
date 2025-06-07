@@ -34,7 +34,6 @@ else
         <div class="list-group list-group-flush">
             @foreach (var category in categories)
             {
-                // FIX 1: Compare by ID for active class and text color
                 <div class="list-group-item list-group-item-action @(category.Id == selectedCategory?.Id ? "active" : "")" @onclick="() => HandleCategorySelection(category)" style="cursor:pointer;">
                     <div class="d-flex w-100 justify-content-between align-items-start">
                         <div>
@@ -48,14 +47,15 @@ else
                                 </p>
                             }
                         </div>
-                        <div class="action-buttons-list ms-2">
-                            <button class="btn btn-sm @(category.Id == selectedCategory?.Id ? "btn-light" : "btn-outline-secondary") me-1 mb-1 mb-md-0"
-                                    @onclick:stopPropagation="true" @onclick="() => EditCategory(category)" title="Edit Category">
-                                <i class="bi bi-pencil-square"></i> <span class="d-none d-md-inline">Edit</span>
+                        <div class="action-buttons-list ms-2 d-flex flex-row align-items-center justify-content-end" style="font-size: 0.95em; gap: 0.5rem;">
+                            <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackCategorySelected.InvokeAsync(category)" title="Sources">
+                                <i class="bi bi-link-45deg"></i> Sources
                             </button>
-                            <button class="btn btn-sm @(category.Id == selectedCategory?.Id ? "btn-warning" : "btn-outline-danger")"
-                                    @onclick:stopPropagation="true" @onclick="() => DeleteCategory(category)" title="Delete Category">
-                                <i class="bi bi-trash"></i> <span class="d-none d-md-inline">Delete</span>
+                            <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => EditCategory(category)" title="Edit Category">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </button>
+                            <button class="btn btn-link p-0 text-danger" @onclick:stopPropagation="true" @onclick="() => DeleteCategory(category)" title="Delete Category">
+                                <i class="bi bi-trash"></i> Delete
                             </button>
                         </div>
                     </div>
@@ -64,7 +64,6 @@ else
         </div>
     </div>
 }
-
 
 <Modal IsVisible="@showModal" Title="@modalTitle" OnClose="CloseModal">
     <EditForm Model="@modalCategory" OnValidSubmit="SaveCategory">
@@ -97,13 +96,12 @@ else
     {
         try
         {
-            // If LearningTrackId has changed, clear the selection from the previous track
             if (LearningTrackId != (selectedCategory?.LearningTrackId ?? 0))
             {
                 selectedCategory = null;
             }
             await LoadLearningTrackName();
-            await LoadCategories(); // LoadCategories will now attempt to maintain selection
+            await LoadCategories();
         }
         catch (Exception ex)
         {
@@ -115,8 +113,6 @@ else
     {
         var track = await LearningTrackRepo.GetByIdAsync(LearningTrackId);
         learningTrackName = track?.Name ?? $"ID: {LearningTrackId}";
-
-        // StateHasChanged(); // Potentially call if name update needs immediate UI refresh before categories load
     }
 
     private async Task LoadCategories()
@@ -128,7 +124,6 @@ else
             int? previouslySelectedCategoryId = selectedCategory?.Id;
             var allCategories = await LearningTrackCategoryRepo.GetAllAsync();
             categories = allCategories.Where(c => c.LearningTrackId == LearningTrackId).ToList();
-
             if (previouslySelectedCategoryId.HasValue)
             {
                 selectedCategory = categories.FirstOrDefault(c => c.Id == previouslySelectedCategoryId.Value);
@@ -160,7 +155,6 @@ else
             selectedCategory = category;
             await OnLearningTrackCategorySelected.InvokeAsync(category);
         }
-
         StateHasChanged();
     }
 
@@ -196,7 +190,6 @@ else
         try
         {
             modalCategory.LearningTrackId = LearningTrackId;
-
             if (modalCategory.Id == 0)
             {
                 await LearningTrackCategoryRepo.AddAsync(modalCategory);
@@ -205,10 +198,8 @@ else
             {
                 await LearningTrackCategoryRepo.UpdateAsync(modalCategory);
             }
-
             await ToastService.ShowToast("Category saved!", ToastLevel.Success);
             showModal = false;
-            // LoadCategories will refresh and attempt to maintain selection by ID
             await LoadCategories();
         }
         catch (Exception ex)
@@ -223,8 +214,6 @@ else
         {
             await LearningTrackCategoryRepo.DeleteAsync(categoryToDelete.Id);
             await ToastService.ShowToast($"Category deleted: {categoryToDelete.Name}", ToastLevel.Success);
-
-            // selectedCategory will be updated (or cleared if it was the one deleted) by LoadCategories
             await LoadCategories();
         }
         catch (Exception ex)

@@ -47,14 +47,15 @@ else if (quizzes != null && quizzes.Any())
                             <i class="bi bi-text-paragraph me-1"></i>@quiz.Description
                         </p>
                     </div>
-                    <div class="ms-2 text-nowrap">
-                        <button class="btn btn-sm @(selectedQuiz?.Id == quiz.Id ? "btn-outline-light" : "btn-outline-secondary") me-1"
-                                @onclick:stopPropagation="true" @onclick="() => ShowEditModal(quiz)" title="Edit Quiz">
-                            <i class="bi bi-pencil-square"></i> <span class="d-none d-md-inline">Edit</span>
+                    <div class="action-buttons-list ms-2 d-flex flex-row align-items-center justify-content-end" style="font-size: 0.95em; gap: 0.5rem;">
+                        <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackQuizSelected.InvokeAsync(quiz)" title="Questions">
+                            <i class="bi bi-card-list"></i> Questions
                         </button>
-                        <button class="btn btn-sm @(selectedQuiz?.Id == quiz.Id ? "btn-warning" : "btn-outline-danger")"
-                                @onclick:stopPropagation="true" @onclick="() => DeleteQuizAsync(quiz)" title="Delete Quiz">
-                            <i class="bi bi-trash"></i> <span class="d-none d-md-inline">Delete</span>
+                        <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => ShowEditModal(quiz)" title="Edit Quiz">
+                            <i class="bi bi-pencil-square"></i> Edit
+                        </button>
+                        <button class="btn btn-link p-0 text-danger" @onclick:stopPropagation="true" @onclick="() => DeleteQuizAsync(quiz)" title="Delete Quiz">
+                            <i class="bi bi-trash"></i> Delete
                         </button>
                     </div>
                 </div>
@@ -65,7 +66,6 @@ else if (quizzes != null && quizzes.Any())
 
 <Modal IsVisible="@showModal" Title="@modalTitle" OnClose="CloseModal">
     <EditForm Model="@modalQuiz" OnValidSubmit="SaveQuizAsync">
-        {/* Ensure async naming */}
         <DataAnnotationsValidator />
         <ValidationSummary />
         <div class="mb-3">
@@ -90,13 +90,13 @@ else if (quizzes != null && quizzes.Any())
 @code {
     [Parameter] public int LearningTrackSourceId { get; set; }
     [Parameter] public EventCallback<LearningTrackQuiz?> OnLearningTrackQuizSelected { get; set; }
-    [Parameter] public int LearningTrackCategoryId { get; set; } // Retained from original, assess if needed
+    [Parameter] public int LearningTrackCategoryId { get; set; }
 
     private List<LearningTrackQuiz>? quizzes;
     private LearningTrackQuiz? selectedQuiz;
 
     private bool isLoading = false;
-    private bool initialLoadAttempted = false; // Aligned with LearningTrackSourcesPage
+    private bool initialLoadAttempted = false;
 
     private bool showModal = false;
     private string modalTitle = "Add/Edit Quiz";
@@ -110,17 +110,17 @@ else if (quizzes != null && quizzes.Any())
 
         if (isValidSourceId)
         {
-            if (sourceIdChanged && selectedQuiz != null) // If source changed and there was a selection
+            if (sourceIdChanged && selectedQuiz != null)
             {
                 selectedQuiz = null;
-                await OnLearningTrackQuizSelected.InvokeAsync(null); // Notify parent of cleared selection
+                await OnLearningTrackQuizSelected.InvokeAsync(null);
             }
             await LoadQuizzesFromRepoAsync();
         }
-        else // Invalid or 0 SourceId
+        else
         {
             quizzes = new List<LearningTrackQuiz>();
-            if (selectedQuiz != null) // If there was a selection for a previous valid sourceId
+            if (selectedQuiz != null)
             {
                 selectedQuiz = null;
                 await OnLearningTrackQuizSelected.InvokeAsync(null);
@@ -131,15 +131,13 @@ else if (quizzes != null && quizzes.Any())
         }
     }
 
-    private async Task LoadQuizzesFromRepoAsync() // Renamed for consistency
+    private async Task LoadQuizzesFromRepoAsync()
     {
         if (isLoading) return;
 
         isLoading = true;
         if (!initialLoadAttempted)
         {
-            // Only set quizzes to null for spinner on the very first load cycle for this component instance/parameter set
-            // This avoids flicker if list is already populated and we are just refreshing.
             quizzes = null;
         }
         StateHasChanged();
@@ -157,14 +155,9 @@ else if (quizzes != null && quizzes.Any())
             if (previouslySelectedQuizId.HasValue)
             {
                 var newlySelectedQuiz = quizzes.FirstOrDefault(q => q.Id == previouslySelectedQuizId.Value);
-                // Update selectedQuiz only if it actually changed (e.g., became null or a different instance)
                 if (selectedQuiz?.Id != newlySelectedQuiz?.Id)
                 {
                     selectedQuiz = newlySelectedQuiz;
-                    // If the selection was effectively cleared because the item is gone,
-                    // and the parent wasn't already notified (e.g. by OnParametersSetAsync), notify here.
-                    // However, OnParametersSetAsync should handle clearing if the SourceID changed.
-                    // This mainly covers the case where the item is deleted while the SourceID remains the same.
                     if (selectedQuiz == null)
                     {
                         await OnLearningTrackQuizSelected.InvokeAsync(null);
@@ -176,7 +169,7 @@ else if (quizzes != null && quizzes.Any())
         {
             await ToastService.ShowToast($"Failed to load quizzes: {ex.Message}", ToastLevel.Error);
             quizzes = new List<LearningTrackQuiz>();
-            if (selectedQuiz != null) // If load failed, clear selection
+            if (selectedQuiz != null)
             {
                 selectedQuiz = null;
                 await OnLearningTrackQuizSelected.InvokeAsync(null);
@@ -185,7 +178,7 @@ else if (quizzes != null && quizzes.Any())
         finally
         {
             isLoading = false;
-            initialLoadAttempted = true; // Mark that a load has been attempted
+            initialLoadAttempted = true;
             StateHasChanged();
         }
     }
@@ -203,7 +196,7 @@ else if (quizzes != null && quizzes.Any())
             selectedQuiz = quiz;
             await OnLearningTrackQuizSelected.InvokeAsync(selectedQuiz);
         }
-        StateHasChanged(); // CRITICAL: Update UI for selection highlight
+        StateHasChanged();
     }
 
     private void ShowAddModal()
@@ -229,7 +222,7 @@ else if (quizzes != null && quizzes.Any())
         showModal = true;
     }
 
-    private async Task SaveQuizAsync() // Renamed for consistency
+    private async Task SaveQuizAsync()
     {
         if (string.IsNullOrWhiteSpace(modalQuiz.Name))
         {
@@ -252,7 +245,6 @@ else if (quizzes != null && quizzes.Any())
                 await ToastService.ShowToast("Quiz added successfully!", ToastLevel.Success);
             }
             showModal = false;
-            // initialLoadAttempted = false; // No, keep this true. We want to reload, not reset the flag.
             await LoadQuizzesFromRepoAsync();
         }
         catch (Exception ex)
@@ -267,15 +259,12 @@ else if (quizzes != null && quizzes.Any())
         modalQuiz = new();
     }
 
-    private async Task DeleteQuizAsync(LearningTrackQuiz quizToDelete) // Renamed for consistency
+    private async Task DeleteQuizAsync(LearningTrackQuiz quizToDelete)
     {
         try
         {
             await QuizRepo.DeleteQuizAsync(quizToDelete.Id);
             await ToastService.ShowToast($"Quiz '{quizToDelete.Name}' deleted successfully.", ToastLevel.Success);
-
-            // If the deleted quiz was the selected one, LoadQuizzesFromRepoAsync will handle
-            // setting selectedQuiz to null and notifying the parent if necessary.
             await LoadQuizzesFromRepoAsync();
         }
         catch (Exception ex)

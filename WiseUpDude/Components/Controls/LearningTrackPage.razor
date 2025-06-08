@@ -27,44 +27,41 @@ else if (!tracks.Any())
 {
     <div class="alert alert-light text-center" role="alert">
         <i class="bi bi-info-circle me-2"></i> No learning tracks found.
-        <button class="btn btn-link p-0 ms-1" @onclick="AddNewTrack">Add one now!</button>
+        <button class="btn btn-link p-0 ms-1" style="font-size: 0.85em; padding: 0.1rem 0.4rem;" @onclick="AddNewTrack">Add one now!</button>
     </div>
 }
 else
 {
     <div class="card shadow border-0 mb-4 grid-background">
-        <div class="list-group list-group-flush">
+        <ul class="list-group list-group-flush">
             @foreach (var track in tracks)
             {
-                <div class="list-group-item list-group-item-action @(track == selectedTrack ? "active" : "")" @onclick="() => SelectTrack(track)" style="cursor:pointer;">
-                    <div class="d-flex w-100 justify-content-between align-items-start">
-                        <div>
-                            <h5 class="mb-1 @(track == selectedTrack ? "text-white" : "")">
-                                <i class="bi bi-type me-1"></i> @track.Name
-                            </h5>
+                var inputId = $"trackRadio_{track.Id}";
+                <li class="list-group-item d-flex align-items-center justify-content-between">
+                    <div class="form-check flex-grow-1">
+                        <input class="form-check-input me-2" type="radio" name="trackRadio" id="@inputId" checked="@(selectedTrack?.Id == track.Id)" @onchange="() => SelectTrack(track)" />
+                        <label class="form-check-label w-100" for="@inputId">
+                            <span class="fw-semibold">@track.Name</span>
                             @if (!string.IsNullOrWhiteSpace(track.Description))
                             {
-                                <p class="mb-1 small @(track == selectedTrack ? "text-white-75" : "text-muted")">
-                                    <i class="bi bi-text-paragraph me-1"></i> @track.Description
-                                </p>
+                                <span class="d-block text-muted small">@track.Description</span>
                             }
-                        </div>
-                        <div class="action-buttons-list ms-2 d-flex flex-row align-items-center justify-content-end" style="font-size: 0.95em; gap: 0.5rem;">
-                            <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackSelected.InvokeAsync(track)" title="Categories">
-                                <i class="bi bi-diagram-3"></i> Categories
-                            </button>
-                            <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => EditTrack(track)" title="Edit Track">
-                                <i class="bi bi-pencil-square"></i> Edit
-                            </button>
-                            <button class="btn btn-link p-0 text-danger" @onclick:stopPropagation="true" @onclick="() => DeleteTrack(track)" title="Delete Track">
-                                <i class="bi bi-trash"></i> Delete
-                            </button>
-                        </div>
+                        </label>
                     </div>
-                </div>
+                    <div class="d-flex flex-row align-items-center ms-2" style="gap: 0.5rem;">
+                        <button class="btn btn-sm btn-outline-secondary" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackSelected.InvokeAsync(track)" title="Categories">
+                            <i class="bi bi-diagram-3"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" @onclick:stopPropagation="true" @onclick="() => EditTrack(track)" title="Edit Track">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick:stopPropagation="true" @onclick="() => DeleteTrack(track)" title="Delete Track">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </li>
             }
-        </div>
-        @* Removed Paginator for simplicity with list view. Can be re-added with custom list pagination if needed. *@
+        </ul>
     </div>
 }
 

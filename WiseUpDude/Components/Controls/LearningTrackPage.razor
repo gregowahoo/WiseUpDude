@@ -9,8 +9,8 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="text-secondary mb-0"><i class="bi bi-list-task me-2"></i>Learning Tracks</h4>
-    <button class="btn btn-success" @onclick="AddNewTrack">
-        <i class="bi bi-plus-circle-fill me-1"></i> Add New Track
+    <button class="btn btn-success btn-sm" @onclick="AddNewTrack">
+        <i class="bi bi-plus-circle-fill me-1"></i> <span class="small">Add New Track</span>
     </button>
 </div>
 
@@ -27,7 +27,7 @@ else if (!tracks.Any())
 {
     <div class="alert alert-light text-center" role="alert">
         <i class="bi bi-info-circle me-2"></i> No learning tracks found.
-        <button class="btn btn-link p-0 ms-1" style="font-size: 0.85em; padding: 0.1rem 0.4rem;" @onclick="AddNewTrack">Add one now!</button>
+        <button class="btn btn-link p-0 ms-1" @onclick="AddNewTrack">Add one now!</button>
     </div>
 }
 else

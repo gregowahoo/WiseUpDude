@@ -8,8 +8,8 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="text-secondary mb-0"><i class="bi bi-diagram-3 me-2"></i>Categories for Track: @learningTrackName</h4>
-    <button class="btn btn-success btn-sm" @onclick="AddNewCategory">
-        <i class="bi bi-plus-circle-fill me-1"></i> <span class="small">Add New Category</span>
+    <button class="btn btn-success" @onclick="AddNewCategory">
+        <i class="bi bi-plus-circle-fill me-1"></i> Add New Category
     </button>
 </div>
  
@@ -32,37 +32,44 @@ else if (!categories.Any())
 else
 {
     <div class="card shadow border-0 mb-4 grid-background">
-        <div class="list-group list-group-flush">
+        <ul class="list-group list-group-flush">
             @foreach (var category in categories)
             {
-                <div class="list-group-item list-group-item-action @(category.Id == selectedCategory?.Id ? "active" : "")" @onclick="() => HandleCategorySelection(category)" style="cursor:pointer;">
-                    <div class="d-flex w-100 justify-content-between align-items-start">
-                        <div>
-                            <h5 class="mb-1 @(category.Id == selectedCategory?.Id ? "text-white" : "")">
+                var inputId = $"categoryRadio_{category.Id}";
+                <li class="list-group-item d-flex align-items-center justify-content-between">
+                    <div class="form-check flex-grow-1">
+                        <input class="form-check-input me-2"
+                               type="radio"
+                               name="categoryRadio"
+                               id="@inputId"
+                               checked="@(selectedCategory?.Id == category.Id)"
+                               @onchange="() => HandleCategorySelection(category)" />
+                        <label class="form-check-label w-100" for="@inputId">
+                            <span class="fw-semibold">
                                 <i class="bi bi-type me-1"></i> @category.Name
-                            </h5>
+                            </span>
                             @if (!string.IsNullOrWhiteSpace(category.Description))
                             {
-                                <p class="mb-1 small @(category.Id == selectedCategory?.Id ? "text-white-75" : "text-muted")">
+                                <span class="d-block text-muted small">
                                     <i class="bi bi-text-paragraph me-1"></i> @category.Description
-                                </p>
+                                </span>
                             }
-                        </div>
-                        <div class="action-buttons-list ms-2 d-flex flex-row align-items-center justify-content-end" style="font-size: 0.95em; gap: 0.5rem;">
-                            <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackCategorySelected.InvokeAsync(category)" title="Sources">
-                                <i class="bi bi-link-45deg"></i> Sources
-                            </button>
-                            <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => EditCategory(category)" title="Edit Category">
-                                <i class="bi bi-pencil-square"></i> Edit
-                            </button>
-                            <button class="btn btn-link p-0 text-danger" @onclick:stopPropagation="true" @onclick="() => DeleteCategory(category)" title="Delete Category">
-                                <i class="bi bi-trash"></i> Delete
-                            </button>
-                        </div>
+                        </label>
                     </div>
-                </div>
+                    <div class="action-buttons-list ms-2 d-flex flex-row align-items-center justify-content-end" style="font-size: 0.95em; gap: 0.5rem;">
+                        <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackCategorySelected.InvokeAsync(category)" title="Sources">
+                            <i class="bi bi-link-45deg"></i> Sources
+                        </button>
+                        <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => EditCategory(category)" title="Edit Category">
+                            <i class="bi bi-pencil-square"></i> Edit
+                        </button>
+                        <button class="btn btn-link p-0 text-danger" @onclick:stopPropagation="true" @onclick="() => DeleteCategory(category)" title="Delete Category">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </li>
             }
-        </div>
+        </ul>
     </div>
 }
 

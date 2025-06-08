@@ -36,43 +36,47 @@ else if (!questions.Any())
 }
 else
 {
-    <div class="list-group">
+    <ul class="list-group">
         @foreach (var question in questions.OrderByDescending(q => q.CreationDate))
         {
-            var isSelected = selectedQuestion?.Id == question.Id;
-            <div class="list-group-item list-group-item-action @(isSelected ? "active" : "")"
-                 @onclick="() => HandleQuestionSelection(question)" style="cursor:pointer;" @key="question.Id">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1 me-3">
+            var inputId = $"questionRadio_{question.Id}";
+            <li class="list-group-item d-flex align-items-center justify-content-between" @key="question.Id">
+                <div class="form-check flex-grow-1">
+                    <input class="form-check-input me-2"
+                           type="radio"
+                           name="questionRadio"
+                           id="@inputId"
+                           checked="@(selectedQuestion?.Id == question.Id)"
+                           @onchange="() => HandleQuestionSelection(question)" />
+                    <label class="form-check-label w-100" for="@inputId">
                         <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1 @(isSelected ? "text-white" : "")">
+                            <span class="fw-semibold">
                                 <i class="bi bi-question-circle-fill me-1"></i>@question.Question
-                            </h5>
-                            <small class="@(isSelected ? "text-white-50" : "text-muted")">
+                            </span>
+                            <small class="@(selectedQuestion?.Id == question.Id ? "text-white-50" : "text-muted")">
                                 <i class="bi bi-calendar-event me-1"></i>Created: @question.CreationDate.ToString("yyyy-MM-dd HH:mm")
                             </small>
                         </div>
-                        <p class="mb-1 @(isSelected ? "text-white-75" : "")">
+                        <span class="d-block text-muted small">
                             <i class="bi bi-check2-circle-fill me-1"></i>@question.Answer
-                        </p>
-                        <p class="mb-1 @(isSelected ? "text-white-75" : "text-muted")">
+                        </span>
+                        <span class="d-block text-muted small">
                             <i class="bi bi-bar-chart-steps me-1"></i>Difficulty: @question.Difficulty
-                        </p>
-                    </div>
-                    <div class="action-buttons-list ms-2 d-flex flex-row align-items-center justify-content-end" style="font-size: 0.95em; gap: 0.5rem;">
-                        <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => ShowEditModal(question)" title="Edit Question">
-                            <i class="bi bi-pencil-square"></i> Edit
-                        </button>
-                        <button class="btn btn-link p-0 text-danger" @onclick:stopPropagation="true" @onclick="() => DeleteQuestion(question)" title="Delete Question">
-                            <i class="bi bi-trash"></i> Delete
-                        </button>
-                    </div>
+                        </span>
+                    </label>
                 </div>
-            </div>
+                <div class="d-flex flex-row align-items-center ms-2" style="gap: 0.5rem;">
+                    <button class="btn btn-sm btn-outline-primary" @onclick:stopPropagation="true" @onclick="() => ShowEditModal(question)" title="Edit Question">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" @onclick:stopPropagation="true" @onclick="() => DeleteQuestion(question)" title="Delete Question">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </li>
         }
-    </div>
+    </ul>
 }
-
 <Modal IsVisible="@showModal" Title="@modalTitle" OnClose="CloseModal">
     <EditForm Model="@modalQuestion" OnValidSubmit="SaveQuestion">
         <DataAnnotationsValidator />

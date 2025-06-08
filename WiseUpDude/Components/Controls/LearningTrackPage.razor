@@ -49,7 +49,7 @@ else
                         </label>
                     </div>
                     <div class="d-flex flex-row align-items-center ms-2" style="gap: 0.5rem;">
-                        <button class="btn btn-sm btn-outline-secondary" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackSelected.InvokeAsync(track)" title="Categories">
+                        <button class="btn btn-sm btn-outline-secondary" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackSelected.InvokeAsync((track, LearningTrackAction.GoToCategories))" title="Categories">
                             <i class="bi bi-diagram-3"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-primary" @onclick:stopPropagation="true" @onclick="() => EditTrack(track)" title="Edit Track">
@@ -86,7 +86,7 @@ else
     private string modalTitle = "Add/Edit Track";
     private LearningTrack modalTrack = new();
     private LearningTrack? selectedTrack;
-    [Parameter] public EventCallback<LearningTrack> OnLearningTrackSelected { get; set; }
+    [Parameter] public EventCallback<(LearningTrack, LearningTrackAction)> OnLearningTrackSelected { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -111,7 +111,7 @@ else
     {
         selectedTrack = track;
         StateHasChanged();
-        await OnLearningTrackSelected.InvokeAsync(track);
+        await OnLearningTrackSelected.InvokeAsync((track, LearningTrackAction.Select));
     }
 
     private async void AddNewTrack()
@@ -176,7 +176,7 @@ else
             if (selectedTrack == track)
             {
                 selectedTrack = null;
-                await OnLearningTrackSelected.InvokeAsync(null);
+                await OnLearningTrackSelected.InvokeAsync((null, LearningTrackAction.Select));
             }
             await LoadTracksFromRepo();
             StateHasChanged();

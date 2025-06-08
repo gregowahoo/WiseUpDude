@@ -8,8 +8,8 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="text-secondary mb-0"><i class="bi bi-diagram-3 me-2"></i>Categories for Track: @learningTrackName</h4>
-    <button class="btn btn-success" @onclick="AddNewCategory">
-        <i class="bi bi-plus-circle-fill me-1"></i> Add New Category
+    <button class="btn btn-success btn-sm" @onclick="AddNewCategory">
+        <i class="bi bi-plus-circle-fill me-1"></i> <span class="small">Add New Category</span>
     </button>
 </div>
  
@@ -45,26 +45,22 @@ else
                                checked="@(selectedCategory?.Id == category.Id)"
                                @onchange="() => HandleCategorySelection(category)" />
                         <label class="form-check-label w-100" for="@inputId">
-                            <span class="fw-semibold">
-                                <i class="bi bi-type me-1"></i> @category.Name
-                            </span>
+                            <span class="fw-semibold">@category.Name</span>
                             @if (!string.IsNullOrWhiteSpace(category.Description))
                             {
-                                <span class="d-block text-muted small">
-                                    <i class="bi bi-text-paragraph me-1"></i> @category.Description
-                                </span>
+                                <span class="d-block text-muted small">@category.Description</span>
                             }
                         </label>
                     </div>
-                    <div class="action-buttons-list ms-2 d-flex flex-row align-items-center justify-content-end" style="font-size: 0.95em; gap: 0.5rem;">
-                        <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackCategorySelected.InvokeAsync(category)" title="Sources">
-                            <i class="bi bi-link-45deg"></i> Sources
+                    <div class="d-flex flex-row align-items-center ms-2" style="gap: 0.5rem;">
+                        <button class="btn btn-sm btn-outline-secondary" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackCategorySelected.InvokeAsync(category)" title="Sources">
+                            <i class="bi bi-link-45deg"></i>
                         </button>
-                        <button class="btn btn-link p-0" @onclick:stopPropagation="true" @onclick="() => EditCategory(category)" title="Edit Category">
-                            <i class="bi bi-pencil-square"></i> Edit
+                        <button class="btn btn-sm btn-outline-primary" @onclick:stopPropagation="true" @onclick="() => EditCategory(category)" title="Edit Category">
+                            <i class="bi bi-pencil-square"></i>
                         </button>
-                        <button class="btn btn-link p-0 text-danger" @onclick:stopPropagation="true" @onclick="() => DeleteCategory(category)" title="Delete Category">
-                            <i class="bi bi-trash"></i> Delete
+                        <button class="btn btn-sm btn-outline-danger" @onclick:stopPropagation="true" @onclick="() => DeleteCategory(category)" title="Delete Category">
+                            <i class="bi bi-trash"></i>
                         </button>
                     </div>
                 </li>

@@ -1,13 +1,48 @@
 ﻿/* Highlight the active tab with a custom background and text color */
-/*.nav-tabs .nav-link.active,
+.nav-tabs .nav-link.active,
 .nav-pills .nav-link.active {
-    background-color: #0d6efd !important;*/ /* Bootstrap primary */
-    /*color: #fff !important;
+    background-color: #4f8cff !important; /* Soft blue */
+    color: #fff !important;
     font-weight: bold;
     border-radius: 0.5rem 0.5rem 0 0;
-    box-shadow: 0 2px 8px rgba(13,110,253,0.08);
-}*/
+    box-shadow: 0 2px 8px rgba(79,140,255,0.08);
+}
 
+/* Subtle blue background for the entire tab area */
+.nav-tabs {
+    background-color: #eaf2fb;
+    border-radius: 0.5rem 0.5rem 0 0;
+    padding: 0.25rem 0.5rem;
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.nav-tabs.mb-3 {
+    margin-bottom: 0 !important;
+}
+
+.tab-content {
+    background-color: #eaf2fb;
+    border-radius: 0 0 0.5rem 0.5rem;
+    padding: 1rem;
+    border-top: none;
+    margin-top: -1px; /* Collapse any gap caused by border or margin */
+}
+
+/* Remove border from tab-pane if present */
+.tab-pane {
+    border: none !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* Remove margin from the card if used inside tab-content */
+.tab-content > .card,
+.tab-content > .card-shadow-sm {
+    margin-top: 0 !important;
+}
 
 /* Keep your existing .grid-background if you like it */
 .grid-background {
@@ -25,7 +60,6 @@
     color: #fff !important;
 }
 
-
 .action-buttons-list {
     display: flex;
     flex-direction: column; /* Stack buttons vertically on very small screens */
@@ -41,7 +75,6 @@
         .action-buttons-list .btn .d-md-inline {
             margin-left: 0.25rem;
         }
-
 
 /* On medium screens and up, make buttons horizontal */
 @media (min-width: 768px) {

@@ -5,14 +5,13 @@
 
 @rendermode InteractiveServer
 
-
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="text-secondary mb-0"><i class="bi bi-diagram-3 me-2"></i>Categories for Track: @learningTrackName</h4>
     <button class="btn btn-success btn-sm" @onclick="AddNewCategory">
         <i class="bi bi-plus-circle-fill me-1"></i> <span class="small">Add New Category</span>
     </button>
 </div>
- 
+
 @if (categories == null)
 {
     <div class="d-flex justify-content-center align-items-center" style="min-height: 120px;">
@@ -43,7 +42,7 @@ else
                                name="categoryRadio"
                                id="@inputId"
                                checked="@(selectedCategory?.Id == category.Id)"
-                               @onchange="() => HandleCategorySelection(category)" />
+                               @onchange="() => HandleCategorySelection(category, LearningTrackAction.Select)" />
                         <label class="form-check-label w-100" for="@inputId">
                             <span class="fw-semibold">@category.Name</span>
                             @if (!string.IsNullOrWhiteSpace(category.Description))
@@ -53,7 +52,7 @@ else
                         </label>
                     </div>
                     <div class="d-flex flex-row align-items-center ms-2" style="gap: 0.5rem;">
-                        <button class="btn btn-sm btn-outline-secondary" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackCategorySelected.InvokeAsync(category)" title="Sources">
+                        <button class="btn btn-sm btn-outline-secondary" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackCategorySelected.InvokeAsync((category, LearningTrackAction.GoToCategories))" title="Sources">
                             <i class="bi bi-link-45deg"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-primary" @onclick:stopPropagation="true" @onclick="() => EditCategory(category)" title="Edit Category">
@@ -86,7 +85,7 @@ else
 
 @code {
     [Parameter] public int LearningTrackId { get; set; }
-    [Parameter] public EventCallback<LearningTrackCategory> OnLearningTrackCategorySelected { get; set; }
+    [Parameter] public EventCallback<(LearningTrackCategory, LearningTrackAction)> OnLearningTrackCategorySelected { get; set; }
 
     private List<LearningTrackCategory>? categories;
     private LearningTrackCategory? selectedCategory;
@@ -146,19 +145,10 @@ else
         StateHasChanged();
     }
 
-    private async Task HandleCategorySelection(LearningTrackCategory category)
+    private async Task HandleCategorySelection(LearningTrackCategory category, LearningTrackAction action)
     {
-        if (selectedCategory?.Id == category.Id)
-        {
-            // Optional: If you want to deselect by clicking the same item again
-            // selectedCategory = null;
-            // await OnLearningTrackCategorySelected.InvokeAsync(null);
-        }
-        else
-        {
-            selectedCategory = category;
-            await OnLearningTrackCategorySelected.InvokeAsync(category);
-        }
+        selectedCategory = category;
+        await OnLearningTrackCategorySelected.InvokeAsync((category, action));
         StateHasChanged();
     }
 

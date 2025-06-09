@@ -174,35 +174,44 @@
         StateHasChanged();
     }
 
-    private void HandleLearningTrackCategorySelected(LearningTrackCategory category)
+    private void HandleLearningTrackCategorySelected((LearningTrackCategory category, LearningTrackAction action) selection)
     {
-        selectedLearningTrackCategory = category;
-        selectedLearningTrackCategoryId = category?.Id;
+        selectedLearningTrackCategory = selection.category;
+        selectedLearningTrackCategoryId = selection.category?.Id;
 
         // Reset downstream selections
         selectedLearningTrackSourceId = null;
         selectedLearningTrackQuizId = null;
         selectedLearningTrackQuiz = null;
 
-        SetActiveTab("sources");
+        if (selection.action == LearningTrackAction.GoToCategories)
+        {
+            SetActiveTab("sources");
+        }
         StateHasChanged();
     }
 
-    private void HandleLearningTrackSourceSelected(LearningTrackSource source)
+    private void HandleLearningTrackSourceSelected((LearningTrackSource source, LearningTrackAction action) selection)
     {
-        selectedLearningTrackSource = source;
-        selectedLearningTrackSourceId = source?.Id;
+        selectedLearningTrackSource = selection.source;
+        selectedLearningTrackSourceId = selection.source?.Id;
 
-        SetActiveTab("quizzes");
+        if (selection.action == LearningTrackAction.GoToCategories)
+        {
+            SetActiveTab("quizzes");
+        }
         StateHasChanged();
     }
 
-    private void HandleLearningTrackQuizSelected(LearningTrackQuiz quiz)
+    private void HandleLearningTrackQuizSelected((LearningTrackQuiz quiz, LearningTrackAction action) selection)
     {
-        selectedLearningTrackQuiz = quiz;
-        selectedLearningTrackQuizId = quiz?.Id;
+        selectedLearningTrackQuiz = selection.quiz;
+        selectedLearningTrackQuizId = selection.quiz?.Id;
 
-        SetActiveTab("questions");
+        if (selection.action == LearningTrackAction.GoToCategories)
+        {
+            SetActiveTab("questions");
+        }
         StateHasChanged();
     }
 }

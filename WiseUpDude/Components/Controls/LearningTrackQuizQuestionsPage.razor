@@ -7,7 +7,6 @@
 
 @rendermode InteractiveServer
 
-
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <button class="btn btn-sm btn-outline-secondary mb-2" @onclick="GoBackToQuiz">
@@ -47,7 +46,7 @@ else
                            name="questionRadio"
                            id="@inputId"
                            checked="@(selectedQuestion?.Id == question.Id)"
-                           @onchange="() => HandleQuestionSelection(question)" />
+                           @onchange="() => HandleQuestionSelection(question, LearningTrackAction.Select)" />
                     <label class="form-check-label w-100" for="@inputId">
                         <div class="d-flex w-100 justify-content-between">
                             <span class="fw-semibold">
@@ -106,6 +105,7 @@ else
 @code {
     [Parameter] public int LearningTrackId { get; set; }
     [Parameter] public int LearningTrackQuizId { get; set; }
+    [Parameter] public EventCallback<(LearningTrackQuizQuestion, LearningTrackAction)> OnLearningTrackQuizQuestionSelected { get; set; }
 
     private List<LearningTrackQuizQuestion>? questions;
     private LearningTrackQuizQuestion? selectedQuestion;
@@ -136,17 +136,10 @@ else
         await InvokeAsync(StateHasChanged);
     }
 
-    private void HandleQuestionSelection(LearningTrackQuizQuestion question)
+    private async Task HandleQuestionSelection(LearningTrackQuizQuestion question, LearningTrackAction action)
     {
-        if (selectedQuestion?.Id == question.Id)
-        {
-            // Optionally deselect
-            // selectedQuestion = null;
-        }
-        else
-        {
-            selectedQuestion = question;
-        }
+        selectedQuestion = question;
+        await OnLearningTrackQuizQuestionSelected.InvokeAsync((question, action));
         StateHasChanged();
     }
 

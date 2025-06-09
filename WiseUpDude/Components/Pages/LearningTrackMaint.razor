@@ -21,38 +21,38 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link @(selectedLearningTrackId == null ? "disabled" : (activeTab == "categories" ? "active" : ""))" id="categories-tab" type="button" role="tab" aria-controls="categories-tab-pane" aria-selected="@(activeTab == "categories")" @onclick="@(() => { if (selectedLearningTrackId != null) SetActiveTab("categories"); })">
                 <i class="bi bi-diagram-3 me-1"></i> Categories
-                @if (selectedLearningTrackId != null)
-                {
-                    <span class="badge bg-secondary ms-1">Track: @selectedLearningTrack?.Name</span>
-                }
             </button>
+            @if (selectedLearningTrackId != null)
+            {
+                <span class="parent-reference">Track: @selectedLearningTrack?.Name</span>
+            }
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link @(selectedLearningTrackCategoryId == null ? "disabled" : (activeTab == "sources" ? "active" : ""))" id="sources-tab" type="button" role="tab" aria-controls="sources-tab-pane" aria-selected="@(activeTab == "sources")" @onclick="@(() => { if (selectedLearningTrackCategoryId != null) SetActiveTab("sources"); })">
                 <i class="bi bi-link-45deg me-1"></i> Sources
-                @if (selectedLearningTrackCategory != null)
-                {
-                    <span class="badge bg-info ms-1">Category: @selectedLearningTrackCategory?.Name</span>
-                }
             </button>
+            @if (selectedLearningTrackCategory != null)
+            {
+                <span class="parent-reference">Category: @selectedLearningTrackCategory?.Name</span>
+            }
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link @(selectedLearningTrackSourceId == null ? "disabled" : (activeTab == "quizzes" ? "active" : ""))" id="quizzes-tab" type="button" role="tab" aria-controls="quizzes-tab-pane" aria-selected="@(activeTab == "quizzes")" @onclick="@(() => { if (selectedLearningTrackSourceId != null) SetActiveTab("quizzes"); })">
                 <i class="bi bi-patch-question me-1"></i> Quizzes
-                @if (selectedLearningTrackCategory != null)
-                {
-                    <span class="badge bg-info ms-1">Category: @selectedLearningTrackCategory?.Name</span>
-                }
             </button>
+            @if (selectedLearningTrackCategory != null)
+            {
+                <span class="parent-reference">Category: @selectedLearningTrackCategory?.Name</span>
+            }
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link @(selectedLearningTrackQuizId == null ? "disabled" : (activeTab == "questions" ? "active" : ""))" id="questions-tab" type="button" role="tab" aria-controls="questions-tab-pane" aria-selected="@(activeTab == "questions")" @onclick="@(() => { if (selectedLearningTrackQuizId != null) SetActiveTab("questions"); })">
                 <i class="bi bi-card-list me-1"></i> Quiz Questions
-                @if (selectedLearningTrackQuiz != null)
-                {
-                    <span class="badge bg-warning ms-1">Quiz: @selectedLearningTrackQuiz.Name</span>
-                }
             </button>
+            @if (selectedLearningTrackQuiz != null)
+            {
+                <span class="parent-reference">Quiz: @selectedLearningTrackQuiz.Name</span>
+            }
         </li>
     </ul>
 

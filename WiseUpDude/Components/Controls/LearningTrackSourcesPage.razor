@@ -8,6 +8,8 @@
 
 @rendermode InteractiveServer
 
+<PleaseWaitDialog IsVisible="@isGeneratingQuizzes" LoadingTextMessage="@GeneratingQuizMessage" />
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="text-secondary mb-0"><i class="bi bi-link-45deg me-2"></i>Sources for Category: @categoryName</h4>
     <div>
@@ -129,6 +131,8 @@ else
     private bool initialLoadAttempted = false;
     private string? categoryName;
     private bool isCreatingQuizzes = false;
+    private bool isGeneratingQuizzes = false;
+    private string GeneratingQuizMessage = "Generating quizzes...";
 
     protected override async Task OnParametersSetAsync()
     {
@@ -144,6 +148,7 @@ else
     {
         if (sources == null || isCreatingQuizzes) return;
         isCreatingQuizzes = true;
+        isGeneratingQuizzes = true;
         try
         {
             foreach (var source in sources)
@@ -159,6 +164,8 @@ else
                     await ToastService.ShowToast($"No URL for: {source.Name}", ToastLevel.Warning);
                     continue;
                 }
+                GeneratingQuizMessage = $"Generating quiz for '{source.Name}'...";
+                StateHasChanged();
                 var (quiz, error) = await PerplexityService.GenerateAndPersistQuizFromUrlAsync(source.Url, source.Id);
                 if (quiz != null)
                 {
@@ -174,6 +181,9 @@ else
         finally
         {
             isCreatingQuizzes = false;
+            isGeneratingQuizzes = false;
+            GeneratingQuizMessage = "Generating quizzes...";
+            StateHasChanged();
         }
     }
 

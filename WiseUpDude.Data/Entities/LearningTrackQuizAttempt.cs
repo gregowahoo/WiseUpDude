@@ -3,8 +3,8 @@ namespace WiseUpDude.Data.Entities
     public class LearningTrackQuizAttempt
     {
         public int Id { get; set; }
-        public int LearningTrackId { get; set; }
-        public LearningTrack LearningTrack { get; set; }
+        public int LearningTrackQuizId { get; set; }
+        public LearningTrackQuiz LearningTrackQuiz { get; set; }
 
         public DateTime AttemptDate { get; set; }
         public double Score { get; set; }  // e.g., percentage correct

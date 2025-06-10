@@ -24,7 +24,7 @@
             </button>
             @if (selectedLearningTrackId != null)
             {
-                <span class="parent-reference">Track: @selectedLearningTrack?.Name</span>
+                <span class="parent-reference">@selectedLearningTrack?.Name</span>
             }
         </li>
         <li class="nav-item" role="presentation">
@@ -33,7 +33,7 @@
             </button>
             @if (selectedLearningTrackCategory != null)
             {
-                <span class="parent-reference">Category: @selectedLearningTrackCategory?.Name</span>
+                <span class="parent-reference">@selectedLearningTrackCategory?.Name</span>
             }
         </li>
         <li class="nav-item" role="presentation">
@@ -42,7 +42,7 @@
             </button>
             @if (selectedLearningTrackCategory != null)
             {
-                <span class="parent-reference">Category: @selectedLearningTrackCategory?.Name</span>
+                <span class="parent-reference">@selectedLearningTrackCategory?.Name</span>
             }
         </li>
         <li class="nav-item" role="presentation">
@@ -51,7 +51,7 @@
             </button>
             @if (selectedLearningTrackQuiz != null)
             {
-                <span class="parent-reference">Quiz: @selectedLearningTrackQuiz.Name</span>
+                <span class="parent-reference">@selectedLearningTrackQuiz.Name</span>
             }
         </li>
     </ul>

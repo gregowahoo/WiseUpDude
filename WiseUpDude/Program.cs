@@ -118,6 +118,7 @@ builder.Services.AddHttpClient("PerplexityAI", client =>
     client.BaseAddress = new Uri("https://api.perplexity.ai/");
     client.DefaultRequestHeaders.Add("Authorization", $"Bearer {builder.Configuration["Perplexity:ApiKey"]}");
     client.DefaultRequestHeaders.Add("accept", "application/json");
+    client.Timeout = TimeSpan.FromMinutes(5);
 });
 
 #endregion
@@ -198,6 +199,9 @@ builder.Services.AddScoped<ILearningTrackQuizRepository, LearningTrackQuizReposi
 builder.Services.AddScoped<ILearningTrackQuizQuestionRepository, LearningTrackQuizQuestionRepository>();
 
 builder.Services.AddSingleton<WiseUpDude.Shared.Services.ToastService>();
+
+// Register PerplexityService and its dependencies
+builder.Services.AddScoped<PerplexityService>();
 
 #endregion
 

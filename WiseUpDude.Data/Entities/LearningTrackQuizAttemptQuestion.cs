@@ -1,6 +1,6 @@
 namespace WiseUpDude.Data.Entities
 {
-    public class LearningTrackAttemptQuestion
+    public class LearningTrackQuizAttemptQuestion
     {
         public int Id { get; set; }
 

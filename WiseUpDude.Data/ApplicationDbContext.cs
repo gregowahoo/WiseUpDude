@@ -29,7 +29,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<LearningTrackQuiz> LearningTrackQuizzes { get; set; }
     public DbSet<LearningTrackQuizQuestion> LearningTrackQuizQuestions { get; set; }
     public DbSet<LearningTrackQuizAttempt> LearningTrackQuizAttempts { get; set; }
-    public DbSet<LearningTrackAttemptQuestion> LearningTrackAttemptQuestions { get; set; }
+    public DbSet<LearningTrackQuizAttemptQuestion> LearningTrackAttemptQuestions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -139,7 +139,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(ltq => ltq.LearningTrackAttemptId)
             .OnDelete(DeleteBehavior.Cascade);
         modelBuilder.Entity<LearningTrackQuizAttempt>().ToTable("LearningTrackQuizAttempts");
-        modelBuilder.Entity<LearningTrackAttemptQuestion>().ToTable("LearningTrackAttemptQuestions");
+        modelBuilder.Entity<LearningTrackQuizAttemptQuestion>().ToTable("LearningTrackAttemptQuestions");
 
         //foreach (var entity in modelBuilder.Model.GetEntityTypes())
         //{

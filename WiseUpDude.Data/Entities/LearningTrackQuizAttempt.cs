@@ -10,7 +10,7 @@ namespace WiseUpDude.Data.Entities
         public double Score { get; set; }  // e.g., percentage correct
         public TimeSpan Duration { get; set; }
 
-        public ICollection<LearningTrackAttemptQuestion> AttemptQuestions { get; set; }
+        public ICollection<LearningTrackQuizAttemptQuestion> AttemptQuestions { get; set; }
 
         // Indicates if the attempt is complete (all questions answered)
         public bool IsComplete { get; set; }

@@ -284,7 +284,7 @@ namespace WiseUpDude.Data.Migrations
                     b.ToTable("LearningTracks");
                 });
 
-            modelBuilder.Entity("WiseUpDude.Data.Entities.LearningTrackAttemptQuestion", b =>
+            modelBuilder.Entity("WiseUpDude.Data.Entities.LearningTrackQuizAttemptQuestion", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -880,7 +880,7 @@ namespace WiseUpDude.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("WiseUpDude.Data.Entities.LearningTrackAttemptQuestion", b =>
+            modelBuilder.Entity("WiseUpDude.Data.Entities.LearningTrackQuizAttemptQuestion", b =>
                 {
                     b.HasOne("WiseUpDude.Data.Entities.LearningTrackQuizAttempt", "LearningTrackAttempt")
                         .WithMany("AttemptQuestions")

@@ -28,6 +28,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<LearningTrackSource> LearningTrackSources { get; set; }
     public DbSet<LearningTrackQuiz> LearningTrackQuizzes { get; set; }
     public DbSet<LearningTrackQuizQuestion> LearningTrackQuizQuestions { get; set; }
+    public DbSet<LearningTrackQuizAttempt> LearningTrackQuizAttempts { get; set; }
+    public DbSet<LearningTrackAttemptQuestion> LearningTrackAttemptQuestions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -129,6 +131,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<LearningTrackQuizQuestion>()
             .Property(qq => qq.CreationDate)
             .HasDefaultValueSql("GETDATE()");
+
+        // LearningTrackQuizAttempt relationships
+        modelBuilder.Entity<LearningTrackQuizAttempt>()
+            .HasMany(lta => lta.AttemptQuestions)
+            .WithOne(ltq => ltq.LearningTrackAttempt)
+            .HasForeignKey(ltq => ltq.LearningTrackAttemptId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<LearningTrackQuizAttempt>().ToTable("LearningTrackQuizAttempts");
+        modelBuilder.Entity<LearningTrackAttemptQuestion>().ToTable("LearningTrackAttemptQuestions");
 
         //foreach (var entity in modelBuilder.Model.GetEntityTypes())
         //{

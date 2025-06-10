@@ -187,6 +187,8 @@ builder.Services.AddScoped<DashboardDataService>();
 builder.Services.AddScoped<QuizApiService>();
 builder.Services.AddScoped<UserQuizApiService>();
 
+builder.Services.AddScoped<LearningTrackQuizApiService>();
+
 //TODO: (Using this still?)
 builder.Services.AddScoped<QuizState>();
 

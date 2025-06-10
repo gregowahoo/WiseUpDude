@@ -9,7 +9,7 @@ namespace WiseUpDude.Data.Repositories.Interfaces
     {
         Task<IEnumerable<Model.LearningTrackQuiz>> GetAllQuizzesAsync();
         Task<Model.LearningTrackQuiz?> GetQuizByIdAsync(int id);
-        Task AddQuizAsync(Model.LearningTrackQuiz quiz);
+        Task<int> AddQuizAsync(Model.LearningTrackQuiz quiz);
         Task UpdateQuizAsync(Model.LearningTrackQuiz quiz);
         Task DeleteQuizAsync(int id);
     }

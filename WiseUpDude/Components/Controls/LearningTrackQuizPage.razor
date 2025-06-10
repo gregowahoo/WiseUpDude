@@ -1,12 +1,13 @@
 @using WiseUpDude.Model
 @using Microsoft.AspNetCore.Components.Forms
 @inject WiseUpDude.Data.Repositories.Interfaces.ILearningTrackQuizRepository QuizRepo
+@inject WiseUpDude.Data.Repositories.Interfaces.ILearningTrackSourceRepository SourceRepo
 @inject WiseUpDude.Shared.Services.ToastService ToastService
 
 @rendermode InteractiveServer
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="text-secondary mb-0"><i class="bi bi-patch-question me-2"></i>Quizzes for Source ID: @LearningTrackSourceId</h4>
+    <h4 class="text-secondary mb-0"><i class="bi bi-patch-question me-2"></i>Quizzes for Source: @sourceName</h4>
     <button class="btn btn-success btn-sm" @onclick="ShowAddModal">
         <i class="bi bi-plus-circle-fill me-1"></i> <span class="small">Add New Quiz</span>
     </button>
@@ -109,11 +110,14 @@ else if (quizzes != null && quizzes.Any())
     private string modalTitle = "Add/Edit Quiz";
     private LearningTrackQuiz modalQuiz = new();
     private bool isEdit = false;
+    private string? sourceName;
 
     protected override async Task OnParametersSetAsync()
     {
         bool sourceIdChanged = LearningTrackSourceId != (selectedQuiz?.LearningTrackSourceId ?? 0);
         bool isValidSourceId = LearningTrackSourceId > 0;
+
+        await LoadSourceName();
 
         if (isValidSourceId)
         {
@@ -136,6 +140,12 @@ else if (quizzes != null && quizzes.Any())
             isLoading = false;
             StateHasChanged();
         }
+    }
+
+    private async Task LoadSourceName()
+    {
+        var source = await SourceRepo.GetByIdAsync(LearningTrackSourceId);
+        sourceName = source?.Name ?? $"ID: {LearningTrackSourceId}";
     }
 
     private async Task LoadQuizzesFromRepoAsync()

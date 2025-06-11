@@ -183,19 +183,27 @@ else
         if (CurrentAttempt == null)
         {
             AttemptStartTime = DateTime.UtcNow;
-            var attempt = new LearningTrackQuizAttempt
+            var attemptDto = new LearningTrackQuizAttemptCreateDto
             {
                 LearningTrackQuizId = QuizId,
                 AttemptDate = AttemptStartTime.Value,
                 Score = 0,
                 Duration = TimeSpan.Zero,
-                AttemptQuestions = new List<LearningTrackQuizAttemptQuestion> { attemptQuestion },
+                AttemptQuestions = new List<LearningTrackQuizAttemptQuestionCreateDto> {
+                    new LearningTrackQuizAttemptQuestionCreateDto {
+                        LearningTrackQuestionId = LearningTrackQuiz.Questions[questionIndex].Id,
+                        UserAnswer = userAnswer,
+                        IsCorrect = isCorrect,
+                        TimeTakenSeconds = timeTaken
+                    }
+                },
                 IsComplete = false
             };
-            CurrentAttempt = await LearningTrackQuizAttemptApiService.CreateAsync(attempt);
-            if (CurrentAttempt != null)
+            var createdAttempt = await LearningTrackQuizAttemptApiService.CreateAsync(attemptDto);
+            if (createdAttempt != null)
             {
-                CurrentAttemptId = CurrentAttempt.Id;
+                CurrentAttempt = createdAttempt;
+                CurrentAttemptId = createdAttempt.Id;
             }
             else
             {

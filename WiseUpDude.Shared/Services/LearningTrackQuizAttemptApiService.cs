@@ -34,9 +34,9 @@ namespace WiseUpDude.Shared.Services
             return new List<LearningTrackQuizAttempt>();
         }
 
-        public async Task<LearningTrackQuizAttempt?> CreateAsync(LearningTrackQuizAttempt attempt)
+        public async Task<LearningTrackQuizAttempt?> CreateAsync(LearningTrackQuizAttemptCreateDto attemptDto)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/LearningTrackQuizAttempts", attempt);
+            var response = await _httpClient.PostAsJsonAsync("api/LearningTrackQuizAttempts", attemptDto);
             if (response.IsSuccessStatusCode)
                 return await response.Content.ReadFromJsonAsync<LearningTrackQuizAttempt>();
             _logger.LogWarning("Failed to create LearningTrackQuizAttempt. Status: {Status}", response.StatusCode);

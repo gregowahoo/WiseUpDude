@@ -25,6 +25,7 @@ builder.Services.AddScoped<QuizApiService>();
 builder.Services.AddScoped<UserQuizApiService>();
 
 builder.Services.AddScoped<LearningTrackQuizApiService>();
+builder.Services.AddScoped<LearningTrackQuizAttemptApiService>();
 
 // In both Server and WASM Program.cs
 builder.Services.AddScoped<QuizState>();

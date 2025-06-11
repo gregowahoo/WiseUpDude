@@ -1,0 +1,147 @@
+@using WiseUpDude.Model
+
+@inject IJSRuntime JS
+@inject ILogger<LearningTrackQuestionCard> Logger
+
+@code {
+    [Parameter] public LearningTrackQuizQuestion? Question { get; set; }
+    [Parameter] public int QuestionIndex { get; set; }
+    [Parameter] public bool AutoSubmit { get; set; }
+    [Parameter] public EventCallback<(bool isCorrect, int questionIndex, string userAnswer)> OnAnswerSubmitted { get; set; }
+    [Parameter] public bool MuteSound { get; set; }
+    [Parameter] public bool CanEdit { get; set; } = true;
+
+    private string userAnswer = string.Empty;
+    private bool submitted = false;
+    private List<string> options = new();
+
+    protected override void OnParametersSet()
+    {
+        // Parse options from OptionsJson
+        options = new List<string>();
+        if (!string.IsNullOrEmpty(Question?.OptionsJson))
+        {
+            try
+            {
+                options = System.Text.Json.JsonSerializer.Deserialize<List<string>>(Question.OptionsJson) ?? new();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to parse OptionsJson for question {QuestionIndex}", QuestionIndex);
+            }
+        }
+    }
+
+    private void OnSelectAnswer(string answer)
+    {
+        if (!CanEdit) return;
+        userAnswer = answer;
+        submitted = false;
+        Logger.LogInformation("Answer selected for question {QuestionIndex}: {Answer}", QuestionIndex, answer);
+        if (AutoSubmit)
+        {
+            CheckAnswerAndNotify();
+        }
+    }
+
+    private async void CheckAnswerAndNotify()
+    {
+        if (!CanEdit) return;
+        submitted = true;
+        if (Question is not null)
+        {
+            bool isCorrect = userAnswer == Question.Answer;
+            Logger.LogInformation("Answer checked for question {QuestionIndex}. UserAnswer: {UserAnswer}, CorrectAnswer: {CorrectAnswer}, IsCorrect: {IsCorrect}",
+                QuestionIndex, userAnswer, Question.Answer, isCorrect);
+            if (!MuteSound)
+            {
+                try
+                {
+                    var soundFile = isCorrect ? "/sounds/correct.mp3" : "/sounds/incorrect.mp3";
+                    Logger.LogDebug("Playing sound: {SoundFile}", soundFile);
+                    await JS.InvokeVoidAsync("playSound", soundFile);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Error playing sound for question {QuestionIndex}", QuestionIndex);
+                }
+            }
+            await OnAnswerSubmitted.InvokeAsync((isCorrect, QuestionIndex, userAnswer));
+        }
+        StateHasChanged();
+    }
+
+    private void CheckAnswer()
+    {
+        CheckAnswerAndNotify();
+    }
+
+    private string GetOptionClass(string option)
+    {
+        if (!submitted)
+        {
+            return "btn btn-outline-dark me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
+        }
+        if (option == Question?.Answer)
+        {
+            return "btn btn-correct me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
+        }
+        if (option == userAnswer)
+        {
+            return "btn btn-incorrect me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
+        }
+        return "btn btn-outline-secondary me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
+    }
+}
+
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title">@($"Q{QuestionIndex + 1}: {Question?.Question}")</h5>
+        @if (options.Count > 0)
+        {
+            @foreach (var option in options)
+            {
+                <button class="@GetOptionClass(option)"
+                        @onclick="() => OnSelectAnswer(option)"
+                        disabled="@(!CanEdit)">
+                    @option
+                </button>
+            }
+        }
+        else
+        {
+            @foreach (var tf in new[] { "True", "False" })
+            {
+                <button class="@GetOptionClass(tf)"
+                        @onclick="() => OnSelectAnswer(tf)"
+                        disabled="@(!CanEdit)">
+                    @tf
+                </button>
+            }
+        }
+        @if (!AutoSubmit)
+        {
+            <div class="mt-3">
+                <button class="btn btn-sm btn-primary" @onclick="CheckAnswer" disabled="@(!CanEdit)">Check Answer</button>
+            </div>
+        }
+        @if (submitted && !string.IsNullOrEmpty(userAnswer))
+        {
+            <div class="mt-3">
+                @if (userAnswer == Question?.Answer)
+                {
+                    <div class="feedback-correct">
+                        ? Correct!
+                    </div>
+                }
+                else
+                {
+                    <div class="feedback-incorrect">
+                        ? Incorrect!
+                    </div>
+                }
+                <div class="mt-1"><em>Explanation:</em> @Question?.Explanation</div>
+            </div>
+        }
+    </div>
+</div>

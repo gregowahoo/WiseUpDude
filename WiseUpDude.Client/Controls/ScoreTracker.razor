@@ -1,8 +1,29 @@
-﻿@code {
-    [Parameter] public int TotalQuestions { get; set; }
-    [Parameter] public int CorrectAnswers { get; set; }
-}
+﻿@using System.Collections.Generic
 
 <div class="score-tracker">
-    Score: @CorrectAnswers / @TotalQuestions
+    <div class="score-box-row">
+        @if (QuestionResults != null && QuestionResults.Count == TotalQuestions)
+        {
+            @for (int i = 0; i < TotalQuestions; i++)
+            {
+                var result = QuestionResults[i];
+                var boxClass = result == true ? "score-box-correct" : result == false ? "score-box-incorrect" : "score-box-unanswered";
+                <div class="score-box @boxClass" title="Question @(i+1)"></div>
+            }
+        }
+        else
+        {
+            @for (int i = 0; i < TotalQuestions; i++)
+            {
+                <div class="score-box score-box-unanswered" title="Question @(i+1)"></div>
+            }
+        }
+    </div>
+    <div class="score-label">Score: @CorrectAnswers / @TotalQuestions</div>
 </div>
+
+@code {
+    [Parameter] public int TotalQuestions { get; set; }
+    [Parameter] public int CorrectAnswers { get; set; }
+    [Parameter] public List<bool?>? QuestionResults { get; set; } // true=correct, false=incorrect, null=unanswered
+}

@@ -5,6 +5,8 @@
 @using WiseUpDude.Model
 @using WiseUpDude.Client.Pages
 @using WiseUpDude.Shared.Services
+@using System.Linq;
+@using System.Collections.Generic;
 
 @inject IConfiguration Configuration
 @inject ILogger<TakeAQuiz> Logger
@@ -53,7 +55,7 @@ else
     </div>
     <div class="card-body">
         <!-- Score Tracker -->
-        <ScoreTracker TotalQuestions="@totalQuestions" CorrectAnswers="@correctAnswers" />
+        <ScoreTracker TotalQuestions="@totalQuestions" CorrectAnswers="@correctAnswers" QuestionResults="@GetQuestionResults()" />
 
         <!-- Final Message -->
         @if (showFinalMessage)
@@ -338,5 +340,21 @@ else
             saveMessage = "Quiz completed. You might want to review the material and try again.";
             saveMessageType = "warning";
         }
+    }
+
+    private List<bool?> GetQuestionResults()
+    {
+        if (UserQuiz?.Questions == null)
+            return Enumerable.Repeat<bool?>(null, totalQuestions).ToList();
+        var results = new List<bool?>();
+        for (int i = 0; i < totalQuestions; i++)
+        {
+            var q = UserQuiz.Questions[i];
+            if (!string.IsNullOrEmpty(q.UserAnswer))
+                results.Add(q.UserAnswer == q.Answer ? true : false);
+            else
+                results.Add(null);
+        }
+        return results;
     }
 }

@@ -194,12 +194,15 @@ builder.Services.AddScoped<LearningTrackQuizAttemptApiService>();
 builder.Services.AddScoped<QuizState>();
 
 builder.Services.AddScoped<IUserQuizAttemptApiService, UserQuizAttemptApiService>();
+builder.Services.AddScoped<ILearningTrackQuizAttemptRepository, LearningTrackQuizAttemptRepository>();
 
 builder.Services.AddScoped<ILearningTrackRepository, LearningTrackRepository>();
 builder.Services.AddScoped<ILearningTrackCategoryRepository, LearningTrackCategoryRepository>();
 builder.Services.AddScoped<ILearningTrackSourceRepository, LearningTrackSourceRepository>();
 builder.Services.AddScoped<ILearningTrackQuizRepository, LearningTrackQuizRepository>();
 builder.Services.AddScoped<ILearningTrackQuizQuestionRepository, LearningTrackQuizQuestionRepository>();
+
+
 
 builder.Services.AddScoped<UserQuizAttemptApiService>();
 

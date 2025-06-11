@@ -132,7 +132,8 @@ else
         if (LearningTrackQuiz != null && LearningTrackQuiz.Questions != null)
         {
             totalQuestions = LearningTrackQuiz.Questions.Count;
-            totalAnswered = 0;
+            // Do not reset totalAnswered or correctAnswers here!
+            // They are managed live as the user answers questions.
         }
     }
 

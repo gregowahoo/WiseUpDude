@@ -12,9 +12,12 @@
 @inject HttpClient HttpClient
 @inject ILogger<LearningTrackQuizApiService> QuizApiLogger
 
-@inject LearningTrackQuizApiService? QuizApiService
-@inject UserQuizApiService UserQuizApiService
-@inject IUserQuizAttemptApiService UserQuizAttemptApiService
+@* @inject LearningTrackQuizApiService? QuizApiService *@
+@* @inject UserQuizApiService UserQuizApiService
+@inject IUserQuizAttemptApiService UserQuizAttemptApiService *@
+
+@inject LearningTrackQuizApiService LearningTrackQuizApiService
+@inject LearningTrackQuizAttemptApiService LearningTrackQuizAttemptApiService
 
 @inject IJSRuntime JS
 
@@ -40,14 +43,14 @@ else
         <div>
             <h3 class="mb-0">
                 🧠 Take Quiz -
-                @(UserQuiz?.Type == "Topic"
-                                ? UserQuiz?.Topic
-                                : UserQuiz?.Prompt)
+                @(LearningTrackQuiz?.Type == "Topic"
+                                ? LearningTrackQuiz?.Topic
+                                : LearningTrackQuiz?.Prompt)
             </h3>
             <p class="mb-0">Select an answer for each question to see if you're correct.</p>
-            @if (!string.IsNullOrWhiteSpace(UserQuiz?.Difficulty))
+            @if (!string.IsNullOrWhiteSpace(LearningTrackQuiz?.Difficulty))
             {
-                <p class="text-muted mb-0">Quiz Difficulty: <strong>@UserQuiz.Difficulty</strong></p>
+                <p class="text-muted mb-0">Quiz Difficulty: <strong>@LearningTrackQuiz.Difficulty</strong></p>
             }
         </div>
     </div>
@@ -98,7 +101,7 @@ else
             </button>
         </div>
 
-        @if (UserQuiz == null || UserQuiz.Questions.Count == 0)
+        @if (LearningTrackQuiz == null || LearningTrackQuiz.Questions.Count == 0)
         {
             <div class="alert alert-warning">
                 No quiz questions found. Please go to Home and generate a quiz first.
@@ -106,9 +109,9 @@ else
         }
         else
         {
-            @for (int i = 0; i < UserQuiz.Questions.Count; i++)
+            @for (int i = 0; i < LearningTrackQuiz.Questions.Count; i++)
             {
-                var question = UserQuiz.Questions[i];
+                var question = LearningTrackQuiz.Questions[i];
                 bool canEdit = !learnMode || !answeredQuestions.Contains(i);
                 <div class="mb-4">
                     <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p>
@@ -128,7 +131,7 @@ else
     [Parameter]
     public int QuizId { get; set; }
 
-    private Quiz? UserQuiz { get; set; }
+    private LearningTrackQuiz? LearningTrackQuiz { get; set; }
     private int totalQuestions;
     private int correctAnswers;
     private int totalAnswered;
@@ -147,19 +150,19 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        UserQuiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
-        if (UserQuiz != null && UserQuiz.Questions != null)
+        LearningTrackQuiz = await LearningTrackQuizApiService.GetQuizByIdAsync(QuizId);
+        if (LearningTrackQuiz != null && LearningTrackQuiz.Questions != null)
         {
-            totalQuestions = UserQuiz.Questions.Count;
-            learnMode = UserQuiz.LearnMode;
+            totalQuestions = LearningTrackQuiz.Questions.Count;
+            learnMode = LearningTrackQuiz.LearnMode;
             // Populate answeredQuestions with already-answered questions
-            for (int i = 0; i < UserQuiz.Questions.Count; i++)
+            for (int i = 0; i < LearningTrackQuiz.Questions.Count; i++)
             {
-                if (!string.IsNullOrEmpty(UserQuiz.Questions[i].UserAnswer))
+                if (!string.IsNullOrEmpty(LearningTrackQuiz.Questions[i].UserAnswer))
                 {
                     answeredQuestions.Add(i);
                     // Check if the answer is correct and increment correctAnswers
-                    if (UserQuiz.Questions[i].UserAnswer == UserQuiz.Questions[i].Answer)
+                    if (LearningTrackQuiz.Questions[i].UserAnswer == LearningTrackQuiz.Questions[i].Answer)
                     {
                         correctAnswers++;
                     }
@@ -188,12 +191,12 @@ else
     private async Task ToggleLearnMode()
     {
         // Re-check all questions for answers to ensure up-to-date state
-        if (UserQuiz?.Questions != null)
+        if (LearningTrackQuiz?.Questions != null)
         {
             answeredQuestions.Clear();
-            for (int i = 0; i < UserQuiz.Questions.Count; i++)
+            for (int i = 0; i < LearningTrackQuiz.Questions.Count; i++)
             {
-                if (!string.IsNullOrEmpty(UserQuiz.Questions[i].UserAnswer))
+                if (!string.IsNullOrEmpty(LearningTrackQuiz.Questions[i].UserAnswer))
                 {
                     answeredQuestions.Add(i);
                 }
@@ -209,17 +212,17 @@ else
             return;
 
         learnMode = !learnMode;
-        if (UserQuiz != null)
+        if (LearningTrackQuiz != null)
         {
-            UserQuiz.LearnMode = learnMode;
-            await UserQuizApiService.UpdateLearnModeAsync(UserQuiz.Id, learnMode);
+            LearningTrackQuiz.LearnMode = learnMode;
+            await LearningTrackQuizApiService.UpdateLearnModeAsync(LearningTrackQuiz.Id, learnMode);
         }
     }
 
     private async Task HandleAnswerSubmitted((bool isCorrect, int questionIndex, string userAnswer) args)
     {
         var (isCorrect, questionIndex, userAnswer) = args;
-        if (UserQuiz == null || UserQuiz.Questions == null || questionIndex < 0 || questionIndex >= UserQuiz.Questions.Count)
+        if (LearningTrackQuiz == null || LearningTrackQuiz.Questions == null || questionIndex < 0 || questionIndex >= LearningTrackQuiz.Questions.Count)
             return;
 
         // Prevent double-counting: If already answered, do nothing
@@ -229,9 +232,9 @@ else
         hasStartedQuiz = true;
 
         // Always update UserQuizQuestion.UserAnswer in DB
-        var userQuizQuestion = UserQuiz.Questions[questionIndex];
+        var userQuizQuestion = LearningTrackQuiz.Questions[questionIndex];
         userQuizQuestion.UserAnswer = userAnswer;
-        await UserQuizApiService.UpdateUserQuizQuestionAnswerAsync(userQuizQuestion.Id, userAnswer);
+        await LearningTrackQuizApiService.UpdateUserQuizQuestionAnswerAsync(userQuizQuestion.Id, userAnswer);
 
         if (learnMode)
         {
@@ -268,7 +271,7 @@ else
                     AttemptQuestions = new List<UserQuizAttemptQuestion> { attemptQuestion },
                     IsComplete = false
                 };
-                CurrentAttempt = await UserQuizAttemptApiService.CreateAsync(attempt);
+                CurrentAttempt = await LearningTrackQuizAttemptApiService.CreateAsync(attempt);
                 if (CurrentAttempt != null)
                 {
                     CurrentAttemptId = CurrentAttempt.Id;
@@ -285,7 +288,7 @@ else
             {
                 CurrentAttempt.AttemptQuestions ??= new List<UserQuizAttemptQuestion>();
                 CurrentAttempt.AttemptQuestions.Add(attemptQuestion);
-                await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
+                await LearningTrackQuizAttemptApiService.UpdateAsync(CurrentAttempt);
             }
         }
         else
@@ -307,7 +310,7 @@ else
                 CurrentAttempt.Score = totalQuestions > 0 ? (double)correctAnswers / totalQuestions : 0;
                 CurrentAttempt.Duration = duration;
                 CurrentAttempt.IsComplete = true;
-                await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
+                await LearningTrackQuizAttemptApiService.UpdateAsync(CurrentAttempt);
             }
 
             await HandleQuizCompletionAsync();      //TODO: Maybe for LearnMode change the final display, more professional ;-).

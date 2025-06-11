@@ -200,6 +200,8 @@ builder.Services.AddScoped<ILearningTrackSourceRepository, LearningTrackSourceRe
 builder.Services.AddScoped<ILearningTrackQuizRepository, LearningTrackQuizRepository>();
 builder.Services.AddScoped<ILearningTrackQuizQuestionRepository, LearningTrackQuizQuestionRepository>();
 
+builder.Services.AddScoped<UserQuizAttemptApiService>();
+
 builder.Services.AddSingleton<WiseUpDude.Shared.Services.ToastService>();
 
 // Register PerplexityService and its dependencies

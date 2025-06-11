@@ -37,12 +37,31 @@ else
             {
                 <p class="text-muted mb-0">@LearningTrackQuiz.Description</p>
             }
+            @if (LearningTrackQuiz != null && LearningTrackQuiz.Questions != null && LearningTrackQuiz.Questions.Count > 0 && !string.IsNullOrWhiteSpace(LearningTrackQuiz.Questions[0].Difficulty))
+            {
+                <p class="text-muted mb-0">Quiz Difficulty: <strong>@LearningTrackQuiz.Questions[0].Difficulty</strong></p>
+            }
         </div>
     </div>
     <div class="card-body">
         <!-- Score Tracker -->
-        <div class="mb-3">
-            <span class="fw-bold">Score:</span> @correctAnswers / @totalAnswered (@totalQuestions questions)
+        <ScoreTracker TotalQuestions="@totalQuestions" CorrectAnswers="@correctAnswers" />
+
+        <!-- Quiz Controls -->
+        <div class="d-flex align-items-center gap-4 mb-3">
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                    @onclick="ToggleAutoSubmit">
+                <i class="bi @(autoSubmit ? "bi-lightning-fill" : "bi-lightning") me-1"></i>
+                @(autoSubmit ? "Auto-Submit On" : "Auto-Submit Off")
+            </button>
+
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                    @onclick="ToggleMute">
+                <i class="bi @(muteSound ? "bi-volume-mute-fill" : "bi-volume-up-fill") me-1"></i>
+                @(muteSound ? "Muted" : "Sound On")
+            </button>
         </div>
 
         <!-- Final Message -->
@@ -62,7 +81,7 @@ else
             }
         }
 
-        @if (LearningTrackQuiz == null || LearningTrackQuiz.Questions.Count == 0)
+        @if (LearningTrackQuiz == null || LearningTrackQuiz.Questions == null || LearningTrackQuiz.Questions.Count == 0)
         {
             <div class="alert alert-warning">
                 No quiz questions found. Please go to Home and select a quiz first.
@@ -78,10 +97,10 @@ else
                     <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p>
                     <LearningTrackQuestionCard Question="question"
                                                QuestionIndex="i"
-                                               AutoSubmit="true"
+                                               AutoSubmit="autoSubmit"
                                                MuteSound="muteSound"
-                                               CanEdit="@canEdit"
-                                               OnAnswerSubmitted="@((args) => HandleAnswerSubmitted(args))" />
+                                               CanEdit="canEdit"
+                                               OnAnswerSubmitted="HandleAnswerSubmitted" />
                 </div>
             }
         }
@@ -97,6 +116,7 @@ else
     private int correctAnswers;
     private int totalAnswered;
     private bool showFinalMessage;
+    private bool autoSubmit = true;
     private bool muteSound = false;
     private HashSet<int> answeredQuestions = new HashSet<int>();
     private Dictionary<int, DateTime> questionStartTimes = new();
@@ -119,6 +139,11 @@ else
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await JS.InvokeVoidAsync("initBootstrapTooltips");
+    }
+
+    private void ToggleAutoSubmit()
+    {
+        autoSubmit = !autoSubmit;
     }
 
     private void ToggleMute()

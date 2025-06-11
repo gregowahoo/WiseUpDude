@@ -131,13 +131,13 @@
                 @if (userAnswer == Question?.Answer)
                 {
                     <div class="feedback-correct">
-                        ? Correct!
+                        <span class="text-success"><i class="bi bi-check2-square"></i> Correct!</span>
                     </div>
                 }
                 else
                 {
                     <div class="feedback-incorrect">
-                        ? Incorrect!
+                        <span class="text-danger"><i class="bi bi-x-square"></i> Incorrect!</span>
                     </div>
                 }
                 <div class="mt-1"><em>Explanation:</em> @Question?.Explanation</div>

@@ -202,7 +202,8 @@ builder.Services.AddScoped<ILearningTrackSourceRepository, LearningTrackSourceRe
 builder.Services.AddScoped<ILearningTrackQuizRepository, LearningTrackQuizRepository>();
 builder.Services.AddScoped<ILearningTrackQuizQuestionRepository, LearningTrackQuizQuestionRepository>();
 
-
+builder.Services.AddScoped<WiseUpDude.Data.Repositories.Interfaces.ILearningTrackQuizAttemptRepository, WiseUpDude.Data.Repositories.LearningTrackQuizAttemptRepository>();
+builder.Services.AddScoped<WiseUpDude.Data.Repositories.Interfaces.ILearningTrackQuizAttemptQuestionRepository, WiseUpDude.Data.Repositories.LearningTrackQuizAttemptQuestionRepository>();
 
 builder.Services.AddScoped<UserQuizAttemptApiService>();
 

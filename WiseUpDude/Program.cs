@@ -17,6 +17,8 @@ using WiseUpDude.Services.Interfaces;
 using WiseUpDude.Shared.Services;
 using WiseUpDude.Shared.State;
 
+Serilog.Debugging.SelfLog.Enable(msg => Console.WriteLine($"[Serilog SelfLog] {msg}"));
+
 var builder = WebApplication.CreateBuilder(args);
 
 #region Logging Configuration
@@ -46,6 +48,16 @@ builder.Logging.AddDebug();
 builder.Logging.AddAzureWebAppDiagnostics();
 
 #endregion
+
+
+// Log Perplexity API Key presence, length, and value for diagnostics (WARNING: do not log secrets in production)
+var perplexityApiKey = builder.Configuration["Perplexity:ApiKey"];
+if (string.IsNullOrEmpty(perplexityApiKey))
+    Serilog.Log.Warning("Perplexity:ApiKey is missing or empty in configuration/environment.");
+else {
+    Serilog.Log.Information("Perplexity:ApiKey is present. Length: {Length}", perplexityApiKey.Length);
+    Serilog.Log.Warning("Perplexity:ApiKey value: {ApiKey}", perplexityApiKey); // WARNING: Remove after debugging
+}
 
 
 // Add services to the container.
@@ -116,6 +128,7 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 builder.Services.AddHttpClient("PerplexityAI", client =>
 {
     client.BaseAddress = new Uri("https://api.perplexity.ai/");
+    //client.DefaultRequestHeaders.Add("Authorization", $"Bearer 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");
     client.DefaultRequestHeaders.Add("Authorization", $"Bearer {builder.Configuration["Perplexity:ApiKey"]}");
     client.DefaultRequestHeaders.Add("accept", "application/json");
     client.Timeout = TimeSpan.FromMinutes(5);

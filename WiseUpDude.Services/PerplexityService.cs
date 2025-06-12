@@ -8,6 +8,7 @@ using WiseUpDude.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace WiseUpDude.Services
 {
@@ -17,17 +18,20 @@ namespace WiseUpDude.Services
         private readonly ILearningTrackQuizRepository _quizRepository;
         private readonly ILearningTrackQuizQuestionRepository _questionRepository;
         private readonly ContentFetchingService _contentFetchingService;
+        private readonly ILogger<PerplexityService> _logger;
 
         public PerplexityService(
             IHttpClientFactory httpClientFactory,
             ILearningTrackQuizRepository quizRepository,
             ILearningTrackQuizQuestionRepository questionRepository,
-            ContentFetchingService contentFetchingService)
+            ContentFetchingService contentFetchingService,
+            ILogger<PerplexityService> logger)
         {
             _httpClientFactory = httpClientFactory;
             _quizRepository = quizRepository;
             _questionRepository = questionRepository;
             _contentFetchingService = contentFetchingService;
+            _logger = logger;
         }
 
         public async Task<(LearningTrackQuiz? Quiz, string? Error)> GenerateAndPersistQuizFromUrlAsync(string url, int learningTrackSourceId)
@@ -46,14 +50,26 @@ namespace WiseUpDude.Services
                 }
             };
 
+            _logger.LogInformation("Sending request to Perplexity API. URL: {Url}, Headers: {Headers}, Body: {Body}",
+                client.BaseAddress + "/chat/completions",
+                string.Join(", ", client.DefaultRequestHeaders.Select(h => $"{h.Key}: {string.Join(";", h.Value)}")),
+                System.Text.Json.JsonSerializer.Serialize(requestBody));
+
             HttpResponseMessage perplexityResponse;
             try
             {
                 perplexityResponse = await client.PostAsJsonAsync("/chat/completions", requestBody);
-                perplexityResponse.EnsureSuccessStatusCode();
+                _logger.LogInformation("Perplexity API response status: {StatusCode}", perplexityResponse.StatusCode);
+                if (!perplexityResponse.IsSuccessStatusCode)
+                {
+                    var errorContent = await perplexityResponse.Content.ReadAsStringAsync();
+                    _logger.LogWarning("Perplexity API error response: {Content}", errorContent);
+                    return (null, $"Perplexity API error: {perplexityResponse.StatusCode} - {errorContent}");
+                }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Exception when calling Perplexity API");
                 return (null, $"Perplexity API error: {ex.Message}");
             }
 
@@ -61,6 +77,7 @@ namespace WiseUpDude.Services
             try
             {
                 var perplexityContent = await perplexityResponse.Content.ReadAsStringAsync();
+                _logger.LogDebug("Perplexity API raw response: {Content}", perplexityContent);
                 // Try to extract the quiz JSON from the Perplexity response
                 var doc = JsonDocument.Parse(perplexityContent);
                 var content = doc.RootElement
@@ -71,12 +88,14 @@ namespace WiseUpDude.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to parse Perplexity API response");
                 return (null, $"Failed to parse Perplexity API response: {ex.Message}");
             }
 
             // Defensive: Check if the response is valid JSON before deserializing
             if (string.IsNullOrWhiteSpace(json) || !(json.TrimStart().StartsWith("{") || json.TrimStart().StartsWith("[")))
             {
+                _logger.LogWarning("Perplexity did not return valid JSON. Raw response: {Raw}", json);
                 return (null, $"Perplexity did not return valid JSON. Raw response: {json}");
             }
 

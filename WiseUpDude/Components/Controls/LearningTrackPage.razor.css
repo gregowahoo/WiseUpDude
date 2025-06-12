@@ -1,0 +1,22 @@
+.category-btn.has-category {
+    border: 2.5px solid #0d6efd !important; /* Bootstrap primary color */
+    box-shadow: 0 0 0 0.15rem #0d6efd33;
+    position: relative;
+}
+
+.category-badge {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    background: #0d6efd;
+    color: #fff;
+    border-radius: 50%;
+    padding: 0.15em 0.5em;
+    font-size: 0.75em;
+    font-weight: bold;
+    min-width: 1.5em;
+    text-align: center;
+    border: 2px solid #fff;
+    z-index: 2;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+}

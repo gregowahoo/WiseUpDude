@@ -25,7 +25,23 @@ namespace WiseUpDude.Data.Repositories
             _logger.LogInformation("Getting all learning track sources");
             await using var _context = await _dbContextFactory.CreateDbContextAsync();
             var entities = await _context.LearningTrackSources.Include(x => x.Quizzes).ToListAsync();
-            return entities.Select(EntityToModel);
+            // Map quizzes as well
+            return entities.Select(e => new Model.LearningTrackSource {
+                Id = e.Id,
+                Name = e.Name,
+                SourceType = e.SourceType,
+                Url = e.Url,
+                Description = e.Description,
+                LearningTrackCategoryId = e.LearningTrackCategoryId,
+                CreationDate = e.CreationDate,
+                Quizzes = e.Quizzes?.Select(q => new Model.LearningTrackQuiz {
+                    Id = q.Id,
+                    Name = q.Name,
+                    Description = q.Description,
+                    LearningTrackSourceId = q.LearningTrackSourceId,
+                    CreationDate = q.CreationDate
+                }).ToList() ?? new List<Model.LearningTrackQuiz>()
+            });
         }
 
         public async Task<Model.LearningTrackSource?> GetByIdAsync(int id)
@@ -33,7 +49,23 @@ namespace WiseUpDude.Data.Repositories
             _logger.LogInformation("Getting learning track source by Id={Id}", id);
             await using var _context = await _dbContextFactory.CreateDbContextAsync();
             var entity = await _context.LearningTrackSources.Include(x => x.Quizzes).FirstOrDefaultAsync(x => x.Id == id);
-            return entity == null ? null : EntityToModel(entity);
+            if (entity == null) return null;
+            return new Model.LearningTrackSource {
+                Id = entity.Id,
+                Name = entity.Name,
+                SourceType = entity.SourceType,
+                Url = entity.Url,
+                Description = entity.Description,
+                LearningTrackCategoryId = entity.LearningTrackCategoryId,
+                CreationDate = entity.CreationDate,
+                Quizzes = entity.Quizzes?.Select(q => new Model.LearningTrackQuiz {
+                    Id = q.Id,
+                    Name = q.Name,
+                    Description = q.Description,
+                    LearningTrackSourceId = q.LearningTrackSourceId,
+                    CreationDate = q.CreationDate
+                }).ToList() ?? new List<Model.LearningTrackQuiz>()
+            };
         }
 
         public async Task AddAsync(Model.LearningTrackSource model)

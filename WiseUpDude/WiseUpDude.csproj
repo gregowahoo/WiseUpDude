@@ -79,6 +79,5 @@
 	  <None Remove="Components\Controls\LearningTrackPage.razor.css" />
 	  <None Remove="Components\Controls\LearningTrackQuizPage.razor.css" />
 	  <None Remove="Components\Controls\LearningTrackQuizQuestionsPage.razor.css" />
-	  <None Remove="Components\Controls\LearningTrackSourcesPage.razor.css" />
 	</ItemGroup>
 </Project>

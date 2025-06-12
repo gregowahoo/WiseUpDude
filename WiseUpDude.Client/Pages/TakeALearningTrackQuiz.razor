@@ -34,15 +34,16 @@ else
             <h3 class="mb-0">
                 🧠 Take Learning Track Quiz - @LearningTrackQuiz?.Name
             </h3>
-            <p class="mb-0">Select an answer for each question to see if you're correct.</p>
             @if (!string.IsNullOrWhiteSpace(LearningTrackQuiz?.Description))
             {
-                <p class="text-muted mb-0">@LearningTrackQuiz.Description</p>
+                <p class="text-muted mb-0"><strong>@LearningTrackQuiz.Description</strong></p>
             }
             @if (LearningTrackQuiz != null && LearningTrackQuiz.Questions != null && LearningTrackQuiz.Questions.Count > 0 && !string.IsNullOrWhiteSpace(LearningTrackQuiz.Questions[0].Difficulty))
             {
                 <p class="text-muted mb-0">Quiz Difficulty: <strong>@LearningTrackQuiz.Questions[0].Difficulty</strong></p>
             }
+            <p class="mb-0">Select an answer for each question to see if you're correct.</p>
+
         </div>
     </div>
     <div class="card-body">

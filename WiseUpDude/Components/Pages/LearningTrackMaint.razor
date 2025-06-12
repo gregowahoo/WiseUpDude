@@ -1,5 +1,11 @@
 @page "/learningtrack-maint"
 @using WiseUpDude.Model
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.WebUtilities
+
+@inject NavigationManager NavigationManager
+
+@implements IDisposable
 
 @rendermode InteractiveServer
 
@@ -150,9 +156,39 @@
 
     private string activeTab = "tracks";
 
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+        ParseUrl();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        ParseUrl();
+        StateHasChanged();
+    }
+
+    private void ParseUrl()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        activeTab = query.TryGetValue("tab", out var tab) ? tab.ToString() : "tracks";
+        selectedLearningTrackId = query.TryGetValue("track", out var track) && int.TryParse(track, out var t) ? t : (int?)null;
+        selectedLearningTrackCategoryId = query.TryGetValue("category", out var cat) && int.TryParse(cat, out var c) ? c : (int?)null;
+        selectedLearningTrackSourceId = query.TryGetValue("source", out var src) && int.TryParse(src, out var s) ? s : (int?)null;
+        selectedLearningTrackQuizId = query.TryGetValue("quiz", out var qz) && int.TryParse(qz, out var q) ? q : (int?)null;
+    }
+
     private void SetActiveTab(string tab)
     {
         activeTab = tab;
+        var url = $"/learningtrack-maint?tab={tab}";
+        if (selectedLearningTrackId != null) url += $"&track={selectedLearningTrackId}";
+        if (selectedLearningTrackCategoryId != null) url += $"&category={selectedLearningTrackCategoryId}";
+        if (selectedLearningTrackSourceId != null) url += $"&source={selectedLearningTrackSourceId}";
+        if (selectedLearningTrackQuizId != null) url += $"&quiz={selectedLearningTrackQuizId}";
+        NavigationManager.NavigateTo(url, forceLoad: false);
     }
 
     private void HandleLearningTrackSelected((LearningTrack track, LearningTrackAction action) selection)
@@ -213,5 +249,10 @@
             SetActiveTab("questions");
         }
         StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }

@@ -99,7 +99,19 @@ else
         </div>
         <div class="mb-3">
             <label class="form-label">Type</label>
-            <InputText class="form-control" @bind-Value="modalSource.SourceType" />
+            <InputSelect class="form-control" @bind-Value="modalSource.SourceType">
+                <option value="">-- Select Source Type --</option>
+                <option value="URL">URL</option>
+                <option value="PDF">PDF</option>
+                <option value="Text">Text</option>
+                <option value="JSON">JSON</option>
+                <option value="Markdown">Markdown</option>
+                <option value="YouTube Video">YouTube Video</option>
+                <option value="Word Document">Word Document</option>
+                <option value="PowerPoint">PowerPoint</option>
+                <option value="CSV">CSV</option>
+                <option value="Image (OCR)">Image (OCR)</option>
+            </InputSelect>
             <ValidationMessage For="@(() => modalSource.SourceType)" />
         </div>
         <div class="mb-3">

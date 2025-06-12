@@ -161,6 +161,7 @@ else
         if (sources == null || isCreatingQuizzes) return;
         isCreatingQuizzes = true;
         isGeneratingQuizzes = true;
+        int newQuizzesCreated = 0;
         try
         {
             foreach (var source in sources)
@@ -181,12 +182,21 @@ else
                 var (quiz, error) = await PerplexityService.GenerateAndPersistQuizFromUrlAsync(source.Url, source.Id);
                 if (quiz != null)
                 {
+                    newQuizzesCreated++;
                     await ToastService.ShowToast($"Quiz created for: {source.Name}", ToastLevel.Success);
                 }
                 else
                 {
                     await ToastService.ShowToast($"Failed for {source.Name}: {error}", ToastLevel.Error);
                 }
+            }
+            if (newQuizzesCreated > 0)
+            {
+                await ToastService.ShowToast($"{newQuizzesCreated} new quiz/quizzes created.", ToastLevel.Success);
+            }
+            else
+            {
+                await ToastService.ShowToast("No new quizzes were created.", ToastLevel.Info);
             }
             await LoadSourcesFromRepo();
         }

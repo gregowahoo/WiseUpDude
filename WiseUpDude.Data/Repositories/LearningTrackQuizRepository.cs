@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,10 +13,16 @@ namespace WiseUpDude.Data.Repositories
     public class LearningTrackQuizRepository : ILearningTrackQuizRepository
     {
         private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
-        public LearningTrackQuizRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory) => _dbContextFactory = dbContextFactory;
+        private readonly ILogger<LearningTrackQuizRepository> _logger;
+        public LearningTrackQuizRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory, ILogger<LearningTrackQuizRepository> logger)
+        {
+            _dbContextFactory = dbContextFactory;
+            _logger = logger;
+        }
 
         public async Task<IEnumerable<Model.LearningTrackQuiz>> GetAllQuizzesAsync()
         {
+            _logger.LogInformation("Getting all learning track quizzes");
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var entities = await context.LearningTrackQuizzes
                 .Include(q => q.Questions)
@@ -44,6 +51,7 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task<Model.LearningTrackQuiz?> GetQuizByIdAsync(int id)
         {
+            _logger.LogInformation("Getting learning track quiz by Id={Id}", id);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var entity = await context.LearningTrackQuizzes
                 .Include(q => q.Questions)
@@ -75,6 +83,7 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task<int> AddQuizAsync(Model.LearningTrackQuiz quiz)
         {
+            _logger.LogInformation("Adding learning track quiz: {@Quiz}", quiz);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
 
             // Create a new LearningTrackQuiz entity
@@ -88,7 +97,16 @@ namespace WiseUpDude.Data.Repositories
 
             // Add the quiz to the database first to generate its ID
             context.LearningTrackQuizzes.Add(entity);
-            await context.SaveChangesAsync();
+            try
+            {
+                await context.SaveChangesAsync();
+                _logger.LogInformation("Successfully added learning track quiz with Id={Id}", entity.Id);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Error adding learning track quiz: {ErrorMessage}", ex.Message);
+                throw;
+            }
 
             // Add Questions with the Quiz reference
             entity.Questions = quiz.Questions.Select(q => new Entities.LearningTrackQuizQuestion
@@ -105,20 +123,33 @@ namespace WiseUpDude.Data.Repositories
 
             // Update the Quiz entity with its questions
             context.Entry(entity).State = EntityState.Modified;
-            await context.SaveChangesAsync();
+            try
+            {
+                await context.SaveChangesAsync();
+                _logger.LogInformation("Successfully added questions for quiz Id={Id}", entity.Id);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Error adding questions for quiz Id={Id}: {ErrorMessage}", entity.Id, ex.Message);
+                throw;
+            }
 
             return entity.Id;
         }
 
         public async Task UpdateQuizAsync(Model.LearningTrackQuiz quiz)
         {
+            _logger.LogInformation("Updating learning track quiz Id={Id}", quiz.Id);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var entity = await context.LearningTrackQuizzes
                 .Include(q => q.Questions)
                 .FirstOrDefaultAsync(q => q.Id == quiz.Id);
 
             if (entity == null)
+            {
+                _logger.LogWarning("Learning track quiz Id={Id} not found for update", quiz.Id);
                 return;
+            }
 
             entity.Name = quiz.Name;
             entity.Description = quiz.Description;
@@ -162,11 +193,21 @@ namespace WiseUpDude.Data.Repositories
             }
 
             context.Entry(entity).State = EntityState.Modified;
-            await context.SaveChangesAsync();
+            try
+            {
+                await context.SaveChangesAsync();
+                _logger.LogInformation("Successfully updated learning track quiz Id={Id}", quiz.Id);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Error updating learning track quiz Id={Id}: {ErrorMessage}", quiz.Id, ex.Message);
+                throw;
+            }
         }
 
         public async Task DeleteQuizAsync(int id)
         {
+            _logger.LogInformation("Deleting learning track quiz Id={Id}", id);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var entity = await context.LearningTrackQuizzes
                 .Include(q => q.Questions)
@@ -175,7 +216,20 @@ namespace WiseUpDude.Data.Repositories
             if (entity != null)
             {
                 context.LearningTrackQuizzes.Remove(entity);
-                await context.SaveChangesAsync();
+                try
+                {
+                    await context.SaveChangesAsync();
+                    _logger.LogInformation("Successfully deleted learning track quiz Id={Id}", id);
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Error deleting learning track quiz Id={Id}: {ErrorMessage}", id, ex.Message);
+                    throw;
+                }
+            }
+            else
+            {
+                _logger.LogWarning("Learning track quiz Id={Id} not found for deletion", id);
             }
         }
     }

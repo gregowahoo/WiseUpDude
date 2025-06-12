@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using WiseUpDude.Data;
 using WiseUpDude.Data.Entities;
 using WiseUpDude.Data.Repositories.Interfaces;
@@ -9,10 +10,17 @@ namespace WiseUpDude.Data.Repositories
     public class LearningTrackRepository : ILearningTrackRepository
     {
         private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
-        public LearningTrackRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory) => _dbContextFactory = dbContextFactory;
+        private readonly ILogger<LearningTrackRepository> _logger;
+
+        public LearningTrackRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory, ILogger<LearningTrackRepository> logger)
+        {
+            _dbContextFactory = dbContextFactory;
+            _logger = logger;
+        }
 
         public async Task<IEnumerable<Model.LearningTrack>> GetAllAsync()
         {
+            _logger.LogInformation("Getting all learning tracks");
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var entities = await context.LearningTracks.Include(x => x.Categories).ToListAsync();
             return entities.Select(EntityToModel);
@@ -20,6 +28,7 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task<Model.LearningTrack?> GetByIdAsync(int id)
         {
+            _logger.LogInformation("Getting learning track by Id={Id}", id);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var entity = await context.LearningTracks.Include(x => x.Categories).FirstOrDefaultAsync(x => x.Id == id);
             return entity == null ? null : EntityToModel(entity);
@@ -27,32 +36,70 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task AddAsync(Model.LearningTrack model)
         {
+            _logger.LogInformation("Adding learning track: {@Model}", model);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var entity = ModelToEntity(model);
             context.LearningTracks.Add(entity);
-            await context.SaveChangesAsync();
-            model.Id = entity.Id;
+            try
+            {
+                await context.SaveChangesAsync();
+                model.Id = entity.Id;
+                _logger.LogInformation("Successfully added learning track with Id={Id}", entity.Id);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Error adding learning track: {ErrorMessage}", ex.Message);
+                throw;
+            }
         }
 
         public async Task UpdateAsync(Model.LearningTrack model)
         {
+            _logger.LogInformation("Updating learning track Id={Id}", model.Id);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var entity = await context.LearningTracks.Include(x => x.Categories).FirstOrDefaultAsync(x => x.Id == model.Id);
-            if (entity == null) return;
+            if (entity == null)
+            {
+                _logger.LogWarning("Learning track Id={Id} not found for update", model.Id);
+                return;
+            }
             entity.Name = model.Name;
             entity.Description = model.Description;
             // update other fields as needed
-            await context.SaveChangesAsync();
+            try
+            {
+                await context.SaveChangesAsync();
+                _logger.LogInformation("Successfully updated learning track Id={Id}", model.Id);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Error updating learning track Id={Id}: {ErrorMessage}", model.Id, ex.Message);
+                throw;
+            }
         }
 
         public async Task DeleteAsync(int id)
         {
+            _logger.LogInformation("Deleting learning track Id={Id}", id);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var entity = await context.LearningTracks.FindAsync(id);
             if (entity != null)
             {
                 context.LearningTracks.Remove(entity);
-                await context.SaveChangesAsync();
+                try
+                {
+                    await context.SaveChangesAsync();
+                    _logger.LogInformation("Successfully deleted learning track Id={Id}", id);
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Error deleting learning track Id={Id}: {ErrorMessage}", id, ex.Message);
+                    throw;
+                }
+            }
+            else
+            {
+                _logger.LogWarning("Learning track Id={Id} not found for deletion", id);
             }
         }
 
@@ -87,7 +134,6 @@ namespace WiseUpDude.Data.Repositories
             Description = entity.Description,
             LearningTrackCategoryId = entity.LearningTrackCategoryId,
             CreationDate = entity.CreationDate
-            // Quizzes mapping if needed
         };
 
         private static LearningTrack ModelToEntity(Model.LearningTrack model) => new()
@@ -117,7 +163,6 @@ namespace WiseUpDude.Data.Repositories
             Url = model.Url,
             Description = model.Description,
             LearningTrackCategoryId = model.LearningTrackCategoryId
-            // Quizzes mapping if needed
         };
     }
 }

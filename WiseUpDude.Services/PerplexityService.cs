@@ -106,25 +106,17 @@ namespace WiseUpDude.Services
                 Description = quizModel.Description,
                 LearningTrackSourceId = learningTrackSourceId,
                 CreationDate = DateTime.UtcNow,
-                Questions = new List<LearningTrackQuizQuestion>()
-            };
-            await _quizRepository.AddQuizAsync(quiz);
-
-            foreach (var q in quizModel.Questions)
-            {
-                var question = new LearningTrackQuizQuestion
+                Questions = quizModel.Questions.Select(q => new LearningTrackQuizQuestion
                 {
-                    LearningTrackQuizId = quiz.Id,
                     Question = q.Question ?? string.Empty,
                     Answer = q.Answer ?? string.Empty,
                     Explanation = q.Explanation,
                     OptionsJson = q.OptionsJson,
                     Difficulty = q.Difficulty,
                     CreationDate = DateTime.UtcNow
-                };
-                await _questionRepository.AddQuestionAsync(question);
-                quiz.Questions.Add(question);
-            }
+                }).ToList()
+            };
+            await _quizRepository.AddQuizAsync(quiz);
 
             return (quiz, null);
         }

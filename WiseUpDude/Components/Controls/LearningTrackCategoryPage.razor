@@ -52,8 +52,12 @@ else
                         </label>
                     </div>
                     <div class="d-flex flex-row align-items-center ms-2" style="gap: 0.5rem;">
-                        <button class="btn btn-sm btn-outline-secondary" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackCategorySelected.InvokeAsync((category, LearningTrackAction.GoToCategories))" title="Sources">
+                        <button class="btn btn-sm btn-outline-secondary source-btn @(category.Sources != null && category.Sources.Any() ? "has-source" : "")" @onclick:stopPropagation="true" @onclick="() => OnLearningTrackCategorySelected.InvokeAsync((category, LearningTrackAction.GoToCategories))" title="Sources">
                             <i class="bi bi-link-45deg"></i>
+                            @if (category.Sources != null && category.Sources.Any())
+                            {
+                                <span class="source-badge">@category.Sources.Count</span>
+                            }
                         </button>
                         <button class="btn btn-sm btn-outline-primary" @onclick:stopPropagation="true" @onclick="() => EditCategory(category)" title="Edit Category">
                             <i class="bi bi-pencil-square"></i>

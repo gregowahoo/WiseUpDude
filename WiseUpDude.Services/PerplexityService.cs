@@ -85,6 +85,25 @@ namespace WiseUpDude.Services
                     .GetProperty("message")
                     .GetProperty("content").GetString();
                 json = content ?? "";
+                // Strip markdown code block formatting if present
+                if (!string.IsNullOrWhiteSpace(json))
+                {
+                    json = json.Trim();
+                    if (json.StartsWith("```"))
+                    {
+                        // Remove the opening code block (with or without 'json')
+                        int firstNewline = json.IndexOf('\n');
+                        if (firstNewline > 0)
+                        {
+                            json = json.Substring(firstNewline + 1);
+                        }
+                        // Remove the closing code block if present
+                        if (json.EndsWith("```"))
+                        {
+                            json = json.Substring(0, json.Length - 3).TrimEnd();
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -144,7 +163,7 @@ namespace WiseUpDude.Services
         {
             var prompt = """
 Create a quiz based on the following prompt: "Use this URL: {0}"
-The quiz should include at least 20 questions.
+The quiz should include as many questions as possible, up to a maximum of 25.
 Include both multiple-choice and true/false questions.
 
 QUESTION FORMATTING & ANSWER SHUFFLING:
@@ -154,7 +173,7 @@ For multiple-choice questions:
 - Randomly assign the correct answer to either the 1st, 2nd, 3rd, or 4th position (A, B, C, or D). Do not default to the first position.
 - In the entire quiz, balance the distribution of correct answer positions as evenly as possible, so the correct answer appears roughly 25% of the time in each position (i.e., if there are 20 questions, about 5 in each slot).
 - Do NOT put the correct answer in the first position by default.
-- For the 20 multiple-choice questions, ensure that exactly 5 questions have the correct answer in position 1, 5 in position 2, 5 in position 3, and 5 in position 4. Track and enforce this distribution as you generate the quiz. Do not allow any position to have more than 5 correct answers.
+- For the multiple-choice questions, ensure that the distribution of correct answer positions is as even as possible. Do not allow any position to have more than a quarter of the total multiple-choice questions (rounded up).
 
 For true/false questions:
 - Always use exactly two answer options: ["True", "False"], in that order. Never shuffle or reverse these.
@@ -162,12 +181,13 @@ For true/false questions:
 
 For all questions:
 - Ensure the correct answers and explanations are factually accurate and grounded in widely accepted knowledge. If the prompt is about a specific domain, use official or well-regarded sources if applicable.
-- Each question should be an object with: "Question", "Options", "Answer", "Explanation", and "QuestionType".
+- Each question should be an object with: "Question", "Options", "Answer", "Explanation", "QuestionType", and "Difficulty".
 - The "QuestionType" must be exactly "TrueFalse" or "MultipleChoice" (case-sensitive).
+- The "Difficulty" must be one of: "Easy", "Medium", or "Hard". Distribute difficulties roughly evenly across the quiz.
 
 OUTPUT:
 - Return only valid JSON in the following format:
-{{ "Questions": [ {{ "Question": "...", "Options": ["..."], "Answer": "...", "Explanation": "...", "QuestionType": "..." }}, ... ], "Type": "...", "Description": "..." }}.
+{{ "Questions": [ {{ "Question": "...", "Options": ["..."], "Answer": "...", "Explanation": "...", "QuestionType": "...", "Difficulty": "..." }}, ... ], "Type": "...", "Description": "..." }}.
 - Return only the raw JSON, without any code block formatting or prefixes like 'json'.
 
 ERROR HANDLING:

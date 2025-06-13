@@ -173,10 +173,9 @@ else
         {
             foreach (var source in sources)
             {
-                // If the source already has quizzes, skip
+                // If the source already has quizzes, skip without showing a toast
                 if (source.Quizzes != null && source.Quizzes.Any())
                 {
-                    await ToastService.ShowToast($"Quiz already exists for: {source.Name}", ToastLevel.Info);
                     continue;
                 }
                 if (string.IsNullOrWhiteSpace(source.Url))

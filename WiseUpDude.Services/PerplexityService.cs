@@ -189,6 +189,7 @@ OUTPUT:
 - Return only valid JSON in the following format:
 {{ "Questions": [ {{ "Question": "...", "Options": ["..."], "Answer": "...", "Explanation": "...", "QuestionType": "...", "Difficulty": "..." }}, ... ], "Type": "...", "Description": "..." }}.
 - Return only the raw JSON, without any code block formatting or prefixes like 'json'.
+- Do NOT include any Markdown code block formatting (such as triple backticks or the word 'json') in your response. Return only the raw JSON.
 
 ERROR HANDLING:
 - If the prompt is too vague, factually impossible, or cannot result in a meaningful quiz, return a JSON object in this format: {{ "Error": "<reason>" }}.

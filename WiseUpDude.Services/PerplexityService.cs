@@ -18,6 +18,7 @@ namespace WiseUpDude.Services
         private readonly ILearningTrackQuizRepository _quizRepository;
         private readonly ILearningTrackQuizQuestionRepository _questionRepository;
         private readonly ContentFetchingService _contentFetchingService;
+        private readonly ILearningTrackSourceRepository _sourceRepository;
         private readonly ILogger<PerplexityService> _logger;
 
         public PerplexityService(
@@ -25,21 +26,41 @@ namespace WiseUpDude.Services
             ILearningTrackQuizRepository quizRepository,
             ILearningTrackQuizQuestionRepository questionRepository,
             ContentFetchingService contentFetchingService,
+            ILearningTrackSourceRepository sourceRepository,
             ILogger<PerplexityService> logger)
         {
             _httpClientFactory = httpClientFactory;
             _quizRepository = quizRepository;
             _questionRepository = questionRepository;
             _contentFetchingService = contentFetchingService;
+            _sourceRepository = sourceRepository;
             _logger = logger;
         }
 
         public async Task<(LearningTrackQuiz? Quiz, string? Error)> GenerateAndPersistQuizFromUrlAsync(string url, int learningTrackSourceId)
         {
-            // 1. Build the AI prompt using the provided URL
             var aiPrompt = BuildQuizPrompt(url);
+            var sourceName = await GetSourceNameAsync(learningTrackSourceId);
+            var (json, apiError) = await GetPerplexityQuizJsonAsync(aiPrompt);
+            if (apiError != null)
+                return (null, apiError);
+            var (quizModel, parseError) = ParseQuizJson(json);
+            if (parseError != null)
+                return (null, parseError);
+            if (quizModel == null || quizModel.Questions == null || !quizModel.Questions.Any())
+                return (null, "No quiz questions found in Perplexity response.");
+            var quiz = await CreateAndPersistLearningTrackQuiz(quizModel, sourceName, learningTrackSourceId);
+            return (quiz, null);
+        }
 
-            // 2. Call Perplexity API
+        private async Task<string> GetSourceNameAsync(int learningTrackSourceId)
+        {
+            var source = await _sourceRepository.GetByIdAsync(learningTrackSourceId);
+            return source?.Name ?? "Unknown Source";
+        }
+
+        private async Task<(string? Json, string? Error)> GetPerplexityQuizJsonAsync(string aiPrompt)
+        {
             var client = _httpClientFactory.CreateClient("PerplexityAI");
             var requestBody = new
             {
@@ -49,12 +70,10 @@ namespace WiseUpDude.Services
                     new { role = "user", content = aiPrompt }
                 }
             };
-
             _logger.LogInformation("Sending request to Perplexity API. URL: {Url}, Headers: {Headers}, Body: {Body}",
                 client.BaseAddress + "/chat/completions",
                 string.Join(", ", client.DefaultRequestHeaders.Select(h => $"{h.Key}: {string.Join(";", h.Value)}")),
                 System.Text.Json.JsonSerializer.Serialize(requestBody));
-
             HttpResponseMessage perplexityResponse;
             try
             {
@@ -72,32 +91,27 @@ namespace WiseUpDude.Services
                 _logger.LogError(ex, "Exception when calling Perplexity API");
                 return (null, $"Perplexity API error: {ex.Message}");
             }
-
             string json;
             try
             {
                 var perplexityContent = await perplexityResponse.Content.ReadAsStringAsync();
                 _logger.LogDebug("Perplexity API raw response: {Content}", perplexityContent);
-                // Try to extract the quiz JSON from the Perplexity response
                 var doc = JsonDocument.Parse(perplexityContent);
                 var content = doc.RootElement
                     .GetProperty("choices")[0]
                     .GetProperty("message")
                     .GetProperty("content").GetString();
                 json = content ?? "";
-                // Strip markdown code block formatting if present
                 if (!string.IsNullOrWhiteSpace(json))
                 {
                     json = json.Trim();
                     if (json.StartsWith("```"))
                     {
-                        // Remove the opening code block (with or without 'json')
                         int firstNewline = json.IndexOf('\n');
                         if (firstNewline > 0)
                         {
                             json = json.Substring(firstNewline + 1);
                         }
-                        // Remove the closing code block if present
                         if (json.EndsWith("```"))
                         {
                             json = json.Substring(0, json.Length - 3).TrimEnd();
@@ -110,16 +124,16 @@ namespace WiseUpDude.Services
                 _logger.LogError(ex, "Failed to parse Perplexity API response");
                 return (null, $"Failed to parse Perplexity API response: {ex.Message}");
             }
-
-            // Defensive: Check if the response is valid JSON before deserializing
             if (string.IsNullOrWhiteSpace(json) || !(json.TrimStart().StartsWith("{") || json.TrimStart().StartsWith("[")))
             {
                 _logger.LogWarning("Perplexity did not return valid JSON. Raw response: {Raw}", json);
                 return (null, $"Perplexity did not return valid JSON. Raw response: {json}");
             }
+            return (json, null);
+        }
 
-            // 3. Parse the quiz JSON
-            Quiz? quizModel;
+        private (Quiz? QuizModel, string? Error) ParseQuizJson(string json)
+        {
             try
             {
                 var options = new JsonSerializerOptions
@@ -127,20 +141,20 @@ namespace WiseUpDude.Services
                     PropertyNameCaseInsensitive = true
                 };
                 options.Converters.Add(new JsonStringEnumConverter());
-                quizModel = JsonSerializer.Deserialize<Quiz>(json, options);
+                var quizModel = JsonSerializer.Deserialize<Quiz>(json, options);
+                return (quizModel, null);
             }
             catch (Exception ex)
             {
                 return (null, $"Failed to parse quiz JSON: {ex.Message}. Raw response: {json}");
             }
+        }
 
-            if (quizModel == null || quizModel.Questions == null || !quizModel.Questions.Any())
-                return (null, "No quiz questions found in Perplexity response.");
-
-            // 4. Persist to LearningTrackQuiz and LearningTrackQuizQuestions
+        private async Task<LearningTrackQuiz> CreateAndPersistLearningTrackQuiz(Quiz quizModel, string sourceName, int learningTrackSourceId)
+        {
             var quiz = new LearningTrackQuiz
             {
-                Name = quizModel.Type ?? "Perplexity Quiz",
+                Name = sourceName,
                 Description = quizModel.Description,
                 LearningTrackSourceId = learningTrackSourceId,
                 CreationDate = DateTime.UtcNow,
@@ -155,8 +169,7 @@ namespace WiseUpDude.Services
                 }).ToList()
             };
             await _quizRepository.AddQuizAsync(quiz);
-
-            return (quiz, null);
+            return quiz;
         }
 
         private string BuildQuizPrompt(string url)
@@ -184,6 +197,7 @@ For all questions:
 - Each question should be an object with: "Question", "Options", "Answer", "Explanation", "QuestionType", and "Difficulty".
 - The "QuestionType" must be exactly "TrueFalse" or "MultipleChoice" (case-sensitive).
 - The "Difficulty" must be one of: "Easy", "Medium", or "Hard". Distribute difficulties roughly evenly across the quiz.
+- When including C# code in questions or explanations, format it so that each statement or line of code appears on its own line, using standard C# indentation and line breaks. Do not put multiple statements on a single line.
 
 OUTPUT:
 - Return only valid JSON in the following format:

@@ -5,6 +5,7 @@
 @inject WiseUpDude.Shared.Services.ToastService ToastService
 @inject NavigationManager NavigationManager
 @inject WiseUpDude.Services.PerplexityService PerplexityService
+@inject IJSRuntime JS
 
 @rendermode InteractiveServer
 
@@ -16,11 +17,28 @@
         <button class="btn btn-success btn-sm me-2" @onclick="ShowAddModal">
             <i class="bi bi-plus-circle-fill me-1"></i> <span class="small">Add New Source</span>
         </button>
+        <button class="btn btn-success btn-sm me-2" @onclick="EnableDragDrop">
+            <i class="bi bi-mouse me-1"></i> <span class="small">Enable Drag & Drop</span>
+        </button>
         <button class="btn btn-success btn-sm" @onclick="CreateQuizzesForAllSources" disabled="@isCreatingQuizzes">
             <i class="bi bi-lightbulb me-1"></i> <span class="small">Create Quizzes</span>
         </button>
     </div>
 </div>
+
+@if (dragDropEnabled)
+{
+    <div class="drop-area border border-primary rounded p-4 text-center my-3"
+         @ref="dropZoneRef"
+         style="background: #f8f9fa;">
+        <i class="bi bi-cloud-arrow-down display-6 text-primary"></i>
+        <div>Drag and drop a link here to add as a source</div>
+        @if (!string.IsNullOrEmpty(dropError))
+        {
+            <div class="text-danger mt-2">@dropError</div>
+        }
+    </div>
+}
 
 @if (sources == null && !initialLoadAttempted)
 {
@@ -152,6 +170,57 @@ else
     private bool isCreatingQuizzes = false;
     private bool isGeneratingQuizzes = false;
     private string GeneratingQuizMessage = "Generating quizzes...";
+
+    // Drag & Drop state
+    private bool dragDropEnabled = false;
+    private string? dropError;
+    private ElementReference dropZoneRef;
+
+    private void EnableDragDrop()
+    {
+        dragDropEnabled = true;
+        dropError = null;
+        StateHasChanged();
+        _ = Task.Delay(100).ContinueWith(_ => InvokeAsync(SetupDropZoneJsInterop));
+    }
+
+    [JSInvokable]
+    public async Task HandleDroppedUrl(string url)
+    {
+        dropError = null;
+        if (string.IsNullOrWhiteSpace(url) || !Uri.IsWellFormedUriString(url, UriKind.Absolute))
+        {
+            dropError = "Please drop a valid URL.";
+            StateHasChanged();
+            return;
+        }
+
+        try
+        {
+            var meta = await PerplexityService.GetUrlMetaAsync(url);
+            var newSource = new LearningTrackSource
+            {
+                Name = meta.Title ?? url,
+                SourceType = "URL",
+                Url = url,
+                Description = meta.Description,
+                LearningTrackCategoryId = LearningTrackCategoryId
+            };
+            await SourceRepo.AddAsync(newSource);
+            await ToastService.ShowToast("Source added from dropped URL!", ToastLevel.Success);
+            await LoadSourcesFromRepo();
+        }
+        catch (Exception ex)
+        {
+            dropError = $"Failed to add source: {ex.Message}";
+        }
+        StateHasChanged();
+    }
+
+    private async Task SetupDropZoneJsInterop()
+    {
+        await JS.InvokeVoidAsync("wiseUpDudeDropZone.init", dropZoneRef, DotNetObjectReference.Create(this));
+    }
 
     protected override async Task OnParametersSetAsync()
     {

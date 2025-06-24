@@ -73,13 +73,13 @@ else
             @if ((double)correctAnswers / totalAnswered >= 0.8)
             {
                 <div class="alert alert-success mt-4 fs-5 text-center fw-bold">
-                    🎉 You Wise'd Up! Final Score: @correctAnswers / @totalAnswered
+                    🎉 You Wise'd Up! Grade: <strong>@GetGradeLetter()</strong>
                 </div>
             }
             else
             {
                 <div class="alert alert-danger mt-4 fs-5 text-center fw-bold">
-                    😬 You've got work to do, wise guy. Final Score: @correctAnswers / @totalAnswered
+                    😬 You've got work to do, wise guy. Grade: <strong>@GetGradeLetter()</strong>
                 </div>
             }
         }
@@ -280,5 +280,17 @@ else
                 results.Add(null);
         }
         return results;
+    }
+
+    // Returns grade letter based on percentage correct (of questions answered)
+    private string GetGradeLetter()
+    {
+        int answered = totalAnswered;
+        double percent = answered > 0 ? (double)correctAnswers / answered * 100 : 0;
+        if (percent >= 90) return "A";
+        if (percent >= 80) return "B";
+        if (percent >= 70) return "C";
+        if (percent >= 60) return "D";
+        return "F";
     }
 }

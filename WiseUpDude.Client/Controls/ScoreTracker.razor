@@ -19,11 +19,27 @@
             }
         }
     </div>
-    <div class="score-label">Score: @CorrectAnswers / @TotalQuestions</div>
+    <div class="score-label">
+        Score: @CorrectAnswers / @TotalQuestions
+        @if (IsQuizComplete)
+        {
+            <span class="ms-2">(@PercentCorrect%) Grade: <strong>@GradeLetter</strong></span>
+        }
+    </div>
 </div>
 
 @code {
     [Parameter] public int TotalQuestions { get; set; }
     [Parameter] public int CorrectAnswers { get; set; }
     [Parameter] public List<bool?>? QuestionResults { get; set; } // true=correct, false=incorrect, null=unanswered
+
+    // Percentage of questions answered that are correct (not out of total questions)
+    private int AnsweredCount => QuestionResults?.Count(q => q != null) ?? 0;
+    private double PercentCorrect => AnsweredCount > 0 ? Math.Round((double)CorrectAnswers / AnsweredCount * 100, 1) : 0;
+    private bool IsQuizComplete => QuestionResults != null && QuestionResults.Count == TotalQuestions && !QuestionResults.Contains(null);
+    private string GradeLetter => PercentCorrect >= 90 ? "A"
+        : PercentCorrect >= 80 ? "B"
+        : PercentCorrect >= 70 ? "C"
+        : PercentCorrect >= 60 ? "D"
+        : "F";
 }

@@ -13,7 +13,15 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="text-secondary mb-0"><i class="bi bi-link-45deg me-2"></i>Sources for Category: @categoryName</h4>
-    <div>
+    <div class="d-flex align-items-center">
+        <label class="me-2 mb-0">Page Size:</label>
+        <select class="form-select form-select-sm me-3" style="width: auto; display: inline-block;" @onchange="OnPageSizeChanged">
+            <option value="5" selected="@(pageSize == 5)">5</option>
+            <option value="10" selected="@(pageSize == 10)">10</option>
+            <option value="25" selected="@(pageSize == 25)">25</option>
+            <option value="50" selected="@(pageSize == 50)">50</option>
+            <option value="-1" selected="@(pageSize == -1)">All</option>
+        </select>
         <button class="btn btn-success btn-sm me-2" @onclick="ShowAddModal">
             <i class="bi bi-plus-circle-fill me-1"></i> <span class="small">Add New Source</span>
         </button>
@@ -40,14 +48,14 @@
     </div>
 }
 
-@if (sources == null && !initialLoadAttempted)
+@if (pagedSources == null && !initialLoadAttempted)
 {
     <div class="d-flex justify-content-center align-items-center" style="min-height: 150px;">
         <div class="spinner-border text-info" role="status"><span class="visually-hidden">Loading...</span></div>
         <strong class="ms-2">Loading sources...</strong>
     </div>
 }
-else if (sources == null || !sources.Any())
+else if (pagedSources == null || !pagedSources.Any())
 {
     <div class="alert alert-light text-center" role="alert">
         <i class="bi bi-info-circle me-2"></i> No sources found for this category.
@@ -58,7 +66,7 @@ else
 {
     <div class="card shadow border-0 mb-4 grid-background">
         <ul class="list-group list-group-flush">
-            @foreach (var source in sources)
+            @foreach (var source in pagedSources)
             {
                 var inputId = $"sourceRadio_{source.Id}";
                 <li class="list-group-item d-flex align-items-center justify-content-between">
@@ -91,9 +99,9 @@ else
                         </label>
                     </div>
                     <div class="d-flex flex-row align-items-center ms-2" style="gap: 0.5rem;">
-                        <button class="btn btn-sm btn-outline-secondary quiz-btn @(source.Quizzes != null && source.Quizzes.Any() ? "has-quiz" : "")" 
-                                @onclick:stopPropagation="true" 
-                                @onclick="() => OnLearningTrackSourceSelected.InvokeAsync((source, LearningTrackAction.GoToCategories))" 
+                        <button class="btn btn-sm btn-outline-secondary quiz-btn @(source.Quizzes != null && source.Quizzes.Any() ? "has-quiz" : "")"
+                                @onclick:stopPropagation="true"
+                                @onclick="() => OnLearningTrackSourceSelected.InvokeAsync((source, LearningTrackAction.GoToCategories))"
                                 title="Quizzes">
                             <i class="bi bi-patch-question"></i>
                             @if (source.Quizzes != null && source.Quizzes.Any())
@@ -112,53 +120,34 @@ else
             }
         </ul>
     </div>
+    @if (pageSize != -1 && totalPages > 1)
+    {
+        <nav class="d-flex justify-content-center mt-2">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <button class="page-link" @onclick="() => ChangePage(currentPage - 1)">Previous</button>
+                </li>
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    var pageNum = i;
+                    <li class="page-item @(currentPage == pageNum ? "active" : "")">
+                        <button class="page-link" @onclick="() => ChangePage(pageNum)">@pageNum</button>
+                    </li>
+                }
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <button class="page-link" @onclick="() => ChangePage(currentPage + 1)">Next</button>
+                </li>
+            </ul>
+        </nav>
+    }
 }
-
-<Modal IsVisible="@showModal" Title="@modalTitle" OnClose="CloseModal">
-    <EditForm Model="@modalSource" OnValidSubmit="SaveSource">
-        <DataAnnotationsValidator />
-        <div class="mb-3">
-            <label class="form-label">Name</label>
-            <InputText class="form-control" @bind-Value="modalSource.Name" />
-            <ValidationMessage For="@(() => modalSource.Name)" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Type</label>
-            <InputSelect class="form-control" @bind-Value="modalSource.SourceType">
-                <option value="">-- Select Source Type --</option>
-                <option value="URL">URL</option>
-                <option value="PDF">PDF</option>
-                <option value="Text">Text</option>
-                <option value="JSON">JSON</option>
-                <option value="Markdown">Markdown</option>
-                <option value="YouTube Video">YouTube Video</option>
-                <option value="Word Document">Word Document</option>
-                <option value="PowerPoint">PowerPoint</option>
-                <option value="CSV">CSV</option>
-                <option value="Image (OCR)">Image (OCR)</option>
-            </InputSelect>
-            <ValidationMessage For="@(() => modalSource.SourceType)" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">URL</label>
-            <InputText type="url" class="form-control" @bind-Value="modalSource.Url" />
-            <ValidationMessage For="@(() => modalSource.Url)" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Description</label>
-            <InputTextArea class="form-control" @bind-Value="modalSource.Description" />
-            <ValidationMessage For="@(() => modalSource.Description)" />
-        </div>
-        <button type="submit" class="btn btn-primary">Save</button>
-        <button type="button" class="btn btn-secondary ms-2" @onclick="CloseModal">Cancel</button>
-    </EditForm>
-</Modal>
 
 @code {
     [Parameter] public int LearningTrackCategoryId { get; set; }
     [Parameter] public EventCallback<(LearningTrackSource, LearningTrackAction)> OnLearningTrackSourceSelected { get; set; }
 
     private List<LearningTrackSource>? sources;
+    private List<LearningTrackSource>? pagedSources;
     private LearningTrackSource? selectedSource;
     private bool isLoading = false;
     private bool showModal = false;
@@ -170,6 +159,11 @@ else
     private bool isCreatingQuizzes = false;
     private bool isGeneratingQuizzes = false;
     private string GeneratingQuizMessage = "Generating quizzes...";
+
+    // Paging state
+    private int pageSize = 10;
+    private int currentPage = 1;
+    private int totalPages = 1;
 
     // Drag & Drop state
     private bool dragDropEnabled = false;
@@ -242,7 +236,6 @@ else
         {
             foreach (var source in sources)
             {
-                // If the source already has quizzes, skip without showing a toast
                 if (source.Quizzes != null && source.Quizzes.Any())
                 {
                     continue;
@@ -317,6 +310,48 @@ else
         finally
         {
             isLoading = false;
+            UpdatePaging();
+        }
+    }
+
+    private void UpdatePaging()
+    {
+        if (sources == null)
+        {
+            pagedSources = null;
+            totalPages = 1;
+            currentPage = 1;
+            return;
+        }
+        if (pageSize == -1)
+        {
+            pagedSources = sources;
+            totalPages = 1;
+            currentPage = 1;
+        }
+        else
+        {
+            totalPages = (int)Math.Ceiling((double)sources.Count / pageSize);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+            pagedSources = sources.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+        }
+    }
+
+    private void ChangePage(int page)
+    {
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        UpdatePaging();
+    }
+
+    private void OnPageSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int newSize))
+        {
+            pageSize = newSize;
+            currentPage = 1;
+            UpdatePaging();
         }
     }
 

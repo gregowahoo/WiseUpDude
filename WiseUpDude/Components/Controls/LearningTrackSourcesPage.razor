@@ -127,12 +127,19 @@ else
                 <li class="page-item @(currentPage == 1 ? "disabled" : "")">
                     <button class="page-link" @onclick="() => ChangePage(currentPage - 1)">Previous</button>
                 </li>
-                @for (int i = 1; i <= totalPages; i++)
+                @foreach (var item in GetPageItemsToDisplay())
                 {
-                    var pageNum = i;
-                    <li class="page-item @(currentPage == pageNum ? "active" : "")">
-                        <button class="page-link" @onclick="() => ChangePage(pageNum)">@pageNum</button>
-                    </li>
+                    if (item == "...")
+                    {
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    }
+                    else
+                    {
+                        var pageNum = int.Parse(item);
+                        <li class="page-item @(currentPage == pageNum ? "active" : "")">
+                            <button class="page-link" @onclick="() => ChangePage(pageNum)">@pageNum</button>
+                        </li>
+                    }
                 }
                 <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
                     <button class="page-link" @onclick="() => ChangePage(currentPage + 1)">Next</button>
@@ -463,5 +470,30 @@ else
     private void NavToQuizzes(int sourceId)
     {
         NavigationManager.NavigateTo($"/learningtrack/source/{sourceId}/quizzes");
+    }
+
+    // Returns a list of page numbers and ellipsis for pagination
+    private IEnumerable<string> GetPageItemsToDisplay()
+    {
+        const int maxPagesToShow = 10;
+        var items = new List<string>();
+        if (totalPages <= maxPagesToShow)
+        {
+            for (int i = 1; i <= totalPages; i++)
+                items.Add(i.ToString());
+            return items;
+        }
+        // Always show first and last
+        items.Add("1");
+        int left = Math.Max(2, currentPage - 4);
+        int right = Math.Min(totalPages - 1, currentPage + 4);
+        if (left > 2)
+            items.Add("...");
+        for (int i = left; i <= right; i++)
+            items.Add(i.ToString());
+        if (right < totalPages - 1)
+            items.Add("...");
+        items.Add(totalPages.ToString());
+        return items;
     }
 }

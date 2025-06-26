@@ -11,7 +11,7 @@
             @if (_isInternalLoadingGif && string.IsNullOrEmpty(_gifUrl))
             {
                 <div class="card-body text-center">
-                    <p class="loading-text">@CurrentLoadingMessage</p>
+                    <p class="loading-text">@((MarkupString)LoadingTextMessage)</p>
                     <div class="spinner-border spinner-border-sm ms-2" role="status">
                         <span class="visually-hidden">Fetching animation...</span>
                     </div>
@@ -23,7 +23,7 @@
                 @* MODIFIED: alt tag now uses _effectiveKeyword *@
                 <img src="@_gifUrl" class="card-img-top loading-gif" alt="Loading animation for @_effectiveKeyword">
                 <div class="card-body">
-                    <p class="card-text loading-text text-center">@CurrentLoadingMessage</p>
+                    <p class="card-text loading-text text-center">@((MarkupString)LoadingTextMessage)</p>
                 </div>
             }
             else if (!string.IsNullOrEmpty(_errorMessage))
@@ -36,7 +36,7 @@
             else
             {
                 <div class="card-body text-center">
-                    <p class="card-text loading-text">@CurrentLoadingMessage</p>
+                    <p class="card-text loading-text">@((MarkupString)LoadingTextMessage)</p>
                     <div class="spinner-border text-primary mt-2" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>

@@ -142,6 +142,29 @@ else
     }
 }
 
+<Modal IsVisible="@showModal" Title="@modalTitle" OnClose="@CloseModal">
+    <EditForm Model="@modalSource" OnValidSubmit="@SaveSource">
+        <div class="mb-3">
+            <label class="form-label">Name</label>
+            <InputText class="form-control" @bind-Value="modalSource.Name" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Source Type</label>
+            <InputText class="form-control" @bind-Value="modalSource.SourceType" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">URL</label>
+            <InputText class="form-control" @bind-Value="modalSource.Url" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <InputTextArea class="form-control" @bind-Value="modalSource.Description" />
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-secondary ms-2" @onclick="@CloseModal">Cancel</button>
+    </EditForm>
+</Modal>
+
 @code {
     [Parameter] public int LearningTrackCategoryId { get; set; }
     [Parameter] public EventCallback<(LearningTrackSource, LearningTrackAction)> OnLearningTrackSourceSelected { get; set; }
@@ -245,7 +268,7 @@ else
                     await ToastService.ShowToast($"No URL for: {source.Name}", ToastLevel.Warning);
                     continue;
                 }
-                GeneratingQuizMessage = $"Generating quiz for '{source.Name}'...";
+                GeneratingQuizMessage = $"Generating quiz for<br/><b>{source.Name}</b>";
                 StateHasChanged();
                 var (quiz, error) = await PerplexityService.GenerateAndPersistQuizFromUrlAsync(source.Url, source.Id);
                 if (quiz != null)

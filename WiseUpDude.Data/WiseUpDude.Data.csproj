@@ -17,10 +17,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.3" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Migrations\" />
+    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="9.0.5" />
   </ItemGroup>
 
   <ItemGroup>

@@ -28,6 +28,13 @@ else
 
 <p>Running on: @(OperatingSystem.IsBrowser() ? "WASM" : "Server")</p>
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Error:</strong> @errorMessage
+    </div>
+}
+
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <div>
@@ -128,139 +135,209 @@ else
     private int? CurrentAttemptId;
     private string? saveMessage;
     private string? saveMessageType;
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        LearningTrackQuiz = await LearningTrackQuizApiService.GetQuizByIdAsync(QuizId);
-        if (LearningTrackQuiz != null && LearningTrackQuiz.Questions != null)
+        try
         {
-            totalQuestions = LearningTrackQuiz.Questions.Count;
-            // Do not reset totalAnswered or correctAnswers here!
-            // They are managed live as the user answers questions.
+            Logger.LogInformation("Initializing TakeALearningTrackQuiz for QuizId={QuizId}", QuizId);
+            LearningTrackQuiz = await LearningTrackQuizApiService.GetQuizByIdAsync(QuizId);
+            if (LearningTrackQuiz != null && LearningTrackQuiz.Questions != null)
+            {
+                totalQuestions = LearningTrackQuiz.Questions.Count;
+                Logger.LogInformation("Loaded quiz with {QuestionCount} questions.", totalQuestions);
+            }
+            else
+            {
+                Logger.LogWarning("Quiz or questions not found for QuizId={QuizId}", QuizId);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to load quiz. Please try again later.";
+            Logger.LogError(ex, "Exception in OnInitializedAsync for QuizId={QuizId}", QuizId);
         }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await JS.InvokeVoidAsync("initBootstrapTooltips");
+        try
+        {
+            await JS.InvokeVoidAsync("initBootstrapTooltips");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error initializing Bootstrap tooltips");
+        }
     }
 
     private void ToggleAutoSubmit()
     {
         autoSubmit = !autoSubmit;
+        Logger.LogInformation("AutoSubmit toggled to {AutoSubmit}", autoSubmit);
     }
 
     private void ToggleMute()
     {
         muteSound = !muteSound;
+        Logger.LogInformation("Mute toggled to {MuteSound}", muteSound);
     }
 
     private async Task HandleAnswerSubmitted((bool isCorrect, int questionIndex, string userAnswer) args)
     {
         var (isCorrect, questionIndex, userAnswer) = args;
-        if (LearningTrackQuiz == null || LearningTrackQuiz.Questions == null || questionIndex < 0 || questionIndex >= LearningTrackQuiz.Questions.Count)
-            return;
-
-        // Prevent double-counting: If already answered, do nothing
-        if (answeredQuestions.Contains(questionIndex))
-            return;
-
-        // Track time taken for this question
-        DateTime questionStart;
-        if (!questionStartTimes.TryGetValue(questionIndex, out questionStart))
+        try
         {
-            questionStart = AttemptStartTime ?? DateTime.UtcNow;
-        }
-        var timeTaken = (DateTime.UtcNow - questionStart).TotalSeconds;
-
-        // Record answer as LearningTrackQuizAttemptQuestion
-        var attemptQuestion = new LearningTrackQuizAttemptQuestion
-        {
-            LearningTrackAttemptId = CurrentAttemptId ?? 0,
-            LearningTrackQuestionId = LearningTrackQuiz.Questions[questionIndex].Id,
-            UserAnswer = userAnswer,
-            IsCorrect = isCorrect,
-            TimeTakenSeconds = timeTaken
-        };
-
-        if (CurrentAttempt == null)
-        {
-            AttemptStartTime = DateTime.UtcNow;
-            var attemptDto = new LearningTrackQuizAttemptCreateDto
+            if (LearningTrackQuiz == null || LearningTrackQuiz.Questions == null || questionIndex < 0 || questionIndex >= LearningTrackQuiz.Questions.Count)
             {
-                LearningTrackQuizId = QuizId,
-                AttemptDate = AttemptStartTime.Value,
-                Score = 0,
-                Duration = TimeSpan.Zero,
-                AttemptQuestions = new List<LearningTrackQuizAttemptQuestionCreateDto> {
-                    new LearningTrackQuizAttemptQuestionCreateDto {
-                        LearningTrackQuestionId = LearningTrackQuiz.Questions[questionIndex].Id,
-                        UserAnswer = userAnswer,
-                        IsCorrect = isCorrect,
-                        TimeTakenSeconds = timeTaken
-                    }
-                },
-                IsComplete = false
+                Logger.LogWarning("Invalid question index or quiz not loaded.");
+                return;
+            }
+
+            if (answeredQuestions.Contains(questionIndex))
+            {
+                Logger.LogInformation("Question {QuestionIndex} already answered.", questionIndex);
+                return;
+            }
+
+            DateTime questionStart;
+            if (!questionStartTimes.TryGetValue(questionIndex, out questionStart))
+            {
+                questionStart = AttemptStartTime ?? DateTime.UtcNow;
+            }
+            var timeTaken = (DateTime.UtcNow - questionStart).TotalSeconds;
+
+            var attemptQuestion = new LearningTrackQuizAttemptQuestion
+            {
+                LearningTrackAttemptId = CurrentAttemptId ?? 0,
+                LearningTrackQuestionId = LearningTrackQuiz.Questions[questionIndex].Id,
+                UserAnswer = userAnswer,
+                IsCorrect = isCorrect,
+                TimeTakenSeconds = timeTaken
             };
-            var createdAttempt = await LearningTrackQuizAttemptApiService.CreateAsync(attemptDto);
-            if (createdAttempt != null)
+
+            if (CurrentAttempt == null)
             {
-                CurrentAttempt = createdAttempt;
-                CurrentAttemptId = createdAttempt.Id;
+                AttemptStartTime = DateTime.UtcNow;
+                var attemptDto = new LearningTrackQuizAttemptCreateDto
+                {
+                    LearningTrackQuizId = QuizId,
+                    AttemptDate = AttemptStartTime.Value,
+                    Score = 0,
+                    Duration = TimeSpan.Zero,
+                    AttemptQuestions = new List<LearningTrackQuizAttemptQuestionCreateDto> {
+                        new LearningTrackQuizAttemptQuestionCreateDto {
+                            LearningTrackQuestionId = LearningTrackQuiz.Questions[questionIndex].Id,
+                            UserAnswer = userAnswer,
+                            IsCorrect = isCorrect,
+                            TimeTakenSeconds = timeTaken
+                        }
+                    },
+                    IsComplete = false
+                };
+                try
+                {
+                    var createdAttempt = await LearningTrackQuizAttemptApiService.CreateAsync(attemptDto);
+                    if (createdAttempt != null)
+                    {
+                        CurrentAttempt = createdAttempt;
+                        CurrentAttemptId = createdAttempt.Id;
+                        Logger.LogInformation("Created new quiz attempt with Id={AttemptId}", createdAttempt.Id);
+                    }
+                    else
+                    {
+                        saveMessage = "Failed to start quiz attempt.";
+                        saveMessageType = "danger";
+                        Logger.LogError("Failed to create LearningTrackQuizAttempt");
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    errorMessage = "Failed to create quiz attempt. Please try again.";
+                    Logger.LogError(ex, "Exception creating quiz attempt");
+                    return;
+                }
             }
             else
             {
-                saveMessage = "Failed to start quiz attempt.";
-                saveMessageType = "danger";
-                Logger.LogError("Failed to create LearningTrackQuizAttempt");
-                return;
+                try
+                {
+                    CurrentAttempt.AttemptQuestions ??= new List<LearningTrackQuizAttemptQuestion>();
+                    CurrentAttempt.AttemptQuestions.Add(attemptQuestion);
+                    await LearningTrackQuizAttemptApiService.UpdateAsync(CurrentAttempt);
+                    Logger.LogInformation("Updated quiz attempt Id={AttemptId} with new question.", CurrentAttemptId);
+                }
+                catch (Exception ex)
+                {
+                    errorMessage = "Failed to update quiz attempt. Please try again.";
+                    Logger.LogError(ex, "Exception updating quiz attempt");
+                    return;
+                }
             }
-        }
-        else
-        {
-            CurrentAttempt.AttemptQuestions ??= new List<LearningTrackQuizAttemptQuestion>();
-            CurrentAttempt.AttemptQuestions.Add(attemptQuestion);
-            await LearningTrackQuizAttemptApiService.UpdateAsync(CurrentAttempt);
-        }
 
-        answeredQuestions.Add(questionIndex);
-        totalAnswered++;
-        if (isCorrect) correctAnswers++;
+            answeredQuestions.Add(questionIndex);
+            totalAnswered++;
+            if (isCorrect) correctAnswers++;
 
-        if (totalAnswered == totalQuestions)
-        {
-            var duration = (AttemptStartTime.HasValue) ? (DateTime.UtcNow - AttemptStartTime.Value) : TimeSpan.Zero;
-            CurrentAttempt.Score = totalQuestions > 0 ? (double)correctAnswers / totalQuestions : 0;
-            CurrentAttempt.Duration = duration;
-            CurrentAttempt.IsComplete = true;
-            await LearningTrackQuizAttemptApiService.UpdateAsync(CurrentAttempt);
-            await HandleQuizCompletionAsync();
+            if (totalAnswered == totalQuestions)
+            {
+                var duration = (AttemptStartTime.HasValue) ? (DateTime.UtcNow - AttemptStartTime.Value) : TimeSpan.Zero;
+                CurrentAttempt.Score = totalQuestions > 0 ? (double)correctAnswers / totalQuestions : 0;
+                CurrentAttempt.Duration = duration;
+                CurrentAttempt.IsComplete = true;
+                try
+                {
+                    await LearningTrackQuizAttemptApiService.UpdateAsync(CurrentAttempt);
+                    Logger.LogInformation("Final update for completed quiz attempt Id={AttemptId}", CurrentAttemptId);
+                }
+                catch (Exception ex)
+                {
+                    errorMessage = "Failed to finalize quiz attempt. Please try again.";
+                    Logger.LogError(ex, "Exception finalizing quiz attempt");
+                }
+                await HandleQuizCompletionAsync();
+            }
+            StateHasChanged();
         }
-        StateHasChanged();
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred while submitting your answer. Please try again.";
+            Logger.LogError(ex, "Exception in HandleAnswerSubmitted");
+        }
     }
 
     private async Task HandleQuizCompletionAsync()
     {
-        Logger.LogInformation("HandleQuizCompletionAsync: All questions answered. Final score: {CorrectAnswers}/{TotalAnswered}", correctAnswers, totalAnswered);
-        showFinalMessage = true;
-        await JS.InvokeVoidAsync("scrollToTopSmooth");
-        double scorePercent = totalAnswered > 0 ? (double)correctAnswers / totalAnswered : 0;
+        try
+        {
+            Logger.LogInformation("HandleQuizCompletionAsync: All questions answered. Final score: {CorrectAnswers}/{TotalAnswered}", correctAnswers, totalAnswered);
+            showFinalMessage = true;
+            await JS.InvokeVoidAsync("scrollToTopSmooth");
+            double scorePercent = totalAnswered > 0 ? (double)correctAnswers / totalAnswered : 0;
 
-        if (scorePercent >= 0.8)
-        {
-            Logger.LogInformation("HandleQuizCompletionAsync: Score >= 80%, playing applause and launching confetti");
-            if (!muteSound)
+            if (scorePercent >= 0.8)
             {
-                await JS.InvokeVoidAsync("playSound", "/sounds/applause.mp3");
+                Logger.LogInformation("HandleQuizCompletionAsync: Score >= 80%, playing applause and launching confetti");
+                if (!muteSound)
+                {
+                    await JS.InvokeVoidAsync("playSound", "/sounds/applause.mp3");
+                }
+                await JS.InvokeVoidAsync("launchConfetti");
+                saveMessage = "Great job! You've completed the quiz with a passing score.";
+                saveMessageType = "success";
             }
-            await JS.InvokeVoidAsync("launchConfetti");
-            saveMessage = "Great job! You've completed the quiz with a passing score.";
-            saveMessageType = "success";
+            else
+            {
+                saveMessage = "Quiz completed. You might want to review the material and try again.";
+                saveMessageType = "warning";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            saveMessage = "Quiz completed. You might want to review the material and try again.";
-            saveMessageType = "warning";
+            errorMessage = "An error occurred while completing the quiz. Please try again.";
+            Logger.LogError(ex, "Exception in HandleQuizCompletionAsync");
         }
     }
 
@@ -272,7 +349,6 @@ else
         for (int i = 0; i < totalQuestions; i++)
         {
             var q = LearningTrackQuiz.Questions[i];
-            // Find the user's answer for this question from the current attempt
             var attemptQuestion = CurrentAttempt?.AttemptQuestions?.FirstOrDefault(aq => aq.LearningTrackQuestionId == q.Id);
             if (attemptQuestion != null && !string.IsNullOrEmpty(attemptQuestion.UserAnswer))
                 results.Add(attemptQuestion.UserAnswer == q.Answer ? true : false);
@@ -282,7 +358,6 @@ else
         return results;
     }
 
-    // Returns grade letter based on percentage correct (of questions answered)
     private string GetGradeLetter()
     {
         int answered = totalAnswered;

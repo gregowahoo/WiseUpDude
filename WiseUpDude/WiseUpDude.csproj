@@ -73,8 +73,4 @@
 	<ItemGroup>
 		<Content Remove="wwwroot\appsettings*.json" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <None Remove="Components\Controls\LearningTrackQuizQuestionsPage.razor.css" />
-	</ItemGroup>
 </Project>

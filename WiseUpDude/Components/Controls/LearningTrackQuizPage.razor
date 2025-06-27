@@ -205,6 +205,12 @@ else if (quizzes != null && quizzes.Any())
                     }
                 }
             }
+            else if (selectedQuiz == null && quizzes != null && quizzes.Any())
+            {
+                // Select the first quiz if none is selected
+                selectedQuiz = quizzes.First();
+                await OnLearningTrackQuizSelected.InvokeAsync((selectedQuiz, LearningTrackAction.Select));
+            }
         }
         catch (Exception ex)
         {

@@ -54,6 +54,30 @@ namespace WiseUpDude.Services
             return (quiz, null);
         }
 
+        // Add: GenerateQuizFromUrlAsync for user quizzes (not LearningTrack)
+        public async Task<(Quiz? Quiz, string? Error)> GenerateQuizFromUrlAsync(string url, string? userId)
+        {
+            var aiPrompt = BuildQuizPrompt(url);
+            var (json, apiError) = await GetPerplexityQuizJsonAsync(aiPrompt);
+            if (apiError != null)
+                return (null, apiError);
+            var (quizModel, parseError) = ParseQuizJson(json);
+            if (parseError != null)
+                return (null, parseError);
+            if (quizModel == null || quizModel.Questions == null || !quizModel.Questions.Any())
+                return (null, "No quiz questions found in Perplexity response.");
+
+            // Fetch meta data for the URL
+            var meta = await GetUrlMetaAsync(url);
+            quizModel.UserId = userId;
+            quizModel.Prompt = string.Empty;
+            quizModel.Type = "Url";
+            quizModel.Name = meta.Title ?? url;
+            quizModel.Description = meta.Description;
+            quizModel.CreationDate = DateTime.UtcNow;
+            return (quizModel, null);
+        }
+
         private async Task<string> GetSourceNameAsync(int learningTrackSourceId)
         {
             var source = await _sourceRepository.GetByIdAsync(learningTrackSourceId);
@@ -200,9 +224,12 @@ For all questions:
 - The "Difficulty" must be one of: "Easy", "Medium", or "Hard". Distribute difficulties roughly evenly across the quiz.
 - When including C# code in questions or explanations, format it so that each statement or line of code appears on its own line, using standard C# indentation and line breaks. Do not put multiple statements on a single line.
 
+QUIZ DIFFICULTY:
+- In addition to question-level difficulty, include a "Difficulty" property at the quiz (root) level. This should represent the overall difficulty of the quiz (e.g., based on the average or predominant difficulty of the questions). Set this to one of: "Easy", "Medium", or "Hard".
+
 OUTPUT:
 - Return only valid JSON in the following format:
-{{ "Questions": [ {{ "Question": "...", "Options": ["..."], "Answer": "...", "Explanation": "...", "QuestionType": "...", "Difficulty": "..." }}, ... ], "Type": "...", "Description": "..." }}.
+{{ "Questions": [ {{ "Question": "...", "Options": ["..."], "Answer": "...", "Explanation": "...", "QuestionType": "...", "Difficulty": "..." }}, ... ], "Type": "...", "Description": "...", "Difficulty": "..." }}.
 - Return only the raw JSON, without any code block formatting or prefixes like 'json'.
 - Do NOT include any Markdown code block formatting (such as triple backticks or the word 'json') in your response. Return only the raw JSON.
 

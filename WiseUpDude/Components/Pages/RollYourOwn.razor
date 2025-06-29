@@ -12,6 +12,7 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject IQuizFromPromptService QuizGenerationService
+@inject WiseUpDude.Services.PerplexityService PerplexityService
 @inject ILogger<RollYourOwn> Logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ITenorGifService TenorGifService
@@ -19,68 +20,96 @@
 @rendermode InteractiveServer
 @attribute [Authorize]
 
-@* <p>IsGenerating: @IsGenerating, IsSaving: @IsSaving</p> *@
-
 @if (IsGenerating || IsSaving)
 {
-    @*     <div class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0, 0, 0, 0.5);">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-3">🧠 Generating your quiz, please wait...</p>
-                </div>
-            </div>
-        </div>
-    </div> *@
-
-@*     <PleaseWaitDialog IsVisible="IsGenerating || IsSaving"
-                      SearchKeyword="working hard"
-                      LoadingTextMessage="@($"Preparing your \"{UserPrompt}\" quiz...")" /> *@
-
     <PleaseWaitDialog IsVisible="IsGenerating || IsSaving"
                       LoadingTextMessage="@($"Preparing your \"{UserPrompt}\" quiz...")" />
+}
+@if (IsUrlGenerating)
+{
+    <PleaseWaitDialog IsVisible="IsUrlGenerating"
+                      LoadingTextMessage="@($"Preparing your quiz from the URL: \"{QuizUrl}\"...")" />
 }
 
 <div class="container mt-5">
     <div class="text-center mb-4">
-        <h2 class="fw-bold">🎲 Roll Your Own Quiz!</h2>
-        <p class="text-muted">Enter a custom prompt to generate a quiz tailored to your needs.</p>
+        <h2 class="fw-bold">🎲 Roll Your Own!</h2>
+        <p class="text-muted">Choose how you want to generate your quiz.</p>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <label for="promptInput" class="form-label fw-semibold">Enter your custom prompt:</label>
-            <InputText id="promptInput" @bind-Value="UserPrompt" class="form-control form-control-lg mb-3"
-                       placeholder="e.g. Create a quiz about the history of space exploration." />
-            <br />
-
-            <div class="text-center">
-                <button class="btn btn-success btn-lg px-5"
-                        @onclick="GenerateAndSaveQuiz"
-                        disabled="@(IsGenerating || IsSaving || string.IsNullOrWhiteSpace(UserPrompt))">
-                    🚀 Generate & Save Quiz
-                </button>
+    <ul class="nav nav-tabs custom-tabs justify-content-center mb-3" id="quizTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(ActiveTab == 0 ? "active" : "")" id="prompt-tab" data-bs-toggle="tab" type="button" role="tab" @onclick="() => SetTab(0)">Enter Your Custom Prompt</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(ActiveTab == 1 ? "active" : "")" id="url-tab" data-bs-toggle="tab" type="button" role="tab" @onclick="() => SetTab(1)">Create Quiz From A URL</button>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane fade @(ActiveTab == 0 ? "show active" : "")" id="prompt" role="tabpanel">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <label for="promptInput" class="form-label fw-semibold">Enter your custom prompt:</label>
+                    <InputText id="promptInput" @bind-Value="UserPrompt" class="form-control form-control-lg mb-3"
+                               placeholder="e.g. Create a quiz about the history of space exploration." />
+                    <br />
+                    <div class="text-center">
+                        <button class="btn btn-success btn-lg px-5"
+                                @onclick="GenerateAndSaveQuiz"
+                                disabled="@(IsGenerating || IsSaving || string.IsNullOrWhiteSpace(UserPrompt))">
+                            🚀 Generate & Save Quiz
+                        </button>
+                    </div>
+                    @if (!string.IsNullOrEmpty(ErrorMessage))
+                    {
+                        <p class="text-danger mt-3">@ErrorMessage</p>
+                    }
+                </div>
             </div>
-
-            @if (!string.IsNullOrEmpty(ErrorMessage))
-            {
-                <p class="text-danger mt-3">@ErrorMessage</p>
-            }
+        </div>
+        <div class="tab-pane fade @(ActiveTab == 1 ? "show active" : "")" id="url" role="tabpanel">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <label for="urlInput" class="form-label fw-semibold">Enter a URL to generate a quiz from its content:</label>
+                    <InputText id="urlInput" @bind-Value="QuizUrl" class="form-control form-control-lg mb-3"
+                               placeholder="e.g. https://en.wikipedia.org/wiki/Space_exploration" />
+                    <br />
+                    <div class="text-center">
+                        <button class="btn btn-primary btn-lg px-5"
+                                @onclick="GenerateAndSaveQuizFromUrl"
+                                disabled="@(IsUrlGenerating || string.IsNullOrWhiteSpace(QuizUrl))">
+                            🔗 Generate & Save Quiz
+                        </button>
+                    </div>
+                    @if (!string.IsNullOrEmpty(UrlErrorMessage))
+                    {
+                        <p class="text-danger mt-3">@UrlErrorMessage</p>
+                    }
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 @code {
+    private int ActiveTab { get; set; } = 0;
     private string? UserPrompt { get; set; }
+    private string? QuizUrl { get; set; }
     private bool IsGenerating = false;
     private bool IsSaving = false;
     private string? ErrorMessage;
+    private string? UrlErrorMessage;
+    private bool IsUrlGenerating = false;
 
     private bool CanGenerateAndSave =>
         !IsGenerating && !IsSaving && !string.IsNullOrWhiteSpace(UserPrompt);
+
+    private void SetTab(int tab)
+    {
+        ActiveTab = tab;
+        ErrorMessage = null;
+        UrlErrorMessage = null;
+    }
 
     private async Task GenerateAndSaveQuiz()
     {
@@ -93,51 +122,38 @@
         IsGenerating = true;
         IsSaving = true;
         ErrorMessage = null;
-        StateHasChanged(); // Ensure UI updates to show modal
+        StateHasChanged();
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                   ?? user.FindFirst("sub")?.Value; // fallback for JWT sub claim
+                   ?? user.FindFirst("sub")?.Value;
 
         try
         {
             Logger.LogInformation("Sending prompt to QuizGenerationService: {UserPrompt}", UserPrompt);
-
             var generatedQuestions = await QuizGenerationService.GenerateQuestionsFromPromptAsync(UserPrompt);
-
             if (generatedQuestions is null || !generatedQuestions.Any())
             {
                 Logger.LogError("QuizGenerationService returned no questions.");
                 ErrorMessage = "Failed to generate quiz questions. Please try again.";
                 return;
             }
-
             var quiz = new Quiz
             {
                 Name = UserPrompt.Length > 50 ? UserPrompt.Substring(0, 50) : UserPrompt,
                 UserId = userId,
                 Type = "Prompt",
                 Prompt = UserPrompt,
-                Description = null, // You can set this to something else if needed
+                Description = null,
                 Difficulty = "Medium",
                 LearnMode = false,
                 Topic = null,
                 Questions = generatedQuestions
             };
-
-            //TODO: Figure out if we need to save to Quizzes, maybe only need to save to UserQuizzes
-
-            // await QuizRepository.AddAsync(quiz);
-            Logger.LogInformation("Quiz successfully saved to the Quiz table. QuizId: {QuizId}", quiz.Id);
-
-            // Add to UserQuizRepository as well
             await UserQuizRepository.AddAsync(quiz);
-
             var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
-
             Logger.LogInformation("Quiz successfully saved to the UserQuiz table. QuizId: {QuizId}", userQuizId);
-
             NavigationManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
         }
         catch (Exception ex)
@@ -149,7 +165,48 @@
         {
             IsGenerating = false;
             IsSaving = false;
-            StateHasChanged(); // Ensure UI updates to hide modal
+            StateHasChanged();
+        }
+    }
+
+    private async Task GenerateAndSaveQuizFromUrl()
+    {
+        UrlErrorMessage = null;
+        if (string.IsNullOrWhiteSpace(QuizUrl))
+        {
+            UrlErrorMessage = "Please enter a valid URL.";
+            return;
+        }
+        IsUrlGenerating = true;
+        StateHasChanged();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                   ?? user.FindFirst("sub")?.Value;
+
+        try
+        {
+            var (quiz, error) = await PerplexityService.GenerateQuizFromUrlAsync(QuizUrl, userId);
+            if (quiz == null)
+            {
+                UrlErrorMessage = error ?? "Failed to generate quiz from URL.";
+                return;
+            }
+
+            await UserQuizRepository.AddAsync(quiz);
+            var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
+            NavigationManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
+        }
+        catch (Exception ex)
+        {
+            UrlErrorMessage = "An error occurred while generating or saving the quiz. Please try again later.";
+            Logger.LogError(ex, "Exception during quiz save from URL.");
+        }
+        finally
+        {
+            IsUrlGenerating = false;
+            StateHasChanged();
         }
     }
 }

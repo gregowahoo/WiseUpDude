@@ -55,7 +55,7 @@
                     <br />
                     <div class="text-center">
                         <button class="btn btn-success btn-lg px-5"
-                                @onclick="GenerateAndSaveQuiz"
+                                @onclick="GenerateAndSaveQuizFromPrompt"
                                 disabled="@(IsGenerating || IsSaving || string.IsNullOrWhiteSpace(UserPrompt))">
                             🚀 Generate & Save Quiz
                         </button>
@@ -111,7 +111,7 @@
         UrlErrorMessage = null;
     }
 
-    private async Task GenerateAndSaveQuiz()
+    private async Task GenerateAndSaveQuizFromPrompt()
     {
         if (string.IsNullOrWhiteSpace(UserPrompt))
         {

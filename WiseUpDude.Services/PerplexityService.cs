@@ -200,6 +200,8 @@ namespace WiseUpDude.Services
         private string BuildQuizPrompt(string url)
         {
             var prompt = """
+IMPORTANT: For multiple-choice questions, the correct answer must be randomly placed in one of the four options (A, B, C, or D), and the distribution of correct answer positions must be as even as possible across the quiz. For example, in a 20-question quiz, the correct answer should appear about 5 times in each position. Do NOT default to the first position. If you generate 4 questions, the correct answer should be in position 1 for one question, position 2 for one, position 3 for one, and position 4 for one. If the correct answer is not evenly distributed among the four positions, regenerate the quiz until this requirement is met.
+
 Create a quiz based on the following prompt: "Use this URL: {0}"
 The quiz should include as many questions as possible, up to a maximum of 25.
 Include both multiple-choice and true/false questions.

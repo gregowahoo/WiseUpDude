@@ -10,7 +10,7 @@ namespace WiseUpDude.Services
 For true/false questions: Always use exactly two answer options: [""True"", ""False""], in that order. The correct answer must be ""True"" for about half the questions and ""False"" for about half the questions. Do not default to ""True"" as the correct answer for most questions. If you generate 4 true/false questions, 2 should have ""True"" as the correct answer and 2 should have ""False"". If the correct answer is not evenly distributed between ""True"" and ""False"", regenerate the quiz until this requirement is met.
 
 Create a quiz based on the following prompt: ""Use this URL or prompt: {0}""
-The quiz should include as many questions as possible, up to a maximum of 25.
+The quiz should include as many questions as possible, preferably 20 question, up to a maximum of 25.
 Include both multiple-choice and true/false questions.
 
 QUESTION FORMATTING & ANSWER SHUFFLING:
@@ -41,6 +41,7 @@ OUTPUT:
 {{ ""Questions"": [ {{ ""Question"": ""..."", ""Options"": [""...""], ""Answer"": ""..."", ""Explanation"": ""..."", ""QuestionType"": ""..."", ""Difficulty"": ""..."" }}, ... ], ""Type"": ""..."", ""Description"": ""..."", ""Difficulty"": ""..."" }}.
 - Return only the raw JSON, without any code block formatting or prefixes like 'json'.
 - Do NOT include any Markdown code block formatting (such as triple backticks or the word 'json') in your response. Return only the raw JSON.
+- Do NOT include any explanation, commentary, or additional metadata (such as id, model, usage, citations, search_results, or any wrapper object). Return ONLY the quiz JSON object as specified above, and nothing else.
 
 ERROR HANDLING:
 - If the prompt is too vague, factually impossible, or cannot result in a meaningful quiz, return a JSON object in this format: {{ ""Error"": ""<reason>"" }}.

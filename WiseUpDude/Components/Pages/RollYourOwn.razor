@@ -132,7 +132,7 @@
         try
         {
             Logger.LogInformation("Sending prompt to PerplexityService: {UserPrompt}", UserPrompt);
-            var (quiz, error) = await PerplexityService.GenerateQuizFromUrlAsync(UserPrompt, userId);
+            var (quiz, error) = await PerplexityService.GenerateQuizFromPromptAsync(UserPrompt, userId);
             if (quiz == null)
             {
                 Logger.LogError("PerplexityService returned no quiz. Error: {Error}", error);

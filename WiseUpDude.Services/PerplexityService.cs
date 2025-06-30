@@ -31,11 +31,12 @@ namespace WiseUpDude.Services
             _urlMetaService = urlMetaService;
         }
 
-        // Add: GenerateQuizFromUrlAsync for user quizzes (not LearningTrack)
+        // Add: GenerateQuizFromUserInputAsync for user quizzes (not LearningTrack)
         public async Task<(Quiz? Quiz, string? Error)> GenerateQuizFromUrlAsync(string url, string? userId)
         {
             var aiPrompt = QuizPromptTemplates.BuildQuizPrompt(url);
             var (json, apiError) = await GetPerplexityQuizJsonAsync(aiPrompt);
+
             if (apiError != null)
                 return (null, apiError);
             var (quizModel, parseError) = ParseQuizJson(json);
@@ -52,6 +53,32 @@ namespace WiseUpDude.Services
             quizModel.Name = meta.Title ?? url;
             quizModel.Description = meta.Description;
             quizModel.CreationDate = DateTime.UtcNow;
+
+            return (quizModel, null);
+        }
+
+        public async Task<(Quiz? Quiz, string? Error)> GenerateQuizFromPromptAsync(string prompt, string? userId)
+        {
+            var aiPrompt = QuizPromptTemplates.BuildQuizPrompt(prompt);
+            var (json, apiError) = await GetPerplexityQuizJsonAsync(aiPrompt);
+
+            if (apiError != null)
+                return (null, apiError);
+            var (quizModel, parseError) = ParseQuizJson(json);
+            if (parseError != null)
+                return (null, parseError);
+            if (quizModel == null || quizModel.Questions == null || !quizModel.Questions.Any())
+                return (null, "No quiz questions found in Perplexity response.");
+
+            // Fetch meta data for the URL
+            //var meta = await GetUrlMetaAsync(prompt);
+            quizModel.UserId = userId;
+            quizModel.Prompt = string.Empty;
+            quizModel.Type = "Prompt";
+            quizModel.Name = prompt;
+            quizModel.Description = "Description";
+            quizModel.CreationDate = DateTime.UtcNow;
+
             return (quizModel, null);
         }
 

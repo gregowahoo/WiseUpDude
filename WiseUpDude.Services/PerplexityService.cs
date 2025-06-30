@@ -3,7 +3,6 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using WiseUpDude.Data.Repositories.Interfaces;
 using WiseUpDude.Model;
 using System;
 using System.Collections.Generic;
@@ -16,42 +15,20 @@ namespace WiseUpDude.Services
     public class PerplexityService
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ILearningTrackQuizRepository _quizRepository;
-        private readonly ILearningTrackQuizQuestionRepository _questionRepository;
         private readonly ContentFetchingService _contentFetchingService;
-        private readonly ILearningTrackSourceRepository _sourceRepository;
         private readonly ILogger<PerplexityService> _logger;
+        private readonly UrlMetaService _urlMetaService;
 
         public PerplexityService(
             IHttpClientFactory httpClientFactory,
-            ILearningTrackQuizRepository quizRepository,
-            ILearningTrackQuizQuestionRepository questionRepository,
             ContentFetchingService contentFetchingService,
-            ILearningTrackSourceRepository sourceRepository,
-            ILogger<PerplexityService> logger)
+            ILogger<PerplexityService> logger,
+            UrlMetaService urlMetaService)
         {
             _httpClientFactory = httpClientFactory;
-            _quizRepository = quizRepository;
-            _questionRepository = questionRepository;
             _contentFetchingService = contentFetchingService;
-            _sourceRepository = sourceRepository;
             _logger = logger;
-        }
-
-        public async Task<(LearningTrackQuiz? Quiz, string? Error)> GenerateAndPersistQuizFromUrlAsync(string url, int learningTrackSourceId)
-        {
-            var aiPrompt = QuizPromptTemplates.BuildQuizPrompt(url);
-            var sourceName = await GetSourceNameAsync(learningTrackSourceId);
-            var (json, apiError) = await GetPerplexityQuizJsonAsync(aiPrompt);
-            if (apiError != null)
-                return (null, apiError);
-            var (quizModel, parseError) = ParseQuizJson(json);
-            if (parseError != null)
-                return (null, parseError);
-            if (quizModel == null || quizModel.Questions == null || !quizModel.Questions.Any())
-                return (null, "No quiz questions found in Perplexity response.");
-            var quiz = await CreateAndPersistLearningTrackQuiz(quizModel, sourceName, learningTrackSourceId);
-            return (quiz, null);
+            _urlMetaService = urlMetaService;
         }
 
         // Add: GenerateQuizFromUrlAsync for user quizzes (not LearningTrack)
@@ -78,13 +55,8 @@ namespace WiseUpDude.Services
             return (quizModel, null);
         }
 
-        private async Task<string> GetSourceNameAsync(int learningTrackSourceId)
-        {
-            var source = await _sourceRepository.GetByIdAsync(learningTrackSourceId);
-            return source?.Name ?? "Unknown Source";
-        }
-
-        private async Task<(string? Json, string? Error)> GetPerplexityQuizJsonAsync(string aiPrompt)
+        // Make these public for LearningTrackQuizService
+        public async Task<(string? Json, string? Error)> GetPerplexityQuizJsonAsync(string aiPrompt)
         {
             var client = _httpClientFactory.CreateClient("PerplexityAI");
             var requestBody = new
@@ -157,7 +129,7 @@ namespace WiseUpDude.Services
             return (json, null);
         }
 
-        private (Quiz? QuizModel, string? Error) ParseQuizJson(string json)
+        public (Quiz? QuizModel, string? Error) ParseQuizJson(string json)
         {
             try
             {
@@ -175,79 +147,9 @@ namespace WiseUpDude.Services
             }
         }
 
-        private async Task<LearningTrackQuiz> CreateAndPersistLearningTrackQuiz(Quiz quizModel, string sourceName, int learningTrackSourceId)
+        public async Task<UrlMetaService.UrlMetaResult> GetUrlMetaAsync(string url)
         {
-            var quiz = new LearningTrackQuiz
-            {
-                Name = sourceName,
-                Description = quizModel.Description,
-                LearningTrackSourceId = learningTrackSourceId,
-                CreationDate = DateTime.UtcNow,
-                Questions = quizModel.Questions.Select(q => new LearningTrackQuizQuestion
-                {
-                    Question = q.Question ?? string.Empty,
-                    Answer = q.Answer ?? string.Empty,
-                    Explanation = q.Explanation,
-                    OptionsJson = q.OptionsJson,
-                    Difficulty = q.Difficulty,
-                    CreationDate = DateTime.UtcNow
-                }).ToList()
-            };
-            await _quizRepository.AddQuizAsync(quiz);
-            return quiz;
-        }
-
-        public class UrlMetaResult
-        {
-            public string? Title { get; set; }
-            public string? Description { get; set; }
-        }
-
-        public async Task<UrlMetaResult> GetUrlMetaAsync(string url)
-        {
-            var client = _httpClientFactory.CreateClient();
-            string html;
-            try
-            {
-                html = await client.GetStringAsync(url);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to fetch URL for meta extraction: {Url}", url);
-                return new UrlMetaResult { Title = url, Description = null };
-            }
-
-            string? title = null;
-            string? description = null;
-
-            // Extract <title>
-            var titleMatch = Regex.Match(html, "<title>(.*?)</title>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-            if (titleMatch.Success)
-            {
-                title = titleMatch.Groups[1].Value.Trim();
-            }
-
-            // Extract <meta name="description" content="...">
-            var descMatch = Regex.Match(html, "<meta[^>]*name=[\"']description[\"'][^>]*content=[\"']([^\"']*)[\"'][^>]*>", RegexOptions.IgnoreCase);
-            if (descMatch.Success)
-            {
-                description = descMatch.Groups[1].Value.Trim();
-            }
-            else
-            {
-                // Try <meta content="..." name="description">
-                descMatch = Regex.Match(html, "<meta[^>]*content=[\"']([^\"']*)[\"'][^>]*name=[\"']description[\"'][^>]*>", RegexOptions.IgnoreCase);
-                if (descMatch.Success)
-                {
-                    description = descMatch.Groups[1].Value.Trim();
-                }
-            }
-
-            return new UrlMetaResult
-            {
-                Title = string.IsNullOrWhiteSpace(title) ? url : title,
-                Description = description
-            };
+            return await _urlMetaService.GetUrlMetaAsync(url);
         }
     }
 }

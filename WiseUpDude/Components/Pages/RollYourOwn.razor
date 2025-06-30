@@ -131,26 +131,14 @@
 
         try
         {
-            Logger.LogInformation("Sending prompt to QuizGenerationService: {UserPrompt}", UserPrompt);
-            var generatedQuestions = await QuizGenerationService.GenerateQuestionsFromPromptAsync(UserPrompt);
-            if (generatedQuestions is null || !generatedQuestions.Any())
+            Logger.LogInformation("Sending prompt to PerplexityService: {UserPrompt}", UserPrompt);
+            var (quiz, error) = await PerplexityService.GenerateQuizFromUrlAsync(UserPrompt, userId);
+            if (quiz == null)
             {
-                Logger.LogError("QuizGenerationService returned no questions.");
-                ErrorMessage = "Failed to generate quiz questions. Please try again.";
+                Logger.LogError("PerplexityService returned no quiz. Error: {Error}", error);
+                ErrorMessage = error ?? "Failed to generate quiz from prompt. Please try again.";
                 return;
             }
-            var quiz = new Quiz
-            {
-                Name = UserPrompt.Length > 50 ? UserPrompt.Substring(0, 50) : UserPrompt,
-                UserId = userId,
-                Type = "Prompt",
-                Prompt = UserPrompt,
-                Description = null,
-                Difficulty = "Medium",
-                LearnMode = false,
-                Topic = null,
-                Questions = generatedQuestions
-            };
             await UserQuizRepository.AddAsync(quiz);
             var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
             Logger.LogInformation("Quiz successfully saved to the UserQuiz table. QuizId: {QuizId}", userQuizId);

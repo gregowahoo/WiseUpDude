@@ -4,6 +4,7 @@
 @inject WiseUpDude.Data.Repositories.Interfaces.ILearningTrackCategoryRepository CategoryRepo
 @inject WiseUpDude.Shared.Services.ToastService ToastService
 @inject NavigationManager NavigationManager
+@inject WiseUpDude.Services.LearningTrackQuizService LearningTrackQuizService
 @inject WiseUpDude.Services.PerplexityService PerplexityService
 @inject IJSRuntime JS
 
@@ -277,7 +278,7 @@ else
                 }
                 GeneratingQuizMessage = $"Generating quiz for<br/><b>{source.Name}</b>";
                 StateHasChanged();
-                var (quiz, error) = await PerplexityService.GenerateAndPersistQuizFromUrlAsync(source.Url, source.Id);
+                var (quiz, error) = await LearningTrackQuizService.GenerateAndPersistQuizFromUrlAsync(source.Url, source.Id);
                 if (quiz != null)
                 {
                     newQuizzesCreated++;

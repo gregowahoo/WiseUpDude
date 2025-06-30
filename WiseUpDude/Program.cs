@@ -225,6 +225,10 @@ builder.Services.AddSingleton<WiseUpDude.Shared.Services.ToastService>();
 // Register PerplexityService and its dependencies
 builder.Services.AddScoped<PerplexityService>();
 
+builder.Services.AddScoped<LearningTrackQuizService>();
+
+builder.Services.AddScoped<UrlMetaService>();
+
 #endregion
 
 

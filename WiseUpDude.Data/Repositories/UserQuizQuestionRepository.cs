@@ -116,6 +116,26 @@ namespace WiseUpDude.Data.Repositories
             }
             await context.SaveChangesAsync();
         }
+
+        // New method for batch fetching by user and quiz ids
+        public async Task<IEnumerable<WiseUpDude.Model.QuizQuestion>> GetByUserAndQuizIdsAsync(string userId, IEnumerable<int> quizIds)
+        {
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var userQuizQuestions = await context.UserQuizQuestions
+                .Where(uqq => quizIds.Contains(uqq.QuizId) && uqq.Quiz.UserId == userId)
+                .ToListAsync();
+            return userQuizQuestions.Select(uqq => new WiseUpDude.Model.QuizQuestion
+            {
+                Id = uqq.Id,
+                Question = uqq.Question,
+                QuestionType = (WiseUpDude.Model.QuizQuestionType)uqq.QuestionType,
+                Options = string.IsNullOrEmpty(uqq.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(uqq.OptionsJson),
+                Answer = uqq.Answer,
+                Explanation = uqq.Explanation,
+                UserAnswer = uqq.UserAnswer,
+                QuizId = uqq.QuizId
+            });
+        }
     }
 }
 

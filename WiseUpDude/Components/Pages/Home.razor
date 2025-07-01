@@ -231,24 +231,18 @@
             if (!string.IsNullOrEmpty(userId))
             {
                 Summary = await DashboardData.GetDashboardSummaryAsync(userId);
-                if (Summary?.RecentQuizzes != null)
+                if (Summary?.RecentQuizzes != null && Summary.RecentQuizzes.Count > 0)
                 {
-                    foreach (var quiz in Summary.RecentQuizzes)
-                    {
-                        if (await HasAnyUserAnswersAsync(quiz.Id))
-                        {
-                            quizzesWithAnswers.Add(quiz.Id);
-                        }
-                    }
+                    var quizIds = Summary.RecentQuizzes.Select(q => q.Id).ToList();
+                    var questions = await UserQuizQuestionRepository.GetByUserAndQuizIdsAsync(userId, quizIds);
+                    var quizIdsWithAnswers = questions
+                        .Where(q => !string.IsNullOrEmpty(q.UserAnswer))
+                        .Select(q => q.QuizId)
+                        .Distinct();
+                    quizzesWithAnswers = new HashSet<int>(quizIdsWithAnswers);
                 }
             }
         }
-    }
-
-    private async Task<bool> HasAnyUserAnswersAsync(int quizId)
-    {
-        var questions = await UserQuizQuestionRepository.GetAllAsync();
-        return questions.Any(q => q.QuizId == quizId && !string.IsNullOrEmpty(q.UserAnswer));
     }
 
     private async Task ResumeQuiz(int quizId)

@@ -10,5 +10,7 @@ namespace WiseUpDude.Data.Repositories.Interfaces
         Task<QuizQuestion> GetByIdAsync(int id);
         Task UpdateAsync(QuizQuestion quizQuestion);
         Task ClearUserAnswersByQuizIdAsync(int quizId);
+        // New method for batch fetching by user and quiz ids
+        Task<IEnumerable<QuizQuestion>> GetByUserAndQuizIdsAsync(string userId, IEnumerable<int> quizIds);
     }
 }

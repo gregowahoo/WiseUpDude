@@ -28,6 +28,8 @@ namespace WiseUpDude.Model
 
         public string? Description { get; set; } // Optional
 
+        public string? Url { get; set; } // Optional, for quizzes from a URL
+
         public string? Difficulty { get; set; }
 
         // Add TopicId to match Entities.Quiz

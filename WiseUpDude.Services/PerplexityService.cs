@@ -52,6 +52,7 @@ namespace WiseUpDude.Services
             quizModel.Type = "Url";
             quizModel.Name = meta.Title ?? url;
             quizModel.Description = meta.Description;
+            quizModel.Url = url;
             quizModel.CreationDate = DateTime.UtcNow;
 
             return (quizModel, null);

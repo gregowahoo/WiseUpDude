@@ -192,7 +192,7 @@
                 UrlErrorMessage = error ?? "Failed to generate quiz from URL.";
                 return;
             }
-
+            quiz.Url = QuizUrl; // Set the Url property on the quiz model
             var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
             NavigationManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
         }

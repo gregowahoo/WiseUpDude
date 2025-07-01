@@ -46,6 +46,7 @@ namespace WiseUpDude.Data.Repositories
                 Topic = uq.Topic,
                 Prompt = uq.Prompt,
                 Description = uq.Description,
+                Url = uq.Url,
                 Difficulty = uq.Difficulty, // Include quiz-level difficulty
                 LearnMode = uq.LearnMode // Include LearnMode
             });
@@ -83,6 +84,7 @@ namespace WiseUpDude.Data.Repositories
                 Topic = userQuiz.Topic,
                 Prompt = userQuiz.Prompt,
                 Description = userQuiz.Description,
+                Url = userQuiz.Url,
                 Difficulty = userQuiz.Difficulty, // Include quiz-level difficulty
                 LearnMode = userQuiz.LearnMode // Include LearnMode
             };
@@ -99,6 +101,7 @@ namespace WiseUpDude.Data.Repositories
                 Topic = quiz.Topic,
                 Prompt = quiz.Prompt,
                 Description = quiz.Description,
+                Url = quiz.Url,
                 Difficulty = quiz.Difficulty, // Save quiz-level difficulty
                 LearnMode = quiz.LearnMode, // Save LearnMode
                 Questions = quiz.Questions.Select(q => new UserQuizQuestion
@@ -135,6 +138,7 @@ namespace WiseUpDude.Data.Repositories
                 Topic = quiz.Topic,
                 Prompt = quiz.Prompt,
                 Description = quiz.Description,
+                Url = quiz.Url,
                 Difficulty = quiz.Difficulty, // Save quiz-level difficulty
                 LearnMode = quiz.LearnMode, // Save LearnMode
                 Questions = quiz.Questions.Select(q => new UserQuizQuestion
@@ -177,6 +181,7 @@ namespace WiseUpDude.Data.Repositories
             userQuiz.Topic = quiz.Topic;
             userQuiz.Prompt = quiz.Prompt;
             userQuiz.Description = quiz.Description;
+            userQuiz.Url = quiz.Url;
             userQuiz.Difficulty = quiz.Difficulty; // Update quiz-level difficulty
             userQuiz.LearnMode = quiz.LearnMode; // Update LearnMode
 

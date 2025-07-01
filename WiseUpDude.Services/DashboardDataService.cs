@@ -51,7 +51,8 @@ namespace WiseUpDude.Services
                     Topic = q.Topic,
                     Prompt = q.Prompt,
                     Description = q.Description,
-                    LearnMode = q.LearnMode
+                    LearnMode = q.LearnMode,
+                    Url = q.Url // Map Url property
                 })
                 .ToList();
 

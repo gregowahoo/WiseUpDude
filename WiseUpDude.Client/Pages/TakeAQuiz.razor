@@ -22,7 +22,7 @@
 
 @inject NavigationManager Nav
 
-@if (OperatingSystem.IsBrowser())
+@* @if (OperatingSystem.IsBrowser())
 {
     <div class="alert alert-success">
         <strong>WASM Mode:</strong> This page is running in WebAssembly mode.
@@ -34,8 +34,8 @@ else
         <strong>Server Mode:</strong> This page is running in Blazor Server mode.
     </div>
 }
-
-<p>Running on: @(OperatingSystem.IsBrowser() ? "WASM" : "Server")</p>
+ *@
+@* <p>Running on: @(OperatingSystem.IsBrowser() ? "WASM" : "Server")</p> *@
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">

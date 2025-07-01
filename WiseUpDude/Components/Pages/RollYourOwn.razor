@@ -50,8 +50,11 @@
             <div class="row justify-content-center">
                 <div class="col-md-8">
                     <label for="promptInput" class="form-label fw-semibold">Enter your custom prompt:</label>
-                    <InputText id="promptInput" @bind-Value="UserPrompt" class="form-control form-control-lg mb-3"
-                               placeholder="e.g. Create a quiz about the history of space exploration." />
+                    <InputTextArea id="promptInput" @bind-Value="UserPrompt" class="form-control form-control-lg mb-3"
+                                   placeholder="e.g. Create a quiz about the history of space exploration."
+                                   Rows="10"
+                                   @onkeydown="HandlePromptKeyDown">
+                    </InputTextArea>
                     <br />
                     <div class="text-center">
                         <button class="btn btn-success btn-lg px-5"
@@ -109,6 +112,15 @@
         ActiveTab = tab;
         ErrorMessage = null;
         UrlErrorMessage = null;
+    }
+
+    private async Task HandlePromptKeyDown(KeyboardEventArgs e)
+    {
+        // Ctrl+Enter triggers quiz generation
+        if (e.CtrlKey && e.Key == "Enter" && CanGenerateAndSave)
+        {
+            await GenerateAndSaveQuizFromPrompt();
+        }
     }
 
     private async Task GenerateAndSaveQuizFromPrompt()

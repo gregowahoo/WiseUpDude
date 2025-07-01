@@ -73,10 +73,10 @@ namespace WiseUpDude.Services
             // Fetch meta data for the URL
             //var meta = await GetUrlMetaAsync(prompt);
             quizModel.UserId = userId;
-            quizModel.Prompt = string.Empty;
+            quizModel.Prompt = prompt;
             quizModel.Type = "Prompt";
             quizModel.Name = prompt;
-            quizModel.Description = "Description";
+            quizModel.Description = prompt;
             quizModel.CreationDate = DateTime.UtcNow;
 
             return (quizModel, null);

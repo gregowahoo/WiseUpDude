@@ -151,7 +151,6 @@
                 ErrorMessage = error ?? "Failed to generate quiz from prompt. Please try again.";
                 return;
             }
-            await UserQuizRepository.AddAsync(quiz);
             var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
             Logger.LogInformation("Quiz successfully saved to the UserQuiz table. QuizId: {QuizId}", userQuizId);
             NavigationManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
@@ -194,7 +193,6 @@
                 return;
             }
 
-            await UserQuizRepository.AddAsync(quiz);
             var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
             NavigationManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
         }

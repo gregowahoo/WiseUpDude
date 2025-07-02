@@ -32,3 +32,47 @@
             background: #e3e8ee;
             color: #388bff;
         }
+
+.scrolling-prompts-container {
+    overflow: hidden;
+    width: 100%;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: .25rem;
+    padding: 0.5rem 0;
+    white-space: nowrap;
+}
+
+.scrolling-prompts {
+    display: inline-block;
+    animation: scroll-left 120s linear infinite;
+}
+
+.scrolling-prompts-container:hover .scrolling-prompts,
+.scrolling-prompts-container.animation-paused .scrolling-prompts {
+    animation-play-state: paused;
+}
+
+.scrolling-prompt-item {
+    display: inline-block;
+    margin: 0 1.5rem;
+    color: #007bff;
+    cursor: pointer;
+    transition: color 0.3s;
+    text-decoration: none;
+}
+
+    .scrolling-prompt-item:hover {
+        color: #0056b3;
+        text-decoration: underline;
+    }
+
+@keyframes scroll-left {
+    0% {
+        transform: translateX(0%);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}

@@ -83,6 +83,36 @@ namespace WiseUpDude.Services
             return (quizModel, null);
         }
 
+        public async Task<(List<string>? Prompts, string? Error)> GenerateSuggestedPromptsAsync()
+        {
+            const string aiPrompt = "Generate a list of 20 practical and helpful quiz prompts on a diverse range of topics. " +
+                                    "Include topics relevant to different age groups, from young adults to seniors. " +
+                                    "The prompts should be suitable for generating a 10-15 question quiz. " +
+                                    "Return the topics as a JSON array of strings. " +
+                                    "For example: [\"Effective strategies for managing hot flashes\", \"The long-term effects of alcohol abuse\", \"Beginner's guide to mindfulness\", \"Understanding the basics of Alzheimer's disease\"]";
+            var (json, apiError) = await GetPerplexityQuizJsonAsync(aiPrompt);
+
+            if (apiError != null)
+            {
+                return (null, apiError);
+            }
+
+            try
+            {
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                var prompts = JsonSerializer.Deserialize<List<string>>(json, options);
+                return (prompts, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to parse suggested prompts JSON. Raw response: {json}", json);
+                return (null, $"Failed to parse suggested prompts JSON: {ex.Message}.");
+            }
+        }
+
         // Make these public for LearningTrackQuizService
         public async Task<(string? Json, string? Error)> GetPerplexityQuizJsonAsync(string aiPrompt)
         {

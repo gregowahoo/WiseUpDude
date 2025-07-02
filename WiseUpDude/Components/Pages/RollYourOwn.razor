@@ -49,6 +49,29 @@
         <div class="tab-pane fade @(ActiveTab == 0 ? "show active" : "")" id="prompt" role="tabpanel">
             <div class="row justify-content-center">
                 <div class="col-md-8">
+                    @if (IsLoadingPrompts)
+                    {
+                        <div class="text-center">
+                            <p>Loading suggestions...</p>
+                        </div>
+                    }
+                    else if (SuggestedPrompts?.Any() == true)
+                    {
+                        <label class="form-label fw-semibold">Here are some ideas to get you started (click one to try it!):</label>
+                        <div class="scrolling-prompts-container d-none d-md-block mb-3 @(promptSelected ? "animation-paused" : "")">
+                            <div class="scrolling-prompts">
+                                @foreach (var prompt in SuggestedPrompts)
+                                {
+                                    <span class="scrolling-prompt-item" @onclick="() => SelectPrompt(prompt)">@prompt</span>
+                                }
+                                <!-- Duplicate for seamless scroll -->
+                                @foreach (var prompt in SuggestedPrompts)
+                                {
+                                    <span class="scrolling-prompt-item" @onclick="() => SelectPrompt(prompt)">@prompt</span>
+                                }
+                            </div>
+                        </div>
+                    }
                     <label for="promptInput" class="form-label fw-semibold">Enter your custom prompt:</label>
                     <InputTextArea id="promptInput" @bind-Value="UserPrompt" class="form-control form-control-lg mb-3"
                                    placeholder="e.g. Create a quiz about the history of space exploration."
@@ -103,15 +126,41 @@
     private string? ErrorMessage;
     private string? UrlErrorMessage;
     private bool IsUrlGenerating = false;
+    private List<string> SuggestedPrompts = new();
+    private bool IsLoadingPrompts = false;
+    private bool promptSelected = false;
 
     private bool CanGenerateAndSave =>
         !IsGenerating && !IsSaving && !string.IsNullOrWhiteSpace(UserPrompt);
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsLoadingPrompts = true;
+        var (prompts, error) = await PerplexityService.GenerateSuggestedPromptsAsync();
+        if (prompts != null)
+        {
+            SuggestedPrompts = prompts;
+        }
+        else
+        {
+            Logger.LogError("Failed to load suggested prompts: {Error}", error);
+        }
+        IsLoadingPrompts = false;
+    }
 
     private void SetTab(int tab)
     {
         ActiveTab = tab;
         ErrorMessage = null;
         UrlErrorMessage = null;
+        promptSelected = false; // Reset when switching tabs
+    }
+
+    private async Task SelectPrompt(string prompt)
+    {
+        promptSelected = true;
+        UserPrompt = prompt;
+        await GenerateAndSaveQuizFromPrompt();
     }
 
     private async Task HandlePromptKeyDown(KeyboardEventArgs e)
@@ -164,7 +213,10 @@
         {
             IsGenerating = false;
             IsSaving = false;
-            StateHasChanged();
+            if (!promptSelected)
+            {
+                StateHasChanged();
+            }
         }
     }
 

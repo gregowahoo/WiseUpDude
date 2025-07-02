@@ -61,12 +61,6 @@
                     {
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <label class="form-label fw-semibold small">Here are some ideas to get you started (click one to try it!):</label>
-                            <div>
-                                <button class="btn btn-sm btn-outline-secondary me-2" @onclick="TogglePromptSuggestionsDialog">View All</button>
-                                <button class="btn btn-sm btn-outline-secondary" @onclick="RefreshPromptsAsync">
-                                    <i class="fas fa-sync-alt"></i> Refresh
-                                </button>
-                            </div>
                         </div>
                         <div class="scrolling-prompts-container d-none d-md-block mb-3 @(promptSelected ? "animation-paused" : "")">
                             <div class="scrolling-prompts">
@@ -80,6 +74,12 @@
                                     <span class="scrolling-prompt-item" @onclick="() => SelectPrompt(prompt)">@prompt</span>
                                 }
                             </div>
+                        </div>
+                        <div class="text-center mb-3">
+                            <button class="btn btn-sm btn-outline-secondary me-2" @onclick="TogglePromptSuggestionsDialog" title="View all suggestions in a dialog">View All</button>
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="RefreshPromptsAsync" title="Get a new list of suggestions">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
                         </div>
                     }
                     <label for="promptInput" class="form-label fw-semibold">Enter your custom prompt:</label>

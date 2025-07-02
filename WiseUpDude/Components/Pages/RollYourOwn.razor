@@ -58,7 +58,15 @@
                     }
                     else if (SuggestedPrompts?.Any() == true)
                     {
-                        <label class="form-label fw-semibold">Here are some ideas to get you started (click one to try it!):</label>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-semibold small">Here are some ideas to get you started (click one to try it!):</label>
+                            <div>
+                                <button class="btn btn-sm btn-outline-secondary me-2" @onclick="TogglePromptSuggestionsDialog">View All</button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="RefreshPromptsAsync">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
                         <div class="scrolling-prompts-container d-none d-md-block mb-3 @(promptSelected ? "animation-paused" : "")">
                             <div class="scrolling-prompts">
                                 @foreach (var prompt in SuggestedPrompts)
@@ -75,7 +83,7 @@
                     }
                     <label for="promptInput" class="form-label fw-semibold">Enter your custom prompt:</label>
                     <InputTextArea id="promptInput" @bind-Value="UserPrompt" class="form-control form-control-lg mb-3"
-                                   placeholder="e.g. Create a quiz about the history of space exploration."
+                                   placeholder="e.g. The history of space exploration."
                                    Rows="10"
                                    @onkeydown="HandlePromptKeyDown">
                     </InputTextArea>
@@ -118,6 +126,30 @@
     </div>
 </div>
 
+@if (isPromptSuggestionsDialogVisible)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Prompt Suggestions</h5>
+                    <button type="button" class="btn-close" @onclick="TogglePromptSuggestionsDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group">
+                        @foreach (var prompt in SuggestedPrompts)
+                        {
+                            <li class="list-group-item list-group-item-action" @onclick="async () => await SelectPromptFromDialog(prompt)">@prompt</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+
 @code {
     private int ActiveTab { get; set; } = 0;
     private string? UserPrompt { get; set; }
@@ -130,13 +162,20 @@
     private List<string> SuggestedPrompts = new();
     private bool IsLoadingPrompts = false;
     private bool promptSelected = false;
+    private bool isPromptSuggestionsDialogVisible = false;
 
     private bool CanGenerateAndSave =>
         !IsGenerating && !IsSaving && !string.IsNullOrWhiteSpace(UserPrompt);
 
     protected override async Task OnInitializedAsync()
     {
+        await RefreshPromptsAsync();
+    }
+
+    private async Task RefreshPromptsAsync()
+    {
         IsLoadingPrompts = true;
+        StateHasChanged();
         var (prompts, error) = await PerplexityService.GenerateSuggestedPromptsAsync();
         if (prompts != null)
         {
@@ -147,6 +186,19 @@
             Logger.LogError("Failed to load suggested prompts: {Error}", error);
         }
         IsLoadingPrompts = false;
+        StateHasChanged();
+    }
+
+    private void TogglePromptSuggestionsDialog()
+    {
+        isPromptSuggestionsDialogVisible = !isPromptSuggestionsDialogVisible;
+    }
+
+    private async Task SelectPromptFromDialog(string prompt)
+    {
+        TogglePromptSuggestionsDialog();
+        await Task.Delay(200); // Allow UI to update
+        await SelectPrompt(prompt);
     }
 
     private void SetTab(int tab)

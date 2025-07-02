@@ -17,6 +17,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ITenorGifService TenorGifService
 @inject IPromptSuggestionCacheService PromptCache
+@inject IUrlSuggestionCacheService UrlCache
 
 @rendermode InteractiveServer
 @attribute [Authorize]
@@ -106,6 +107,37 @@
         <div class="tab-pane fade @(ActiveTab == 1 ? "show active" : "")" id="url" role="tabpanel">
             <div class="row justify-content-center">
                 <div class="col-md-8">
+                    @if (IsLoadingUrls)
+                    {
+                        <div class="text-center">
+                            <p>Loading suggestions...</p>
+                        </div>
+                    }
+                    else if (SuggestedUrls?.Any() == true)
+                    {
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-semibold small">Here are some ideas to get you started (click one to try it!):</label>
+                        </div>
+                        <div class="scrolling-prompts-container d-none d-md-block mb-3 @(urlSelected ? "animation-paused" : "")">
+                            <div class="scrolling-prompts">
+                                @foreach (var url in SuggestedUrls)
+                                {
+                                    <span class="scrolling-prompt-item" @onclick="() => SelectUrl(url)">@url</span>
+                                }
+                                <!-- Duplicate for seamless scroll -->
+                                @foreach (var url in SuggestedUrls)
+                                {
+                                    <span class="scrolling-prompt-item" @onclick="() => SelectUrl(url)">@url</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="text-center mb-3">
+                            <button class="btn btn-sm btn-outline-secondary me-2" @onclick="ToggleUrlSuggestionsDialog" title="View all suggestions in a dialog">View All</button>
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="RefreshUrlsAsync" title="Get a new list of suggestions">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                    }
                     <label for="urlInput" class="form-label fw-semibold">Enter a URL to generate a quiz from its content:</label>
                     <InputText id="urlInput" @bind-Value="QuizUrl" class="form-control form-control-lg mb-3"
                                placeholder="e.g. https://en.wikipedia.org/wiki/Space_exploration" />
@@ -150,6 +182,29 @@
     <div class="modal-backdrop fade show"></div>
 }
 
+@if (isUrlSuggestionsDialogVisible)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">URL Suggestions</h5>
+                    <button type="button" class="btn-close" @onclick="ToggleUrlSuggestionsDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group">
+                        @foreach (var url in SuggestedUrls)
+                        {
+                            <li class="list-group-item list-group-item-action" @onclick="async () => await SelectUrlFromDialog(url)">@url</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
 
 @code {
     private int ActiveTab { get; set; } = 0;
@@ -164,6 +219,10 @@
     private bool IsLoadingPrompts = false;
     private bool promptSelected = false;
     private bool isPromptSuggestionsDialogVisible = false;
+    private List<string> SuggestedUrls = new();
+    private bool IsLoadingUrls = false;
+    private bool urlSelected = false;
+    private bool isUrlSuggestionsDialogVisible = false;
 
     private bool CanGenerateAndSave =>
         !IsGenerating && !IsSaving && !string.IsNullOrWhiteSpace(UserPrompt);
@@ -171,6 +230,7 @@
     protected override void OnInitialized()
     {
         _ = LoadPromptsAsync();
+        _ = LoadUrlsAsync();
     }
 
     private async Task LoadPromptsAsync()
@@ -236,6 +296,7 @@
         ErrorMessage = null;
         UrlErrorMessage = null;
         promptSelected = false; // Reset when switching tabs
+        urlSelected = false;
     }
 
     private async Task SelectPrompt(string prompt)
@@ -340,5 +401,69 @@
             IsUrlGenerating = false;
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    private async Task LoadUrlsAsync()
+    {
+        IsLoadingUrls = true;
+        await InvokeAsync(StateHasChanged);
+
+        if (UrlCache.HasUrls())
+        {
+            SuggestedUrls = UrlCache.GetUrls();
+        }
+        else
+        {
+            var (urls, error) = await PerplexityService.GenerateSuggestedUrlsAsync();
+            if (urls != null)
+            {
+                SuggestedUrls = urls;
+                UrlCache.SetUrls(urls);
+            }
+            else
+            {
+                Logger.LogError("Failed to load suggested URLs: {Error}", error);
+            }
+        }
+
+        IsLoadingUrls = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RefreshUrlsAsync()
+    {
+        IsLoadingUrls = true;
+        await InvokeAsync(StateHasChanged);
+        var (urls, error) = await PerplexityService.GenerateSuggestedUrlsAsync();
+        if (urls != null)
+        {
+            SuggestedUrls = urls;
+            UrlCache.SetUrls(urls);
+        }
+        else
+        {
+            Logger.LogError("Failed to load suggested URLs: {Error}", error);
+        }
+        IsLoadingUrls = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void ToggleUrlSuggestionsDialog()
+    {
+        isUrlSuggestionsDialogVisible = !isUrlSuggestionsDialogVisible;
+    }
+
+    private async Task SelectUrlFromDialog(string url)
+    {
+        ToggleUrlSuggestionsDialog();
+        await Task.Delay(200); // Allow UI to update
+        await SelectUrl(url);
+    }
+
+    private async Task SelectUrl(string url)
+    {
+        urlSelected = true;
+        QuizUrl = url;
+        await GenerateAndSaveQuizFromUrl();
     }
 }

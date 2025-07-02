@@ -164,6 +164,7 @@ builder.Services.AddChatClient(innerChatClientOpenAI);
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<ITopicsCacheService<Topic>, TopicsCacheService<Topic>>();
 builder.Services.AddScoped<IPromptSuggestionCacheService, PromptSuggestionCacheService>();
+builder.Services.AddScoped<IUrlSuggestionCacheService, UrlSuggestionCacheService>();
 builder.Services.AddHttpClient();
 
 

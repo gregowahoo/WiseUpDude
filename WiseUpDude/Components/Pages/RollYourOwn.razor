@@ -16,6 +16,7 @@
 @inject ILogger<RollYourOwn> Logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ITenorGifService TenorGifService
+@inject IPromptSuggestionCacheService PromptCache
 
 @rendermode InteractiveServer
 @attribute [Authorize]
@@ -167,26 +168,54 @@
     private bool CanGenerateAndSave =>
         !IsGenerating && !IsSaving && !string.IsNullOrWhiteSpace(UserPrompt);
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await RefreshPromptsAsync();
+        _ = LoadPromptsAsync();
+    }
+
+    private async Task LoadPromptsAsync()
+    {
+        IsLoadingPrompts = true;
+        await InvokeAsync(StateHasChanged);
+
+        if (PromptCache.HasPrompts())
+        {
+            SuggestedPrompts = PromptCache.GetPrompts();
+        }
+        else
+        {
+            var (prompts, error) = await PerplexityService.GenerateSuggestedPromptsAsync();
+            if (prompts != null)
+            {
+                SuggestedPrompts = prompts;
+                PromptCache.SetPrompts(prompts);
+            }
+            else
+            {
+                Logger.LogError("Failed to load suggested prompts: {Error}", error);
+            }
+        }
+
+        IsLoadingPrompts = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task RefreshPromptsAsync()
     {
         IsLoadingPrompts = true;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
         var (prompts, error) = await PerplexityService.GenerateSuggestedPromptsAsync();
         if (prompts != null)
         {
             SuggestedPrompts = prompts;
+            PromptCache.SetPrompts(prompts);
         }
         else
         {
             Logger.LogError("Failed to load suggested prompts: {Error}", error);
         }
         IsLoadingPrompts = false;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private void TogglePromptSuggestionsDialog()
@@ -236,7 +265,7 @@
         IsGenerating = true;
         IsSaving = true;
         ErrorMessage = null;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
@@ -268,7 +297,7 @@
             IsSaving = false;
             if (!promptSelected)
             {
-                StateHasChanged();
+                await InvokeAsync(StateHasChanged);
             }
         }
     }
@@ -282,7 +311,7 @@
             return;
         }
         IsUrlGenerating = true;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
@@ -309,7 +338,7 @@
         finally
         {
             IsUrlGenerating = false;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
     }
 }

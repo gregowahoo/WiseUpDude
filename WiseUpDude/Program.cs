@@ -163,6 +163,7 @@ builder.Services.AddChatClient(innerChatClientOpenAI);
 //Brought over from Original WUD
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<ITopicsCacheService<Topic>, TopicsCacheService<Topic>>();
+builder.Services.AddScoped<IPromptSuggestionCacheService, PromptSuggestionCacheService>();
 builder.Services.AddHttpClient();
 
 

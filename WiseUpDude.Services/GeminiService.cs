@@ -16,7 +16,9 @@ namespace WiseUpDude.Services
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<GeminiService> _logger;
-        private readonly UrlMetaService _urlMetaService; // Assuming you still need this for meta data
+        private readonly UrlMetaService _urlMetaService;
+        // Removed ContentFetchingService as per your request
+        // private readonly ContentFetchingService _contentFetchingService;
         private readonly string _geminiApiKey;
         private const string GEMINI_MODEL = "gemini-1.5-flash"; // Or gemini-1.5-pro, or gemini-pro
 
@@ -24,19 +26,25 @@ namespace WiseUpDude.Services
             IHttpClientFactory httpClientFactory,
             ILogger<GeminiService> logger,
             UrlMetaService urlMetaService,
-            IConfiguration configuration) // Inject IConfiguration
+            // Removed ContentFetchingService from constructor as per your request
+            // ContentFetchingService contentFetchingService,
+            IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
             _logger = logger;
             _urlMetaService = urlMetaService;
+            // Removed ContentFetchingService assignment as per your request
+            // _contentFetchingService = contentFetchingService;
             _geminiApiKey = configuration["GeminiApiKey"] ?? throw new ArgumentNullException("GeminiApiKey", "Gemini API Key is not configured in appsettings.json or environment variables.");
         }
 
         public async Task<(Quiz? Quiz, string? Error)> GenerateQuizFromUrlAsync(string url, string? userId)
         {
-            // This method correctly uses BuildQuizGenerationInstructions
+            // Get the static instructions for quiz generation
             var instructionPrompt = QuizPromptTemplates.BuildQuizGenerationInstructions();
 
+            // Pass the instructions AND the URL to the core API call method
+            // Gemini is expected to fetch the URL content directly via uri_data
             var (json, apiError) = await GetGeminiQuizJsonAsync(instructionPrompt, url);
 
             if (apiError != null)
@@ -63,7 +71,6 @@ namespace WiseUpDude.Services
 
         public async Task<(Quiz? Quiz, string? Error)> GenerateQuizFromPromptAsync(string prompt, string? userId)
         {
-            // This method correctly uses BuildQuizGenerationInstructions and combines it with the prompt
             var instructionPrompt = QuizPromptTemplates.BuildQuizGenerationInstructions();
             var combinedPrompt = $"{instructionPrompt}\n\nContent to base the quiz on: {prompt}";
 
@@ -89,74 +96,6 @@ namespace WiseUpDude.Services
             return (quizModel, null);
         }
 
-        public async Task<(List<string>? Urls, string? Error)> GenerateSuggestedUrlsAsync()
-        {
-            // CORRECTED: Only send the specific request for URLs.
-            // Do NOT include QuizPromptTemplates.BuildQuizGenerationInstructions() here.
-            const string aiPrompt = "Generate a list of 20 URLs for web pages that would be suitable for generating a quiz. " +
-                                    "Focus on reference-style pages like those from Wikipedia, WebMD, or other reputable sources with dense, informative content. " +
-                                    "Avoid homepages, forums, or interactive sites. " +
-                                    "Return the URLs as a JSON array of strings. " +
-                                    "For example: [\"https://www.webmd.com/diabetes/type-2-diabetes\", \"https://en.wikipedia.org/wiki/Roman_Empire\", \"https://www.nationalgeographic.com/animals\"]";
-
-            var (json, apiError) = await GetGeminiQuizJsonAsync(aiPrompt, null); // Pass only the specific request
-
-            if (apiError != null)
-            {
-                return (null, apiError);
-            }
-
-            try
-            {
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-                // This deserialization should now work if Gemini returns an array of strings
-                var urls = JsonSerializer.Deserialize<List<string>>(json, options);
-                return (urls, null);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to parse suggested URLs JSON from Gemini. Raw response: {json}", json);
-                return (null, $"Failed to parse suggested URLs JSON: {ex.Message}.");
-            }
-        }
-
-        public async Task<(List<string>? Prompts, string? Error)> GenerateSuggestedPromptsAsync()
-        {
-            // CORRECTED: Only send the specific request for prompts.
-            // Do NOT include QuizPromptTemplates.BuildQuizGenerationInstructions() here.
-            const string aiPrompt = "Generate a list of 20 practical and helpful quiz prompts on a diverse range of topics. " +
-                                    "Include topics relevant to different age groups, from young adults to seniors. " +
-                                    "The prompts should be suitable for generating a 10-15 question quiz. " +
-                                    "Return the topics as a JSON array of strings. " +
-                                    "For example: [\"Effective strategies for managing hot flashes\", \"The long-term effects of alcohol abuse\", \"Beginner's guide to mindfulness\", \"Understanding the basics of Alzheimer's disease\"]";
-
-            var (json, apiError) = await GetGeminiQuizJsonAsync(aiPrompt, null); // Pass only the specific request
-
-            if (apiError != null)
-            {
-                return (null, apiError);
-            }
-
-            try
-            {
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-                // This deserialization should now work if Gemini returns an array of strings
-                var prompts = JsonSerializer.Deserialize<List<string>>(json, options);
-                return (prompts, null);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to parse suggested prompts JSON from Gemini. Raw response: {json}", json);
-                return (null, $"Failed to parse suggested prompts JSON: {ex.Message}.");
-            }
-        }
-
         // Internal method to handle the actual API call to Gemini
         private async Task<(string? Json, string? Error)> GetGeminiQuizJsonAsync(string userPrompt, string? url = null)
         {
@@ -169,13 +108,13 @@ namespace WiseUpDude.Services
 
             if (!string.IsNullOrEmpty(url))
             {
-                // Add the URL as a specific part for Gemini to fetch and read
+                // CORRECTED BACK TO uri_data and uri as per standard documentation for web URLs
                 requestParts.Add(new
                 {
-                    file_data = new
+                    uri_data = new // Back to uri_data
                     {
                         mime_type = "text/html", // Assuming it's a standard web page
-                        file_uri = url
+                        uri = url // Back to uri
                     }
                 });
             }
@@ -188,12 +127,8 @@ namespace WiseUpDude.Services
                 },
                 generationConfig = new
                 {
-                    // temperature = 0.7,
-                    // topP = 0.95,
-                    // topK = 60,
-                    responseMimeType = "application/json" // Crucial for getting JSON output
-                },
-                // tools = new[] { new { Google Search = new object() } }
+                    responseMimeType = "application/json"
+                }
             };
 
             var requestUri = $"v1beta/models/{GEMINI_MODEL}:generateContent?key={_geminiApiKey}";
@@ -288,6 +223,68 @@ namespace WiseUpDude.Services
             }
 
             return (jsonContent, null);
+        }
+
+        public async Task<(List<string>? Urls, string? Error)> GenerateSuggestedUrlsAsync()
+        {
+            const string aiPrompt = "Generate a list of 20 URLs for web pages that would be suitable for generating a quiz. " +
+                                    "Focus on reference-style pages like those from Wikipedia, WebMD, or other reputable sources with dense, informative content. " +
+                                    "Avoid homepages, forums, or interactive sites. " +
+                                    "Return the URLs as a JSON array of strings. " +
+                                    "For example: [\"https://www.webmd.com/diabetes/type-2-diabetes\", \"https://en.wikipedia.org/wiki/Roman_Empire\", \"https://www.nationalgeographic.com/animals\"]";
+
+            var (json, apiError) = await GetGeminiQuizJsonAsync(aiPrompt, null);
+
+            if (apiError != null)
+            {
+                return (null, apiError);
+            }
+
+            try
+            {
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                var urls = JsonSerializer.Deserialize<List<string>>(json, options);
+                return (urls, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to parse suggested URLs JSON from Gemini. Raw response: {json}", json);
+                return (null, $"Failed to parse suggested URLs JSON: {ex.Message}.");
+            }
+        }
+
+        public async Task<(List<string>? Prompts, string? Error)> GenerateSuggestedPromptsAsync()
+        {
+            const string aiPrompt = "Generate a list of 20 practical and helpful quiz prompts on a diverse range of topics. " +
+                                    "Include topics relevant to different age groups, from young adults to seniors. " +
+                                    "The prompts should be suitable for generating a 10-15 question quiz. " +
+                                    "Return the topics as a JSON array of strings. " +
+                                    "For example: [\"Effective strategies for managing hot flashes\", \"The long-term effects of alcohol abuse\", \"Beginner's guide to mindfulness\", \"Understanding the basics of Alzheimer's disease\"]";
+
+            var (json, apiError) = await GetGeminiQuizJsonAsync(aiPrompt, null);
+
+            if (apiError != null)
+            {
+                return (null, apiError);
+            }
+
+            try
+            {
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                var prompts = JsonSerializer.Deserialize<List<string>>(json, options);
+                return (prompts, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to parse suggested prompts JSON from Gemini. Raw response: {json}", json);
+                return (null, $"Failed to parse suggested prompts JSON: {ex.Message}.");
+            }
         }
 
         public (Quiz? QuizModel, string? Error) ParseQuizJson(string json)

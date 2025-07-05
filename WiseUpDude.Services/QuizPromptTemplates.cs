@@ -2,7 +2,9 @@ namespace WiseUpDude.Services
 {
     public static class QuizPromptTemplates
     {
-        // For URL-based or prompt-based quizzes
+        // This method is the old one, likely for Perplexity, and should not be used
+        // for Gemini API calls where content is passed multimodally.
+        // Keeping it as is, assuming it might be used elsewhere or for historical context.
         public static string BuildQuizPrompt(string urlOrPrompt)
         {
             var prompt = @"IMPORTANT: For multiple-choice questions, the correct answer must be randomly placed in one of the four options (A, B, C, or D), and the distribution of correct answer positions must be as even as possible across the quiz. For example, in a 20-question quiz, the correct answer should appear about 5 times in each position. Do NOT default to the first position. If you generate 4 questions, the correct answer should be in position 1 for one question, position 2 for one, position 3 for one, and position 4 for one. If the correct answer is not evenly distributed among the four positions, regenerate the quiz until this requirement is met.
@@ -50,6 +52,8 @@ ERROR HANDLING:
             return string.Format(prompt, urlOrPrompt);
         }
 
+        // This method is optimized for Gemini API calls where content is passed multimodally.
+        // Updated to include explicit string examples for "QuestionType" in the OUTPUT format.
         public static string BuildQuizGenerationInstructions()
         {
             var prompt = @"
@@ -82,25 +86,38 @@ QUIZ DIFFICULTY:
 
 OUTPUT:
 - Return only valid JSON in the following format:
-{ ""Questions"": [ { ""Question"": ""..."", ""Options"": [""...""], ""Answer"": ""..."", ""Explanation"": ""..."", ""QuestionType"": ""..."", ""Difficulty"": ""..."" }}, ... ], ""Type"": ""..."", ""Description"": ""..."", ""Difficulty"": ""..."" }.
+{{
+  ""Questions"": [
+    {{
+      ""Question"": ""..."",
+      ""Options"": [""...""],
+      ""Answer"": ""..."",
+      ""Explanation"": ""..."",
+      ""QuestionType"": ""MultipleChoice"", // Explicitly show string here
+      ""Difficulty"": ""...""
+    }},
+    {{
+      ""Question"": ""..."",
+      ""Options"": [""True"", ""False""],
+      ""Answer"": ""..."",
+      ""Explanation"": ""..."",
+      ""QuestionType"": ""TrueFalse"", // Explicitly show string here
+      ""Difficulty"": ""...""
+    }}
+  ],
+  ""Type"": ""..."",
+  ""Description"": ""..."",
+  ""Difficulty"": ""...""
+}}.
 - Return only the raw JSON, without any code block formatting or prefixes like 'json'.
 - Do NOT include any Markdown code block formatting (such as triple backticks or the word 'json') in your response. Return only the raw JSON.
 - Do NOT include any explanation, commentary, or additional metadata (such as id, model, usage, citations, search_results, or any wrapper object). Return ONLY the quiz JSON object as specified above, and nothing else.
 
 ERROR HANDLING:
-- If the provided content is too vague, factually impossible, or cannot result in a meaningful quiz, return a JSON object in this format: { ""Error"": ""<reason>"" }.
+- If the provided content is too vague, factually impossible, or cannot result in a meaningful quiz, return a JSON object in this format: {{ ""Error"": ""<reason>"" }}.
 - If the provided content is ambiguous, choose the most likely intended topic based on the text. If still unclear, return the above error object explaining that the content was ambiguous.
 ";
             return prompt.Trim(); // Trim any leading/trailing whitespace from the multiline string
         }
-
-        // You can keep your old BuildQuizPrompt if it's used elsewhere,
-        // but for Gemini API calls, you'll use BuildQuizGenerationInstructions
-        // and pass the URL/prompt content separately.
-        // public static string BuildQuizPrompt(string urlOrPrompt)
-        // {
-        //     // ... your existing code ...
-        //     return string.Format(prompt, urlOrPrompt);
-        // }
     }
 }

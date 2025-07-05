@@ -10,43 +10,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using WiseUpDude.Model; // Add this to access config
 
-// Assuming WiseUpDude.Model contains your Quiz, Question, and Answer models
 namespace WiseUpDude.Services
 {
-    // Make sure your Quiz, Question, Answer models are correctly defined elsewhere, e.g.:
-    // namespace WiseUpDude.Model
-    // {
-    //     public class Quiz
-    //     {
-    //         [JsonPropertyName("title")]
-    //         public string? Title { get; set; }
-    //         [JsonPropertyName("description")]
-    //         public string? Description { get; set; }
-    //         [JsonPropertyName("questions")]
-    //         public List<Question>? Questions { get; set; }
-    //         public string? UserId { get; set; }
-    //         public string? Prompt { get; set; }
-    //         public string? Type { get; set; }
-    //         public string? Name { get; set; }
-    //         public string? Url { get; set; }
-    //         public DateTime CreationDate { get; set; }
-    //     }
-
-    //     public class Question
-    //     {
-    //         [JsonPropertyName("question_text")]
-    //         public string? QuestionText { get; set; }
-    //         [JsonPropertyName("type")]
-    //         public string? Type { get; set; } // e.g., "multiple_choice", "true_false"
-    //         [JsonPropertyName("options")]
-    //         public List<string>? Options { get; set; } // For multiple choice
-    //         [JsonPropertyName("correct_answer")]
-    //         public string? CorrectAnswer { get; set; }
-    //         [JsonPropertyName("explanation")]
-    //         public string? Explanation { get; set; }
-    //     }
-    // }
-
     public class GeminiService
     {
         private readonly IHttpClientFactory _httpClientFactory;
@@ -69,10 +34,9 @@ namespace WiseUpDude.Services
 
         public async Task<(Quiz? Quiz, string? Error)> GenerateQuizFromUrlAsync(string url, string? userId)
         {
-            // Get the static instructions for quiz generation
+            // This method correctly uses BuildQuizGenerationInstructions
             var instructionPrompt = QuizPromptTemplates.BuildQuizGenerationInstructions();
 
-            // Pass the instructions AND the URL to the core API call method
             var (json, apiError) = await GetGeminiQuizJsonAsync(instructionPrompt, url);
 
             if (apiError != null)
@@ -85,10 +49,9 @@ namespace WiseUpDude.Services
             if (quizModel == null || quizModel.Questions == null || !quizModel.Questions.Any())
                 return (null, "No quiz questions found in Gemini response.");
 
-            // Fetch meta data for the URL (this is done outside the AI API call, similar to your original)
             var meta = await GetUrlMetaAsync(url);
             quizModel.UserId = userId;
-            quizModel.Prompt = instructionPrompt; // Store the prompt used
+            quizModel.Prompt = instructionPrompt;
             quizModel.Type = "Url";
             quizModel.Name = meta.Title ?? url;
             quizModel.Description = meta.Description;
@@ -100,14 +63,11 @@ namespace WiseUpDude.Services
 
         public async Task<(Quiz? Quiz, string? Error)> GenerateQuizFromPromptAsync(string prompt, string? userId)
         {
-            // Get the static instructions for quiz generation
+            // This method correctly uses BuildQuizGenerationInstructions and combines it with the prompt
             var instructionPrompt = QuizPromptTemplates.BuildQuizGenerationInstructions();
-
-            // Combine the general instructions with the user's specific text prompt
-            // This forms the complete text input for the model
             var combinedPrompt = $"{instructionPrompt}\n\nContent to base the quiz on: {prompt}";
 
-            var (json, apiError) = await GetGeminiQuizJsonAsync(combinedPrompt, null); // No URL for this case
+            var (json, apiError) = await GetGeminiQuizJsonAsync(combinedPrompt, null);
 
             if (apiError != null)
                 return (null, apiError);
@@ -122,8 +82,8 @@ namespace WiseUpDude.Services
             quizModel.UserId = userId;
             quizModel.Prompt = prompt;
             quizModel.Type = "Prompt";
-            quizModel.Name = prompt; // Name can be the prompt or derived
-            quizModel.Description = prompt; // Description can be the prompt or derived
+            quizModel.Name = prompt;
+            quizModel.Description = prompt;
             quizModel.CreationDate = DateTime.UtcNow;
 
             return (quizModel, null);
@@ -131,19 +91,15 @@ namespace WiseUpDude.Services
 
         public async Task<(List<string>? Urls, string? Error)> GenerateSuggestedUrlsAsync()
         {
-            // Get the static instructions for quiz generation
-            var instructionPrompt = QuizPromptTemplates.BuildQuizGenerationInstructions();
+            // CORRECTED: Only send the specific request for URLs.
+            // Do NOT include QuizPromptTemplates.BuildQuizGenerationInstructions() here.
+            const string aiPrompt = "Generate a list of 20 URLs for web pages that would be suitable for generating a quiz. " +
+                                    "Focus on reference-style pages like those from Wikipedia, WebMD, or other reputable sources with dense, informative content. " +
+                                    "Avoid homepages, forums, or interactive sites. " +
+                                    "Return the URLs as a JSON array of strings. " +
+                                    "For example: [\"https://www.webmd.com/diabetes/type-2-diabetes\", \"https://en.wikipedia.org/wiki/Roman_Empire\", \"https://www.nationalgeographic.com/animals\"]";
 
-            // Append the specific request for URLs to the general instructions
-            const string specificRequest = "Generate a list of 20 URLs for web pages that would be suitable for generating a quiz. " +
-                                           "Focus on reference-style pages like those from Wikipedia, WebMD, or other reputable sources with dense, informative content. " +
-                                           "Avoid homepages, forums, or interactive sites. " +
-                                           "Return ONLY the URLs as a JSON array of strings. " +
-                                           "For example: [\"https://www.webmd.com/diabetes/type-2-diabetes\", \"https://en.wikipedia.org/wiki/Roman_Empire\", \"https://www.nationalgeographic.com/animals\"]";
-
-            var combinedPrompt = $"{instructionPrompt}\n\n{specificRequest}";
-
-            var (json, apiError) = await GetGeminiQuizJsonAsync(combinedPrompt, null); // No URL input for this call
+            var (json, apiError) = await GetGeminiQuizJsonAsync(aiPrompt, null); // Pass only the specific request
 
             if (apiError != null)
             {
@@ -156,6 +112,7 @@ namespace WiseUpDude.Services
                 {
                     PropertyNameCaseInsensitive = true
                 };
+                // This deserialization should now work if Gemini returns an array of strings
                 var urls = JsonSerializer.Deserialize<List<string>>(json, options);
                 return (urls, null);
             }
@@ -168,19 +125,15 @@ namespace WiseUpDude.Services
 
         public async Task<(List<string>? Prompts, string? Error)> GenerateSuggestedPromptsAsync()
         {
-            // Get the static instructions for quiz generation
-            var instructionPrompt = QuizPromptTemplates.BuildQuizGenerationInstructions();
+            // CORRECTED: Only send the specific request for prompts.
+            // Do NOT include QuizPromptTemplates.BuildQuizGenerationInstructions() here.
+            const string aiPrompt = "Generate a list of 20 practical and helpful quiz prompts on a diverse range of topics. " +
+                                    "Include topics relevant to different age groups, from young adults to seniors. " +
+                                    "The prompts should be suitable for generating a 10-15 question quiz. " +
+                                    "Return the topics as a JSON array of strings. " +
+                                    "For example: [\"Effective strategies for managing hot flashes\", \"The long-term effects of alcohol abuse\", \"Beginner's guide to mindfulness\", \"Understanding the basics of Alzheimer's disease\"]";
 
-            // Append the specific request for prompts to the general instructions
-            const string specificRequest = "Generate a list of 20 practical and helpful quiz prompts on a diverse range of topics. " +
-                                           "Include topics relevant to different age groups, from young adults to seniors. " +
-                                           "The prompts should be suitable for generating a 10-15 question quiz. " +
-                                           "Return ONLY the topics as a JSON array of strings. " +
-                                           "For example: [\"Effective strategies for managing hot flashes\", \"The long-term effects of alcohol abuse\", \"Beginner's guide to mindfulness\", \"Understanding the basics of Alzheimer's disease\"]";
-
-            var combinedPrompt = $"{instructionPrompt}\n\n{specificRequest}";
-
-            var (json, apiError) = await GetGeminiQuizJsonAsync(combinedPrompt, null); // No URL input for this call
+            var (json, apiError) = await GetGeminiQuizJsonAsync(aiPrompt, null); // Pass only the specific request
 
             if (apiError != null)
             {
@@ -193,6 +146,7 @@ namespace WiseUpDude.Services
                 {
                     PropertyNameCaseInsensitive = true
                 };
+                // This deserialization should now work if Gemini returns an array of strings
                 var prompts = JsonSerializer.Deserialize<List<string>>(json, options);
                 return (prompts, null);
             }
@@ -218,10 +172,10 @@ namespace WiseUpDude.Services
                 // Add the URL as a specific part for Gemini to fetch and read
                 requestParts.Add(new
                 {
-                    url_data = new
+                    file_data = new
                     {
                         mime_type = "text/html", // Assuming it's a standard web page
-                        url = url
+                        file_uri = url
                     }
                 });
             }
@@ -234,15 +188,14 @@ namespace WiseUpDude.Services
                 },
                 generationConfig = new
                 {
-                    // temperature = 0.7, // Adjust as needed for creativity vs. factualness
+                    // temperature = 0.7,
                     // topP = 0.95,
                     // topK = 60,
                     responseMimeType = "application/json" // Crucial for getting JSON output
                 },
-                // tools = new[] { new { Google Search = new object() } } // Only enable if you want it to search broadly
+                // tools = new[] { new { Google Search = new object() } }
             };
 
-            // Include the API key directly in the URL as a query parameter
             var requestUri = $"v1beta/models/{GEMINI_MODEL}:generateContent?key={_geminiApiKey}";
 
             _logger.LogInformation("Sending request to Gemini API. URL: {Url}, Body: {Body}",
@@ -274,7 +227,6 @@ namespace WiseUpDude.Services
                 var geminiContent = await geminiResponse.Content.ReadAsStringAsync();
                 _logger.LogDebug("Gemini API raw response: {Content}", geminiContent);
 
-                // Parse the Gemini response structure
                 using var doc = JsonDocument.Parse(geminiContent);
                 var candidates = doc.RootElement.GetProperty("candidates");
                 if (candidates.ValueKind == JsonValueKind.Array && candidates.EnumerateArray().Any())
@@ -288,8 +240,6 @@ namespace WiseUpDude.Services
                         if (firstPart.TryGetProperty("text", out var textElement))
                         {
                             jsonContent = textElement.GetString() ?? "";
-                            // Gemini can also return markdown code blocks, just like Perplexity.
-                            // We'll apply the same stripping logic.
                             if (!string.IsNullOrWhiteSpace(jsonContent))
                             {
                                 jsonContent = jsonContent.Trim();
@@ -340,7 +290,6 @@ namespace WiseUpDude.Services
             return (jsonContent, null);
         }
 
-        // Re-use your existing ParseQuizJson and GetUrlMetaAsync methods
         public (Quiz? QuizModel, string? Error) ParseQuizJson(string json)
         {
             try
@@ -361,7 +310,6 @@ namespace WiseUpDude.Services
 
         public async Task<UrlMetaService.UrlMetaResult> GetUrlMetaAsync(string url)
         {
-            // This service is external and remains the same
             return await _urlMetaService.GetUrlMetaAsync(url);
         }
     }

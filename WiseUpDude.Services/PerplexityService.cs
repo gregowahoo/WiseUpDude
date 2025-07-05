@@ -34,6 +34,7 @@ namespace WiseUpDude.Services
         // Add: GenerateQuizFromUserInputAsync for user quizzes (not LearningTrack)
         public async Task<(Quiz? Quiz, string? Error)> GenerateQuizFromUrlAsync(string url, string? userId)
         {
+            // Use the URL directly for the prompt
             var aiPrompt = QuizPromptTemplates.BuildQuizPrompt(url);
             var (json, apiError) = await GetPerplexityQuizJsonAsync(aiPrompt);
 

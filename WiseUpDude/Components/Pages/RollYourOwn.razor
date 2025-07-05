@@ -139,6 +139,9 @@
                         </div>
                     }
                     <label for="urlInput" class="form-label fw-semibold">Enter a URL to generate a quiz from its content:</label>
+                    <div class="alert alert-warning small mb-2">
+                        <strong>Note:</strong> Quiz data may be slightly out of date, especially for fast-changing topics like sports or news.
+                    </div>
                     <InputText id="urlInput" @bind-Value="QuizUrl" class="form-control form-control-lg mb-3"
                                placeholder="e.g. https://en.wikipedia.org/wiki/Space_exploration" />
                     <br />

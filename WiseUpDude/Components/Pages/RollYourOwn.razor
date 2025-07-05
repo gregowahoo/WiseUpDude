@@ -12,7 +12,7 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject IQuizFromPromptService QuizGenerationService
-@inject WiseUpDude.Services.PerplexityService PerplexityService
+@inject WiseUpDude.Services.GeminiService GeminiService
 @inject ILogger<RollYourOwn> Logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ITenorGifService TenorGifService
@@ -247,7 +247,7 @@
         }
         else
         {
-            var (prompts, error) = await PerplexityService.GenerateSuggestedPromptsAsync();
+            var (prompts, error) = await GeminiService.GenerateSuggestedPromptsAsync();
             if (prompts != null)
             {
                 SuggestedPrompts = prompts;
@@ -267,7 +267,7 @@
     {
         IsLoadingPrompts = true;
         await InvokeAsync(StateHasChanged);
-        var (prompts, error) = await PerplexityService.GenerateSuggestedPromptsAsync();
+        var (prompts, error) = await GeminiService.GenerateSuggestedPromptsAsync();
         if (prompts != null)
         {
             SuggestedPrompts = prompts;
@@ -338,11 +338,11 @@
 
         try
         {
-            Logger.LogInformation("Sending prompt to PerplexityService: {UserPrompt}", UserPrompt);
-            var (quiz, error) = await PerplexityService.GenerateQuizFromPromptAsync(UserPrompt, userId);
+            Logger.LogInformation("Sending prompt to GeminiService: {UserPrompt}", UserPrompt);
+            var (quiz, error) = await GeminiService.GenerateQuizFromPromptAsync(UserPrompt, userId);
             if (quiz == null)
             {
-                Logger.LogError("PerplexityService returned no quiz. Error: {Error}", error);
+                Logger.LogError("GeminiService returned no quiz. Error: {Error}", error);
                 ErrorMessage = error ?? "Failed to generate quiz from prompt. Please try again.";
                 return;
             }
@@ -384,7 +384,7 @@
 
         try
         {
-            var (quiz, error) = await PerplexityService.GenerateQuizFromUrlAsync(QuizUrl, userId);
+            var (quiz, error) = await GeminiService.GenerateQuizFromUrlAsync(QuizUrl, userId);
             if (quiz == null)
             {
                 UrlErrorMessage = error ?? "Failed to generate quiz from URL.";
@@ -417,7 +417,7 @@
         }
         else
         {
-            var (urls, error) = await PerplexityService.GenerateSuggestedUrlsAsync();
+            var (urls, error) = await GeminiService.GenerateSuggestedUrlsAsync();
             if (urls != null)
             {
                 SuggestedUrls = urls;
@@ -437,7 +437,7 @@
     {
         IsLoadingUrls = true;
         await InvokeAsync(StateHasChanged);
-        var (urls, error) = await PerplexityService.GenerateSuggestedUrlsAsync();
+        var (urls, error) = await GeminiService.GenerateSuggestedUrlsAsync();
         if (urls != null)
         {
             SuggestedUrls = urls;

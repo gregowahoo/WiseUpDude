@@ -136,6 +136,15 @@ builder.Services.AddHttpClient("PerplexityAI", client =>
 
 #endregion
 
+// Configure HttpClient for Gemini API
+builder.Services.AddHttpClient("GeminiAI", client =>
+{
+    // Use the specific API endpoint for generateContent
+    client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
+    // API Key will be added as a query parameter per Google's recommended usage for simple HTTP calls
+    // client.DefaultRequestHeaders.Add("x-goog-api-key", builder.Configuration["GeminiApiKey"]); // Not needed if appending to URL
+});
+
 
 #region Chat Client Configuration
 
@@ -226,6 +235,8 @@ builder.Services.AddSingleton<WiseUpDude.Shared.Services.ToastService>();
 
 // Register PerplexityService and its dependencies
 builder.Services.AddScoped<PerplexityService>();
+
+builder.Services.AddScoped<GeminiService>(); 
 
 builder.Services.AddScoped<LearningTrackQuizService>();
 

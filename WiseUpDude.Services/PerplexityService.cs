@@ -41,9 +41,9 @@ namespace WiseUpDude.Services
                 : $"{url}?t={timestamp}";
 
             //var aiPrompt = QuizPromptTemplates.BuildQuizPrompt(urlWithTimestamp);
-            var aiPrompt = QuizPromptTemplates.BuildQuizPrompt(urlWithTimestamp);
             // Use the URL directly for the prompt
-            //var aiPrompt = QuizPromptTemplates.BuildQuizPrompt(url);
+            var aiPrompt = QuizPromptTemplates.BuildQuizPrompt(url);
+
             var (json, apiError) = await GetPerplexityQuizJsonAsync(aiPrompt);
 
             if (apiError != null)
@@ -158,7 +158,11 @@ namespace WiseUpDude.Services
             var client = _httpClientFactory.CreateClient("PerplexityAI");
             var requestBody = new
             {
-                model = "sonar-pro",
+                //model = "sonar-pro",
+                model = "sonar",
+                //model = "sonar-deep-research",
+                //model = "sonar-reasoning-pro",
+                //model = "sonar-reasoning",
                 messages = new[]
                 {
                     new { role = "user", content = aiPrompt }

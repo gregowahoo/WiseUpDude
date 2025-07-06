@@ -139,8 +139,8 @@ namespace WiseUpDude.Data.Repositories
                 Prompt = quiz.Prompt,
                 Description = quiz.Description,
                 Url = quiz.Url,
-                Difficulty = quiz.Difficulty, // Save quiz-level difficulty
-                LearnMode = quiz.LearnMode, // Save LearnMode
+                Difficulty = quiz.Difficulty,
+                LearnMode = quiz.LearnMode,
                 Questions = quiz.Questions.Select(q => new UserQuizQuestion
                 {
                     Question = q.Question,
@@ -149,19 +149,27 @@ namespace WiseUpDude.Data.Repositories
                     QuestionType = (UserQuizQuestionType)q.QuestionType,
                     OptionsJson = q.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(q.Options),
                     UserAnswer = q.UserAnswer,
-                    Difficulty = q.Difficulty, // Save question-level difficulty
-                    Quiz = null // Will be set before saving
+                    Difficulty = q.Difficulty,
+                    Quiz = null
                 }).ToList()
             };
 
-            // Set the Quiz property for each question before saving
             foreach (var question in userQuiz.Questions)
             {
                 question.Quiz = userQuiz;
             }
 
             context.UserQuizzes.Add(userQuiz);
-            await context.SaveChangesAsync();
+
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log or rethrow for debugging
+                throw new InvalidOperationException("Failed to save UserQuiz and UserQuizQuestions", ex);
+            }
 
             return userQuiz.Id;
         }

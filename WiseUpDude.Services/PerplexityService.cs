@@ -97,7 +97,7 @@ namespace WiseUpDude.Services
             const string aiPrompt = "Generate a list of 20 URLs for web pages that would be suitable for generating a quiz. " +
                                     "Focus on reference-style pages like those from Wikipedia, WebMD, or other reputable sources with dense, informative content. " +
                                     "Avoid homepages, forums, or interactive sites. " +
-                                    "Return the URLs as a JSON array of strings. " +
+                                    "Return only the URLs as a JSON array of strings, with no explanation, markdown, or formatting. " +
                                     "For example: [\"https://www.webmd.com/diabetes/type-2-diabetes\", \"https://en.wikipedia.org/wiki/Roman_Empire\", \"https://www.nationalgeographic.com/animals\"]";
             var (json, apiError) = await GetPerplexityQuizJsonAsync(aiPrompt);
 
@@ -127,7 +127,7 @@ namespace WiseUpDude.Services
             const string aiPrompt = "Generate a list of 20 practical and helpful quiz prompts on a diverse range of topics. " +
                                     "Include topics relevant to different age groups, from young adults to seniors. " +
                                     "The prompts should be suitable for generating a 10-15 question quiz. " +
-                                    "Return the topics as a JSON array of strings. " +
+                                    "Return only the topics as a JSON array of strings, with no explanation, markdown, or formatting. " +
                                     "For example: [\"Effective strategies for managing hot flashes\", \"The long-term effects of alcohol abuse\", \"Beginner's guide to mindfulness\", \"Understanding the basics of Alzheimer's disease\"]";
             var (json, apiError) = await GetPerplexityQuizJsonAsync(aiPrompt);
 

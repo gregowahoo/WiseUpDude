@@ -241,16 +241,18 @@
         IsLoadingPrompts = true;
         await InvokeAsync(StateHasChanged);
 
-        if (PromptCache.HasPrompts())
+        var cachedPrompts = PromptCache.GetPrompts();
+        if (PromptCache.HasPrompts() && cachedPrompts != null)
         {
-            SuggestedPrompts = PromptCache.GetPrompts();
+            // Always assign a new list instance, even from cache
+            SuggestedPrompts = new List<string>(cachedPrompts);
         }
         else
         {
             var (prompts, error) = await PerplexityService.GenerateSuggestedPromptsAsync();
             if (prompts != null)
             {
-                SuggestedPrompts = prompts;
+                SuggestedPrompts = prompts.ToList();
                 PromptCache.SetPrompts(prompts);
             }
             else
@@ -270,7 +272,7 @@
         var (prompts, error) = await PerplexityService.GenerateSuggestedPromptsAsync();
         if (prompts != null)
         {
-            SuggestedPrompts = prompts;
+            SuggestedPrompts = prompts.ToList(); // Assign a new list instance
             PromptCache.SetPrompts(prompts);
         }
         else
@@ -284,6 +286,7 @@
     private void TogglePromptSuggestionsDialog()
     {
         isPromptSuggestionsDialogVisible = !isPromptSuggestionsDialogVisible;
+        StateHasChanged();
     }
 
     private async Task SelectPromptFromDialog(string prompt)
@@ -411,16 +414,18 @@
         IsLoadingUrls = true;
         await InvokeAsync(StateHasChanged);
 
-        if (UrlCache.HasUrls())
+        var cachedUrls = UrlCache.GetUrls();
+        if (UrlCache.HasUrls() && cachedUrls != null)
         {
-            SuggestedUrls = UrlCache.GetUrls();
+            // Always assign a new list instance, even from cache
+            SuggestedUrls = new List<string>(cachedUrls);
         }
         else
         {
             var (urls, error) = await PerplexityService.GenerateSuggestedUrlsAsync();
             if (urls != null)
             {
-                SuggestedUrls = urls;
+                SuggestedUrls = urls.ToList();
                 UrlCache.SetUrls(urls);
             }
             else
@@ -440,7 +445,7 @@
         var (urls, error) = await PerplexityService.GenerateSuggestedUrlsAsync();
         if (urls != null)
         {
-            SuggestedUrls = urls;
+            SuggestedUrls = urls.ToList(); // Assign a new list instance
             UrlCache.SetUrls(urls);
         }
         else
@@ -454,6 +459,7 @@
     private void ToggleUrlSuggestionsDialog()
     {
         isUrlSuggestionsDialogVisible = !isUrlSuggestionsDialogVisible;
+        StateHasChanged();
     }
 
     private async Task SelectUrlFromDialog(string url)

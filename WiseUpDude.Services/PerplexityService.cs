@@ -60,7 +60,7 @@ namespace WiseUpDude.Services
             quizModel.Prompt = string.Empty;
             quizModel.Type = "Url";
             quizModel.Name = meta.Title ?? url;
-            quizModel.Description = meta.Description;
+            quizModel.Description = meta.Description ?? meta.Title;
             quizModel.Url = url;
             quizModel.CreationDate = DateTime.UtcNow;
 

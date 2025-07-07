@@ -42,9 +42,14 @@ else
         <div>
             <h3 class="mb-0">
                 🧠 Take Quiz -
-                @(UserQuiz?.Type == "Topic"
-                                ? UserQuiz?.Topic
-                                : UserQuiz?.Prompt)
+                @(UserQuiz is null ? ""
+                    : UserQuiz.Type switch
+                    {
+                        "Topic" => UserQuiz.Topic,
+                        "Prompt" => UserQuiz.Prompt,
+                        "Url" => UserQuiz.Url,
+                        _ => UserQuiz.Description
+                    })
             </h3>
             <p class="mb-0">Select an answer for each question to see if you're correct.</p>
             @if (!string.IsNullOrWhiteSpace(UserQuiz?.Difficulty))

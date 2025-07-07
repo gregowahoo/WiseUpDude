@@ -1,78 +1,258 @@
-/* Custom Professional Tabs for RollYourOwn.razor */
-.custom-tabs {
-    background: #f8fafc;
-    border-radius: 1.2rem 1.2rem 0 0;
-    border: 1.5px solid #e3e8ee;
-    box-shadow: 0 2px 12px 0 rgba(56,182,255,0.07);
-    padding: 0.2rem 0.5rem 0 0.5rem;
-    margin-bottom: 0;
+/* Modern, responsive, and attractive styles for RollYourOwn.razor */
+:root {
+    --ryo-primary: #4f8cff;
+    --ryo-success: #22c55e;
+    --ryo-warning: #fbbf24;
+    --ryo-bg: #f8fafc;
+    --ryo-card-bg: #fff;
+    --ryo-border: #e3e8ee;
+    --ryo-radius: 1.2rem;
+    --ryo-shadow: 0 4px 24px 0 rgba(56,182,255,0.10);
 }
 
-    .custom-tabs .nav-link {
-        border: none;
-        border-radius: 1.2rem 1.2rem 0 0;
-        color: #4f8cff;
-        background: transparent;
-        font-weight: 600;
-        margin-right: 0.2rem;
-        transition: background 0.18s, color 0.18s;
-        padding: 0.7rem 1.5rem 0.7rem 1.5rem;
-    }
+.ryo-hero {
+    background: linear-gradient(90deg, #4f8cff 0%, #38b6ff 100%);
+    color: #fff;
+    padding: 2.5rem 1rem 2rem 1rem;
+    text-align: center;
+    border-radius: 0 0 2rem 2rem;
+    box-shadow: 0 2px 16px 0 rgba(56,182,255,0.10);
+    margin-bottom: 2rem;
+}
+.ryo-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    letter-spacing: -1px;
+}
+.ryo-subtitle {
+    font-size: 1.25rem;
+    font-weight: 400;
+    opacity: 0.95;
+}
 
-        .custom-tabs .nav-link.active {
-            background: #fff;
-            color: #22223b;
-            border: 1.5px solid #e3e8ee;
-            border-bottom: 2.5px solid #fff;
-            box-shadow: 0 2px 8px 0 rgba(56,182,255,0.07);
-            z-index: 2;
-        }
+.ryo-card-container {
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
 
-        .custom-tabs .nav-link:not(.active):hover {
-            background: #e3e8ee;
-            color: #388bff;
-        }
-
-.scrolling-prompts-container {
+.ryo-tabs {
+    display: flex;
+    position: relative;
+    background: var(--ryo-bg);
+    border-radius: var(--ryo-radius);
+    box-shadow: var(--ryo-shadow);
+    margin-bottom: 1.5rem;
     overflow: hidden;
-    width: 100%;
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: .25rem;
-    padding: 0.5rem 0;
-    white-space: nowrap;
 }
-
-.scrolling-prompts {
-    display: inline-block;
-    animation: scroll-left 120s linear infinite;
-}
-
-.scrolling-prompts-container:hover .scrolling-prompts,
-.scrolling-prompts-container.animation-paused .scrolling-prompts {
-    animation-play-state: paused;
-}
-
-.scrolling-prompt-item {
-    display: inline-block;
-    margin: 0 1.5rem;
-    color: #007bff;
+.ryo-tab-btn {
+    flex: 1 1 0;
+    background: none;
+    border: none;
+    outline: none;
+    padding: 1rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ryo-primary);
     cursor: pointer;
-    transition: color 0.3s;
-    text-decoration: none;
+    transition: background 0.18s, color 0.18s;
+    position: relative;
+    z-index: 2;
+}
+.ryo-tab-btn.active {
+    color: #22223b;
+    background: #fff;
+    box-shadow: 0 2px 8px 0 rgba(56,182,255,0.07);
+}
+.ryo-tab-btn:not(.active):hover {
+    background: #e3e8ee;
+    color: #388bff;
+}
+.ryo-tab-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50%;
+    height: 4px;
+    background: linear-gradient(90deg, #4f8cff 0%, #38b6ff 100%);
+    border-radius: 2px 2px 0 0;
+    transition: left 0.3s cubic-bezier(.4,0,.2,1);
+    z-index: 1;
 }
 
-    .scrolling-prompt-item:hover {
-        color: #0056b3;
-        text-decoration: underline;
-    }
+.ryo-tab-content {
+    animation: fadeIn 0.4s;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: none; }
+}
 
-@keyframes scroll-left {
-    0% {
-        transform: translateX(0%);
-    }
+.ryo-form-card {
+    background: var(--ryo-card-bg);
+    border-radius: var(--ryo-radius);
+    box-shadow: var(--ryo-shadow);
+    padding: 2rem 1.5rem 1.5rem 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+.ryo-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+.ryo-form-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ryo-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.ryo-refresh-btn {
+    background: none;
+    border: none;
+    color: var(--ryo-primary);
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 50%;
+    transition: background 0.18s;
+}
+.ryo-refresh-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.ryo-refresh-btn:hover:not(:disabled) {
+    background: #e3e8ee;
+}
 
-    100% {
-        transform: translateX(-50%);
+.ryo-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.ryo-input {
+    font-size: 1.1rem;
+    border-radius: 0.75rem;
+    border: 1.5px solid var(--ryo-border);
+    padding: 0.75rem 1rem;
+    background: #f9fafb;
+    transition: border 0.18s;
+}
+.ryo-input:focus {
+    border-color: var(--ryo-primary);
+    outline: none;
+    background: #fff;
+}
+
+.ryo-form-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+.ryo-action-btn {
+    font-size: 1.1rem;
+    font-weight: 700;
+    border: 2px solid #22c55e;
+    border-radius: 2rem;
+    padding: 0.75rem 2.5rem;
+    box-shadow: 0 2px 8px 0 rgba(56,182,255,0.07);
+    background: #22c55e;
+    color: #fff;
+    opacity: 1;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, border 0.18s;
+    filter: none;
+    visibility: visible;
+    display: inline-block;
+}
+.ryo-action-success {
+    background: #22c55e;
+    color: #fff;
+    border: 2px solid #22c55e;
+}
+.ryo-action-success:disabled {
+    background: #b6e7c9;
+    color: #fff;
+    cursor: not-allowed;
+    opacity: 0.7;
+    border: 2px solid #b6e7c9;
+}
+.ryo-action-success:hover:not(:disabled) {
+    background: #16a34a;
+    border: 2px solid #16a34a;
+}
+.ryo-action-primary {
+    background: #22c55e;
+    color: #fff;
+    border: 2px solid #22c55e;
+}
+.ryo-action-primary:disabled {
+    background: #b6e7c9;
+    color: #fff;
+    cursor: not-allowed;
+    opacity: 0.7;
+    border: 2px solid #b6e7c9;
+}
+.ryo-action-primary:hover:not(:disabled) {
+    background: #16a34a;
+    border: 2px solid #16a34a;
+}
+
+.ryo-note {
+    background: #f8fafc;
+    color: #22223b;
+    border-left: 4px solid var(--ryo-warning);
+    font-size: 0.98rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+}
+
+.ryo-banner-note {
+    display: block;
+    font-size: 0.75rem;
+    color: #e0e7ef;
+    opacity: 0.7;
+    margin-top: 0.25rem;
+    font-style: italic;
+    font-weight: 400;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .ryo-hero {
+        padding: 1.5rem 0.5rem 1.2rem 0.5rem;
+        border-radius: 0 0 1.2rem 1.2rem;
+    }
+    .ryo-title {
+        font-size: 1.5rem;
+    }
+    .ryo-card-container {
+        padding: 0 0.25rem;
+    }
+    .ryo-form-card {
+        padding: 1.2rem 0.5rem 1rem 0.5rem;
+    }
+    .ryo-form-title {
+        font-size: 1rem;
+    }
+    .ryo-action-btn {
+        font-size: 1rem;
+        padding: 0.6rem 1.2rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .ryo-title {
+        font-size: 1.1rem;
+    }
+    .ryo-form-title {
+        font-size: 0.9rem;
     }
 }

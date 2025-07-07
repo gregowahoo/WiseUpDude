@@ -59,14 +59,13 @@
         @if (ActiveTab == 0)
         {
             <div class="ryo-form-card">
-                <div class="ryo-form-header">
-                    <span class="ryo-form-title"><i class="bi bi-lightbulb"></i> Custom Prompt</span>
-                    <button class="ryo-refresh-btn" title="Refresh Prompts" @onclick="RefreshPromptsAsync" disabled="@IsLoadingPrompts">
-                        <i class="bi bi-arrow-clockwise"></i>
-                    </button>
-                </div>
                 <div class="ryo-form-group">
-                    <label for="promptDropdown">Example Prompts</label>
+                    <div class="ryo-form-label-row">
+                        <label for="promptDropdown">Example Prompts</label>
+                        <button class="ryo-refresh-btn" title="Refresh Prompts" @onclick="RefreshPromptsAsync" disabled="@IsLoadingPrompts">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
                     <select id="promptDropdown" class="form-select" @onchange="OnPromptDropdownChanged" disabled="@IsLoadingPrompts">
                         <option value="">Choose an example...</option>
                         @if (SuggestedPrompts != null)
@@ -98,14 +97,13 @@
         else if (ActiveTab == 1)
         {
             <div class="ryo-form-card">
-                <div class="ryo-form-header">
-                    <span class="ryo-form-title"><i class="bi bi-link-45deg"></i> From URL</span>
-                    <button class="ryo-refresh-btn" title="Refresh URLs" @onclick="RefreshUrlsAsync" disabled="@IsLoadingUrls">
-                        <i class="bi bi-arrow-clockwise"></i>
-                    </button>
-                </div>
                 <div class="ryo-form-group">
-                    <label for="urlDropdown">Example URLs</label>
+                    <div class="ryo-form-label-row">
+                        <label for="urlDropdown">Example URLs</label>
+                        <button class="ryo-refresh-btn" title="Refresh URLs" @onclick="RefreshUrlsAsync" disabled="@IsLoadingUrls">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
                     <select id="urlDropdown" class="form-select" @onchange="OnUrlDropdownChanged" disabled="@IsLoadingUrls">
                         <option value="">Choose an example...</option>
                         @if (SuggestedUrls != null)
@@ -187,24 +185,6 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task RefreshPromptsAsync()
-    {
-        IsLoadingPrompts = true;
-        await InvokeAsync(StateHasChanged);
-        var (prompts, error) = await PerplexityService.GenerateSuggestedPromptsAsync();
-        if (prompts != null)
-        {
-            SuggestedPrompts = prompts.ToList();
-            PromptCache.SetPrompts(prompts);
-        }
-        else
-        {
-            Logger.LogError("Failed to load suggested prompts: {Error}", error);
-        }
-        IsLoadingPrompts = false;
-        await InvokeAsync(StateHasChanged);
-    }
-
     private async Task LoadUrlsAsync()
     {
         IsLoadingUrls = true;
@@ -230,6 +210,24 @@
         }
 
         IsLoadingUrls = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RefreshPromptsAsync()
+    {
+        IsLoadingPrompts = true;
+        await InvokeAsync(StateHasChanged);
+        var (prompts, error) = await PerplexityService.GenerateSuggestedPromptsAsync();
+        if (prompts != null)
+        {
+            SuggestedPrompts = prompts.ToList();
+            PromptCache.SetPrompts(prompts);
+        }
+        else
+        {
+            Logger.LogError("Failed to load suggested prompts: {Error}", error);
+        }
+        IsLoadingPrompts = false;
         await InvokeAsync(StateHasChanged);
     }
 

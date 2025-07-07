@@ -141,6 +141,29 @@
     flex-direction: column;
     gap: 0.5rem;
 }
+.ryo-form-group-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    flex-direction: row;
+}
+.ryo-form-group-inline label {
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+.ryo-form-group-inline .form-select {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-right: 0.25rem;
+}
+.ryo-form-group-inline .ryo-refresh-btn {
+    margin-left: 0;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
 .ryo-input {
     font-size: 1.1rem;
     border-radius: 0.75rem;
@@ -266,4 +289,21 @@
     .ryo-form-title {
         font-size: 0.9rem;
     }
+}
+
+.ryo-form-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.15rem;
+}
+.ryo-form-label-row label {
+    margin-bottom: 0;
+    font-weight: 500;
+    font-size: 1rem;
+}
+.ryo-form-label-row .ryo-refresh-btn {
+    margin-left: 0.25rem;
+    align-self: center;
 }

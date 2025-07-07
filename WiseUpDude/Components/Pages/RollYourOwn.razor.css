@@ -37,14 +37,16 @@
     padding: 0 1rem;
 }
 
+/* --- Enhanced Tab Separation --- */
 .ryo-tabs {
     display: flex;
     position: relative;
-    background: var(--ryo-bg);
+    background: #f3f7fb;
     border-radius: var(--ryo-radius);
-    box-shadow: var(--ryo-shadow);
-    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 24px 0 rgba(56,182,255,0.07);
+    margin-bottom: 2.5rem;
     overflow: hidden;
+    border-bottom: 2px solid var(--ryo-border);
 }
 .ryo-tab-btn {
     flex: 1 1 0;
@@ -59,30 +61,32 @@
     transition: background 0.18s, color 0.18s;
     position: relative;
     z-index: 2;
+    border-bottom: 4px solid transparent;
+    border-radius: 0;
 }
 .ryo-tab-btn.active {
     color: #22223b;
     background: #fff;
-    box-shadow: 0 2px 8px 0 rgba(56,182,255,0.07);
+    box-shadow: 0 4px 16px 0 rgba(56,182,255,0.10);
+    border-bottom: 4px solid var(--ryo-primary);
+    z-index: 3;
 }
 .ryo-tab-btn:not(.active):hover {
     background: #e3e8ee;
     color: #388bff;
 }
 .ryo-tab-indicator {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 50%;
-    height: 4px;
-    background: linear-gradient(90deg, #4f8cff 0%, #38b6ff 100%);
-    border-radius: 2px 2px 0 0;
-    transition: left 0.3s cubic-bezier(.4,0,.2,1);
-    z-index: 1;
+    display: none;
 }
 
 .ryo-tab-content {
     animation: fadeIn 0.4s;
+    background: #fff;
+    border-radius: 0 0 var(--ryo-radius) var(--ryo-radius);
+    box-shadow: 0 4px 24px 0 rgba(56,182,255,0.07);
+    padding-top: 0.5rem;
+    margin-top: -1.5rem;
+    border-top: 2px solid var(--ryo-border);
 }
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(16px); }
@@ -98,6 +102,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    margin-top: 0.5rem;
 }
 .ryo-form-header {
     display: flex;
@@ -222,6 +227,12 @@
     margin-top: 0.25rem;
     font-style: italic;
     font-weight: 400;
+}
+
+/* Optional: Add a subtle divider between tab content for extra clarity */
+.ryo-tab-content > .ryo-form-card {
+    border-top: 1.5px solid #e3e8ee;
+    margin-top: 0;
 }
 
 /* Responsive Design */

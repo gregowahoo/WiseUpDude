@@ -92,26 +92,27 @@ namespace WiseUpDude.Services
             return (quizModel, null);
         }
 
-        public async Task<(List<string>? Urls, string? Error)> GenerateSuggestedUrlsAsync()
+        public async Task<(List<string>? Urls, string? Error)> GenerateSuggestedUrlsAsync(string? theme)
         {
-            const string aiPrompt = "Generate a list of 20 URLs for web pages that would be suitable for generating a quiz. " +
-                                    "Focus on reference-style pages like those from Wikipedia, WebMD, or other reputable sources with dense, informative content. " +
-                                    "Avoid homepages, forums, or interactive sites. " +
-                                    "Return only the URLs as a JSON array of strings, with no explanation, markdown, or formatting. " +
-                                    "For example: [\"https://www.webmd.com/diabetes/type-2-diabetes\", \"https://en.wikipedia.org/wiki/Roman_Empire\", \"https://www.nationalgeographic.com/animals\"]";
+            string aiPrompt = string.IsNullOrWhiteSpace(theme)
+                ? "Generate a list of 20 URLs for web pages that would be suitable for generating a quiz. " +
+                  "Focus on reference-style pages like those from Wikipedia, WebMD, or other reputable sources with dense, informative content. " +
+                  "Avoid homepages, forums, or interactive sites. " +
+                  "Return only the URLs as a JSON array of strings, with no explanation, markdown, or formatting. " +
+                  "For example: [\"https://www.webmd.com/diabetes/type-2-diabetes\", \"https://en.wikipedia.org/wiki/Roman_Empire\", \"https://www.nationalgeographic.com/animals\"]"
+                : $"Generate a list of 20 URLs for web pages about '{theme}' that would be suitable for generating a quiz. " +
+                  "Focus on reference-style pages like those from Wikipedia, WebMD, or other reputable sources with dense, informative content. " +
+                  "Avoid homepages, forums, or interactive sites. " +
+                  "Return only the URLs as a JSON array of strings, with no explanation, markdown, or formatting.";
+
             var (json, apiError) = await GetPerplexityQuizJsonAsync(aiPrompt);
 
             if (apiError != null)
-            {
                 return (null, apiError);
-            }
 
             try
             {
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var urls = JsonSerializer.Deserialize<List<string>>(json, options);
                 return (urls, null);
             }
@@ -122,26 +123,26 @@ namespace WiseUpDude.Services
             }
         }
 
-        public async Task<(List<string>? Prompts, string? Error)> GenerateSuggestedPromptsAsync()
+        public async Task<(List<string>? Prompts, string? Error)> GenerateSuggestedPromptsAsync(string? theme)
         {
-            const string aiPrompt = "Generate a list of 20 practical and helpful quiz prompts on a diverse range of topics. " +
-                                    "Include topics relevant to different age groups, from young adults to seniors. " +
-                                    "The prompts should be suitable for generating a 10-15 question quiz. " +
-                                    "Return only the topics as a JSON array of strings, with no explanation, markdown, or formatting. " +
-                                    "For example: [\"Effective strategies for managing hot flashes\", \"The long-term effects of alcohol abuse\", \"Beginner's guide to mindfulness\", \"Understanding the basics of Alzheimer's disease\"]";
+            string aiPrompt = string.IsNullOrWhiteSpace(theme)
+                ? "Generate a list of 20 practical and helpful quiz prompts on a diverse range of topics. " +
+                  "Include topics relevant to different age groups, from young adults to seniors. " +
+                  "The prompts should be suitable for generating a 10-15 question quiz. " +
+                  "Return only the topics as a JSON array of strings, with no explanation, markdown, or formatting. " +
+                  "For example: [\"Effective strategies for managing hot flashes\", \"The long-term effects of alcohol abuse\", \"Beginner's guide to mindfulness\", \"Understanding the basics of Alzheimer's disease\"]"
+                : $"Generate a list of 20 practical and helpful quiz prompts on the theme '{theme}'. " +
+                  "The prompts should be suitable for generating a 10-15 question quiz. " +
+                  "Return only the topics as a JSON array of strings, with no explanation, markdown, or formatting.";
+
             var (json, apiError) = await GetPerplexityQuizJsonAsync(aiPrompt);
 
             if (apiError != null)
-            {
                 return (null, apiError);
-            }
 
             try
             {
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var prompts = JsonSerializer.Deserialize<List<string>>(json, options);
                 return (prompts, null);
             }

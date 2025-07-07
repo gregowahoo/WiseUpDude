@@ -33,105 +33,105 @@
                       LoadingTextMessage="@($"Preparing your quiz from the URL: \"{QuizUrl}\"...")" />
 }
 
-<div class="ryo-hero">
-    <div class="ryo-hero-content">
-        <h1 class="ryo-title">🎲 Roll Your Own Quiz</h1>
-        <p class="ryo-subtitle">
-            Create a quiz from a custom prompt or a web URL. Fast, fun, and easy!
-            <br />
+<div class="container py-5">
+    <!-- Header Section -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary">🎲 Roll Your Own Quiz</h1>
+        <p class="lead text-muted">
+            Create a quiz from a custom prompt or a web URL. Fast, fun, and easy!<br />
             <span class="ryo-banner-note">Note: Quiz data may be slightly out of date, especially for fast-changing topics like sports or news.</span>
         </p>
     </div>
-</div>
 
-<div class="ryo-card-container">
-    <div class="ryo-tabs">
-        <button class="ryo-tab-btn @(ActiveTab == 0 ? "active" : null)" @onclick="() => SetTab(0)">
-            <i class="bi bi-lightbulb"></i> Custom Prompt
-        </button>
-        <button class="ryo-tab-btn @(ActiveTab == 1 ? "active" : null)" @onclick="() => SetTab(1)">
-            <i class="bi bi-link-45deg"></i> From URL
-        </button>
-        <div class="ryo-tab-indicator" style="left:@(ActiveTab * 50)%"></div>
-    </div>
+    <div class="ryo-card-container">
+        <div class="ryo-tabs">
+            <button class="ryo-tab-btn @(ActiveTab == 0 ? "active" : null)" @onclick="() => SetTab(0)">
+                <i class="bi bi-lightbulb"></i> Custom Prompt
+            </button>
+            <button class="ryo-tab-btn @(ActiveTab == 1 ? "active" : null)" @onclick="() => SetTab(1)">
+                <i class="bi bi-link-45deg"></i> From URL
+            </button>
+            <div class="ryo-tab-indicator" style="left:@(ActiveTab * 50)%"></div>
+        </div>
 
-    <div class="ryo-tab-content">
-        @if (ActiveTab == 0)
-        {
-            <div class="ryo-form-card">
-                <div class="ryo-form-group">
-                    <div class="ryo-form-label-row">
-                        <label for="promptDropdown">Example Prompts</label>
-                        <button class="ryo-refresh-btn" title="Refresh Prompts" @onclick="RefreshPromptsAsync" disabled="@IsLoadingPrompts">
-                            <i class="bi bi-arrow-clockwise"></i>
+        <div class="ryo-tab-content">
+            @if (ActiveTab == 0)
+            {
+                <div class="ryo-form-card">
+                    <div class="ryo-form-group">
+                        <div class="ryo-form-label-row">
+                            <label for="promptDropdown">Example Prompts</label>
+                            <button class="ryo-refresh-btn" title="Refresh Prompts" @onclick="RefreshPromptsAsync" disabled="@IsLoadingPrompts">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </div>
+                        <select id="promptDropdown" class="form-select" @onchange="OnPromptDropdownChanged" disabled="@IsLoadingPrompts">
+                            <option value="">Choose an example...</option>
+                            @if (SuggestedPrompts != null)
+                            {
+                                @foreach (var prompt in SuggestedPrompts)
+                                {
+                                    <option value="@prompt">@prompt</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="ryo-form-group">
+                        <label for="promptInput">What would you like to learn about?</label>
+                        <InputTextArea id="promptInput" @bind-Value="UserPrompt" class="form-control ryo-input" placeholder="e.g. The history of space exploration, quantum physics basics, cooking techniques..." Rows="4" @onkeydown="HandlePromptKeyDown" />
+                    </div>
+                    <div class="ryo-form-actions">
+                        <button class="ryo-action-btn ryo-action-success" @onclick="GenerateAndSaveQuizFromPrompt" disabled="@(IsGenerating || IsSaving || string.IsNullOrWhiteSpace(UserPrompt))">
+                            🚀 Generate Quiz
                         </button>
                     </div>
-                    <select id="promptDropdown" class="form-select" @onchange="OnPromptDropdownChanged" disabled="@IsLoadingPrompts">
-                        <option value="">Choose an example...</option>
-                        @if (SuggestedPrompts != null)
-                        {
-                            @foreach (var prompt in SuggestedPrompts)
+                    @if (!string.IsNullOrEmpty(ErrorMessage))
+                    {
+                        <div class="alert alert-danger mt-3" role="alert">
+                            @ErrorMessage
+                        </div>
+                    }
+                </div>
+            }
+            else if (ActiveTab == 1)
+            {
+                <div class="ryo-form-card">
+                    <div class="ryo-form-group">
+                        <div class="ryo-form-label-row">
+                            <label for="urlDropdown">Example URLs</label>
+                            <button class="ryo-refresh-btn" title="Refresh URLs" @onclick="RefreshUrlsAsync" disabled="@IsLoadingUrls">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </div>
+                        <select id="urlDropdown" class="form-select" @onchange="OnUrlDropdownChanged" disabled="@IsLoadingUrls">
+                            <option value="">Choose an example...</option>
+                            @if (SuggestedUrls != null)
                             {
-                                <option value="@prompt">@prompt</option>
+                                @foreach (var url in SuggestedUrls)
+                                {
+                                    <option value="@url">@url</option>
+                                }
                             }
-                        }
-                    </select>
-                </div>
-                <div class="ryo-form-group">
-                    <label for="promptInput">What would you like to learn about?</label>
-                    <InputTextArea id="promptInput" @bind-Value="UserPrompt" class="form-control ryo-input" placeholder="e.g. The history of space exploration, quantum physics basics, cooking techniques..." Rows="4" @onkeydown="HandlePromptKeyDown" />
-                </div>
-                <div class="ryo-form-actions">
-                    <button class="ryo-action-btn ryo-action-success" @onclick="GenerateAndSaveQuizFromPrompt" disabled="@(IsGenerating || IsSaving || string.IsNullOrWhiteSpace(UserPrompt))">
-                        🚀 Generate & Save Quiz
-                    </button>
-                </div>
-                @if (!string.IsNullOrEmpty(ErrorMessage))
-                {
-                    <div class="alert alert-danger mt-3" role="alert">
-                        @ErrorMessage
+                        </select>
                     </div>
-                }
-            </div>
-        }
-        else if (ActiveTab == 1)
-        {
-            <div class="ryo-form-card">
-                <div class="ryo-form-group">
-                    <div class="ryo-form-label-row">
-                        <label for="urlDropdown">Example URLs</label>
-                        <button class="ryo-refresh-btn" title="Refresh URLs" @onclick="RefreshUrlsAsync" disabled="@IsLoadingUrls">
-                            <i class="bi bi-arrow-clockwise"></i>
+                    <div class="ryo-form-group">
+                        <label for="urlInput">Enter the URL of an article or webpage:</label>
+                        <InputText id="urlInput" @bind-Value="QuizUrl" class="form-control ryo-input" placeholder="e.g. https://en.wikipedia.org/wiki/Space_exploration" />
+                    </div>
+                    <div class="ryo-form-actions">
+                        <button class="ryo-action-btn ryo-action-primary" @onclick="GenerateAndSaveQuizFromUrl" disabled="@(IsUrlGenerating || string.IsNullOrWhiteSpace(QuizUrl))">
+                            🔗 Generate Quiz
                         </button>
                     </div>
-                    <select id="urlDropdown" class="form-select" @onchange="OnUrlDropdownChanged" disabled="@IsLoadingUrls">
-                        <option value="">Choose an example...</option>
-                        @if (SuggestedUrls != null)
-                        {
-                            @foreach (var url in SuggestedUrls)
-                            {
-                                <option value="@url">@url</option>
-                            }
-                        }
-                    </select>
+                    @if (!string.IsNullOrEmpty(UrlErrorMessage))
+                    {
+                        <div class="alert alert-danger mt-3" role="alert">
+                            @UrlErrorMessage
+                        </div>
+                    }
                 </div>
-                <div class="ryo-form-group">
-                    <label for="urlInput">Enter the URL of an article or webpage:</label>
-                    <InputText id="urlInput" @bind-Value="QuizUrl" class="form-control ryo-input" placeholder="e.g. https://en.wikipedia.org/wiki/Space_exploration" />
-                </div>
-                <div class="ryo-form-actions">
-                    <button class="ryo-action-btn ryo-action-primary" @onclick="GenerateAndSaveQuizFromUrl" disabled="@(IsUrlGenerating || string.IsNullOrWhiteSpace(QuizUrl))">
-                        🔗 Generate & Save Quiz
-                    </button>
-                </div>
-                @if (!string.IsNullOrEmpty(UrlErrorMessage))
-                {
-                    <div class="alert alert-danger mt-3" role="alert">
-                        @UrlErrorMessage
-                    </div>
-                }
-            </div>
-        }
+            }
+        </div>
     </div>
 </div>
 

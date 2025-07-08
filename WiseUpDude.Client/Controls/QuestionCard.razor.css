@@ -50,3 +50,10 @@
 .btn-incorrect {
     box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
 }
+
+.options-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}

@@ -103,6 +103,7 @@
     <div class="card-body">
         <h5 class="card-title">@($"Q{QuestionIndex + 1}: {Question?.Question}")</h5>
 
+        <div class="options-center">
         @if (Question?.Options != null && Question.Options.Count > 0)
         {
             @foreach (var option in Question.Options)
@@ -125,6 +126,7 @@
                 </button>
             }
         }
+        </div>
 
         @if (!AutoSubmit)
         {

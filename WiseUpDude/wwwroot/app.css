@@ -69,3 +69,35 @@ h1:focus {
     display: block;
     text-align: center;
 }
+
+/* Responsive font size for TakeAQuiz page */
+@media (max-width: 600px) {
+    .card-header h3,
+    .card-header p,
+    .card-body,
+    .card-body .alert,
+    .card-body .btn,
+    .card-body .form-control {
+        font-size: 0.95rem !important;
+    }
+    .card-header h3 {
+        font-size: 1.1rem !important;
+    }
+    .card-body h5.card-title {
+        font-size: 1rem !important;
+    }
+}
+
+/* Center answer bubbles in QuestionCard */
+.question-options-center {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+@media (max-width: 600px) {
+    .question-options-center {
+        gap: 0.3rem;
+    }
+}

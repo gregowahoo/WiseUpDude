@@ -119,12 +119,14 @@ else
                 bool canEdit = !learnMode || !answeredQuestions.Contains(i);
                 <div class="mb-4">
                     <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p>
-                    <QuestionCard Question="question"
-                                  QuestionIndex="i"
-                                  AutoSubmit="autoSubmit"
-                                  MuteSound="muteSound"
-                                  CanEdit="@canEdit"
-                                  OnAnswerSubmitted="@((args) => HandleAnswerSubmitted(args))" />
+                    <div class="question-options-center">
+                        <QuestionCard Question="question"
+                                      QuestionIndex="i"
+                                      AutoSubmit="autoSubmit"
+                                      MuteSound="muteSound"
+                                      CanEdit="@canEdit"
+                                      OnAnswerSubmitted="@((args) => HandleAnswerSubmitted(args))" />
+                    </div>
                 </div>
             }
         }

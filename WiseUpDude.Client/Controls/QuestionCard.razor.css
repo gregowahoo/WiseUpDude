@@ -33,6 +33,13 @@
     border: 2px solid #b71c1c !important;
 }
 
+.card.mb-3.shadow-sm, .question-card {
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+}
+
 .question-card {
     color: #f1f1f1; /* Light text */
     background-color: #1a1a1a; /* Dark card background */

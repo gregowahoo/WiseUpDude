@@ -60,7 +60,7 @@
                 <div class="ryo-form-card">
                     <div class="ryo-form-group" style="border: 1.5px solid #b6b6b6; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; background: #f8f9fa;">
                         <div class="d-flex align-items-center mb-2">
-                            <InputText id="promptThemeInput" @bind-Value="PromptTheme" class="form-control me-2" placeholder="Enter An Area Of Interest and click Refresh" style="max-width: 350px;" />
+                            <InputText id="promptThemeInput" @bind-Value="PromptTheme" class="form-control me-2" placeholder="Enter a Topic and click Refresh" style="max-width: 350px;" />
                             <button class="ryo-refresh-btn btn btn-outline-secondary ms-1" title="Refresh Prompts" @onclick="RefreshPromptsAsync" disabled="@IsLoadingPrompts" style="height: 38px; width: 38px; display: flex; align-items: center; justify-content: center;">
                                 <i class="bi bi-arrow-clockwise"></i>
                             </button>
@@ -83,7 +83,8 @@
                     </div>
                     <div class="ryo-form-group">
                         <label for="promptInput">What would you like to learn about?</label>
-                        <InputTextArea id="promptInput" @bind-Value="UserPrompt" class="form-control ryo-input" placeholder="e.g. The history of space exploration, quantum physics basics, cooking techniques..." Rows="4" @onkeydown="HandlePromptKeyDown" />
+                        @* <InputTextArea id="promptInput" @bind-Value="UserPrompt" class="form-control ryo-input" placeholder="e.g. The history of space exploration, quantum physics basics, cooking techniques..." Rows="4" @onkeydown="HandlePromptKeyDown" /> *@
+                        <InputTextArea id="promptInput" @bind-Value="UserPrompt" class="form-control ryo-input" Rows="4" @onkeydown="HandlePromptKeyDown" />
                     </div>
                     <div class="ryo-form-actions">
                         <button class="ryo-action-btn ryo-action-success" @onclick="GenerateAndSaveQuizFromPrompt" disabled="@(IsGenerating || IsSaving || string.IsNullOrWhiteSpace(UserPrompt))">
@@ -103,7 +104,7 @@
                 <div class="ryo-form-card">
                     <div class="ryo-form-group" style="border: 1.5px solid #b6b6b6; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; background: #f8f9fa;">
                         <div class="d-flex align-items-center mb-2">
-                            <InputText id="urlThemeInput" @bind-Value="UrlTheme" class="form-control me-2" placeholder="Enter An Area Of Interest and click Refresh" style="max-width: 350px;" />
+                            <InputText id="urlThemeInput" @bind-Value="UrlTheme" class="form-control me-2" placeholder="Enter a Topic and click Refresh" style="max-width: 350px;" />
                             <button class="ryo-refresh-btn btn btn-outline-secondary ms-1" title="Refresh URLs" @onclick="RefreshUrlsAsync" disabled="@IsLoadingUrls" style="height: 38px; width: 38px; display: flex; align-items: center; justify-content: center;">
                                 <i class="bi bi-arrow-clockwise"></i>
                             </button>
@@ -126,7 +127,8 @@
                     </div>
                     <div class="ryo-form-group">
                         <label for="urlInput">Enter the URL of an article or webpage:</label>
-                        <InputText id="urlInput" @bind-Value="QuizUrl" class="form-control ryo-input" placeholder="e.g. https://en.wikipedia.org/wiki/Space_exploration" />
+                        @* <InputText id="urlInput" @bind-Value="QuizUrl" class="form-control ryo-input" placeholder="e.g. https://en.wikipedia.org/wiki/Space_exploration" /> *@
+                        <InputText id="urlInput" @bind-Value="QuizUrl" class="form-control ryo-input" />
                     </div>
                     <div class="ryo-form-actions">
                         <button class="ryo-action-btn ryo-action-primary" @onclick="GenerateAndSaveQuizFromUrl" disabled="@(IsUrlGenerating || string.IsNullOrWhiteSpace(QuizUrl))">

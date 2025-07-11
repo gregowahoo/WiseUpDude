@@ -5,7 +5,7 @@
       "name": "WiseUpDude (HTTPS)",
       "type": "coreclr",
       "request": "launch",
-      // "preLaunchTask": "dotnet: watch WiseUpDude",
+      "preLaunchTask": "watch WiseUpDude",
       "program": "${workspaceFolder}/WiseUpDude/bin/Debug/net9.0/WiseUpDude.dll",
       "args": [],
       "cwd": "${workspaceFolder}/WiseUpDude",

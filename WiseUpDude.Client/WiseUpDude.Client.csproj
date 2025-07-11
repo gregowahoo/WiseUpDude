@@ -6,6 +6,7 @@
 		<Nullable>enable</Nullable>
 		<NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
 		<StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
+		<ExcludeFromStaticWebAssets>true</ExcludeFromStaticWebAssets>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">

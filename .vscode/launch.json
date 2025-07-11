@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "WiseUpDude (HTTPS)",
+      "type": "coreclr",
+      "request": "launch",
+      // "preLaunchTask": "dotnet: watch WiseUpDude",
+      "program": "${workspaceFolder}/WiseUpDude/bin/Debug/net9.0/WiseUpDude.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/WiseUpDude",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https://\\S+)",
+        // "uriFormat": "chrome --new-window %s"
+        "uriFormat": "%s"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        // "ASPNETCORE_URLS": "https://localhost:7150;http://localhost:5205"
+        "ASPNETCORE_URLS": "https://localhost:7150"
+      },
+      "sourceFileMap": {
+        "/Views": "${workspaceFolder}/Views"
+      }
+    }
+  ]
+}

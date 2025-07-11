@@ -64,6 +64,10 @@
                             <button class="ryo-refresh-btn btn btn-outline-secondary ms-1" title="Refresh Prompts" @onclick="RefreshPromptsAsync" disabled="@IsLoadingPrompts" style="height: 38px; width: 38px; display: flex; align-items: center; justify-content: center;">
                                 <i class="bi bi-arrow-clockwise"></i>
                             </button>
+                            @if (IsLoadingPrompts)
+                            {
+                                <span class="spinner-border spinner-border-sm ms-2 text-secondary" role="status" aria-hidden="true"></span>
+                            }
                         </div>
                         <label for="promptDropdown">Example Prompts</label>
                         <select id="promptDropdown" class="form-select" @onchange="OnPromptDropdownChanged" disabled="@IsLoadingPrompts">
@@ -103,6 +107,10 @@
                             <button class="ryo-refresh-btn btn btn-outline-secondary ms-1" title="Refresh URLs" @onclick="RefreshUrlsAsync" disabled="@IsLoadingUrls" style="height: 38px; width: 38px; display: flex; align-items: center; justify-content: center;">
                                 <i class="bi bi-arrow-clockwise"></i>
                             </button>
+                            @if (IsLoadingUrls)
+                            {
+                                <span class="spinner-border spinner-border-sm ms-2 text-secondary" role="status" aria-hidden="true"></span>
+                            }
                         </div>
                         <label for="urlDropdown">Example URLs</label>
                         <select id="urlDropdown" class="form-select" @onchange="OnUrlDropdownChanged" disabled="@IsLoadingUrls">

@@ -146,6 +146,14 @@
         var result = await UserManager.CreateAsync(user);
         if (result.Succeeded)
         {
+            // Add user to the FreeSubscriber role
+            var roleResult = await UserManager.AddToRoleAsync(user, "FreeSubscriber");
+            if (!roleResult.Succeeded)
+            {
+                message = $"Error adding user to FreeSubscriber role: {string.Join(",", roleResult.Errors.Select(error => error.Description))}";
+                return;
+            }
+
             result = await UserManager.AddLoginAsync(user, externalLoginInfo);
             if (result.Succeeded)
             {

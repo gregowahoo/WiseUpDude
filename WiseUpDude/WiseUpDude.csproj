@@ -42,7 +42,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="AngleSharp" Version="1.2.0" />
-		<PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="9.0.5" />
+		<PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="9.0.7" />
 		<PackageReference Include="PdfPig" Version="0.1.10" />
 		<PackageReference Include="Serilog.Extensions.Hosting" Version="9.0.0" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
@@ -55,10 +55,15 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.5" />
-		<PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="9.0.5" />
+		<PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="9.0.7" />
 	</ItemGroup>
 
-<ItemGroup>
+	<!--<PropertyGroup>
+		<PublishWithAspNetCoreTargetManifest>false</PublishWithAspNetCoreTargetManifest>
+		<PublishTrimmed>false</PublishTrimmed>
+	</PropertyGroup>-->
+
+	<ItemGroup>
   <Content Remove="wwwroot/**" />
   <Content Remove="../WiseUpDude.Client/wwwroot/**" />
   <Compile Remove="../WiseUpDude.Client/wwwroot/**" />

@@ -19,7 +19,7 @@
 @inject IUrlSuggestionCacheService UrlCache
 
 @rendermode InteractiveServer
-@attribute [Authorize]
+@attribute [Authorize(Roles = "FreeSubscriber,PaidSubscriber,Admin,EnterpriseSubscriber")]
 @attribute [StreamRendering(true)]
 
 @if (IsGenerating || IsSaving)

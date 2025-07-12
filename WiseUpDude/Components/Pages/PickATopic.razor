@@ -25,7 +25,7 @@
 @inject IConfiguration Configuration
 
 @rendermode InteractiveServer
-@attribute [Authorize]
+@attribute [Authorize(Roles = "FreeSubscriber,PaidSubscriber,Admin,EnterpriseSubscriber")]
 
 @if (IsGenerating)
 {

@@ -1,7 +1,5 @@
-﻿@* @page "/" *@
-@page "/home"
+﻿@page "/home"
 
-@* @layout WiseUpDude.Components.Layout.MainLayout *@
 @layout WiseUpDude.Components.Layout.MinimalLayout
 
 @using Microsoft.AspNetCore.Components.Authorization
@@ -17,8 +15,7 @@
 @inject IUserQuizQuestionRepository<QuizQuestion> UserQuizQuestionRepository
 @inject QuizStateService QuizState
 @rendermode InteractiveServer
-@* @attribute [StreamRendering] *@
-@attribute [Authorize]
+@attribute [Authorize(Roles = "FreeSubscriber,PaidSubscriber,Admin,EnterpriseSubscriber")]
 @inject WiseUpDude.Shared.Services.ToastService ToastService
 
 <h1 class="text-center mb-4">Welcome to Wise Up Dude!</h1>

@@ -97,7 +97,15 @@
             return;
         }
 
-        Logger.LogInformation("User created a new account with password.");
+        // Assign FreeSubscriber role to new user
+        var roleResult = await UserManager.AddToRoleAsync(user, "FreeSubscriber");
+        if (!roleResult.Succeeded)
+        {
+            identityErrors = roleResult.Errors;
+            return;
+        }
+
+        Logger.LogInformation("User created a new account with password and assigned FreeSubscriber role.");
 
         var userId = await UserManager.GetUserIdAsync(user);
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);

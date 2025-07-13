@@ -24,19 +24,32 @@
         <InputText @bind-Value="newUser.Password" type="password" class="form-control" />
     </div>
     <div class="mb-3">
-        <label>Assign Role</label>
-        <InputSelect @bind-Value="selectedRole" class="form-control">
-            <option value="">Select a role</option>
-            @foreach (var role in roles)
+        <label>Assign Roles</label>
+        <div>
+            @foreach (var role in roleModels)
             {
-                <option value="@role">@role</option>
+                <div class="form-check">
+                    <InputCheckbox class="form-check-input" @bind-Value="role.IsSelected" />
+                    <label class="form-check-label">@role.Name</label>
+                </div>
             }
-        </InputSelect>
+        </div>
     </div>
     <button class="btn btn-success" type="submit">Create User</button>
     <button class="btn btn-secondary ms-2" type="button" @onclick="GoBack">Cancel</button>
 </EditForm>
 
+@if (identityErrors != null && identityErrors.Any())
+{
+    <div class="alert alert-danger mt-3">
+        <ul>
+            @foreach (var error in identityErrors)
+            {
+                <li>@error.Description</li>
+            }
+        </ul>
+    </div>
+}
 @if (!string.IsNullOrEmpty(message))
 {
     <div class="alert alert-info mt-3">@message</div>
@@ -44,9 +57,15 @@
 
 @code {
     private NewUserModel newUser = new();
-    private string selectedRole = "";
     private string? message;
     private List<string> roles = new() { "Admin", "FreeSubscriber", "PaidSubscriber", "EnterpriseSubscriber" };
+    private List<RoleModel> roleModels = new();
+    private IEnumerable<IdentityError>? identityErrors;
+
+    protected override void OnInitialized()
+    {
+        roleModels = roles.Select(r => new RoleModel { Name = r, IsSelected = false }).ToList();
+    }
 
     private async Task CreateUser()
     {
@@ -54,14 +73,17 @@
         var result = await UserManager.CreateAsync(user, newUser.Password);
         if (result.Succeeded)
         {
-            if (!string.IsNullOrEmpty(selectedRole))
-                await UserManager.AddToRoleAsync(user, selectedRole);
+            var selectedRoles = roleModels.Where(r => r.IsSelected).Select(r => r.Name).ToList();
+            if (selectedRoles.Any())
+                await UserManager.AddToRolesAsync(user, selectedRoles);
             message = "User created successfully.";
+            identityErrors = null;
             NavigationManager.NavigateTo("/admin/users");
         }
         else
         {
-            message = string.Join("; ", result.Errors.Select(e => e.Description));
+            identityErrors = result.Errors;
+            message = null;
         }
     }
 
@@ -75,5 +97,11 @@
         [Required]
         [MinLength(6)]
         public string Password { get; set; } = string.Empty;
+    }
+
+    private class RoleModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public bool IsSelected { get; set; }
     }
 }

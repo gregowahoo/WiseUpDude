@@ -17,20 +17,25 @@
 }
 else
 {
-        <form class="form-horizontal" action="Account/PerformExternalLogin" method="post">
-            <div>
-                <AntiforgeryToken />
-                <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
-                <p>
-                @foreach (var provider in externalLogins)
-                {
-                            <ExternalLoginButton ReturnUrl="@ReturnUrl" Provider="@provider.Name" />
-
-                    @* <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button> *@
-                }
-                </p>
-            </div>
-        </form>
+    <div>
+        <p>
+        @foreach (var provider in externalLogins)
+        {
+            if (provider.Name.Equals("Google", StringComparison.OrdinalIgnoreCase))
+            {
+                <ExternalLoginButton ReturnUrl="@ReturnUrl" Provider="@provider.Name" LogoUrl="https://developers.google.com/identity/images/g-logo.png" />
+            }
+            else if (provider.Name.Equals("Facebook", StringComparison.OrdinalIgnoreCase))
+            {
+                <ExternalLoginButton ReturnUrl="@ReturnUrl" Provider="@provider.Name" LogoUrl="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" />
+            }
+            else
+            {
+                <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
+            }
+        }
+        </p>
+    </div>
 }
 
 @code {

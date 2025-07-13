@@ -4,7 +4,7 @@
   This is a plain HTML form (inside a Razor component) that submits via POST to the
   Identity external login endpoint. (The Identity endpoints are registered via MapAdditionalIdentityEndpoints().)
 -->
-<form action="/Identity/Account/ExternalLogin" method="post" class="d-inline">
+<form action="Account/PerformExternalLogin" method="post" class="d-inline">
     <!-- Hidden field to pass the ReturnUrl -->
     <input type="hidden" name="returnUrl" value="@ReturnUrl" />
 

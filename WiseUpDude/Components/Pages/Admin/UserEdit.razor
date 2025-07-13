@@ -25,14 +25,16 @@ else
             <InputText @bind-Value="user.Email" class="form-control" />
         </div>
         <div class="mb-3">
-            <label>Assign Role</label>
-            <InputSelect @bind-Value="selectedRole" class="form-control">
-                <option value="">Select a role</option>
-                @foreach (var role in roles)
+            <label>Assign Roles</label>
+            <div>
+                @foreach (var role in roleModels)
                 {
-                    <option value="@role">@role</option>
+                    <div class="form-check">
+                        <InputCheckbox class="form-check-input" @bind-Value="role.IsSelected" />
+                        <label class="form-check-label">@role.Name</label>
+                    </div>
                 }
-            </InputSelect>
+            </div>
         </div>
         <button class="btn btn-primary" type="submit">Update User</button>
         <button class="btn btn-secondary ms-2" type="button" @onclick="GoBack">Cancel</button>
@@ -46,17 +48,22 @@ else
 @code {
     [Parameter] public string UserId { get; set; } = string.Empty;
     private ApplicationUser? user;
-    private string selectedRole = "";
     private string? message;
     private List<string> roles = new() { "Admin", "FreeSubscriber", "PaidSubscriber", "EnterpriseSubscriber" };
+    private List<RoleModel> roleModels = new();
 
     protected override async Task OnInitializedAsync()
     {
         user = await UserManager.FindByIdAsync(UserId);
+        roleModels = roles.Select(r => new RoleModel { Name = r, IsSelected = false }).ToList();
         if (user != null)
         {
             var userRoles = await UserManager.GetRolesAsync(user);
-            selectedRole = userRoles.FirstOrDefault() ?? "";
+            foreach (var roleModel in roleModels)
+            {
+                if (userRoles.Contains(roleModel.Name))
+                    roleModel.IsSelected = true;
+            }
         }
     }
 
@@ -65,12 +72,14 @@ else
         if (user != null)
         {
             var result = await UserManager.UpdateAsync(user);
-            if (!string.IsNullOrEmpty(selectedRole))
-            {
-                var currentRoles = await UserManager.GetRolesAsync(user);
-                await UserManager.RemoveFromRolesAsync(user, currentRoles);
-                await UserManager.AddToRoleAsync(user, selectedRole);
-            }
+            var selectedRoles = roleModels.Where(r => r.IsSelected).Select(r => r.Name).ToList();
+            var currentRoles = await UserManager.GetRolesAsync(user);
+            var rolesToAdd = selectedRoles.Except(currentRoles).ToList();
+            var rolesToRemove = currentRoles.Except(selectedRoles).ToList();
+            if (rolesToRemove.Any())
+                await UserManager.RemoveFromRolesAsync(user, rolesToRemove);
+            if (rolesToAdd.Any())
+                await UserManager.AddToRolesAsync(user, rolesToAdd);
             if (result.Succeeded)
             {
                 message = "User updated successfully.";
@@ -84,4 +93,10 @@ else
     }
 
     private void GoBack() => NavigationManager.NavigateTo("/admin/users");
+
+    private class RoleModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public bool IsSelected { get; set; }
+    }
 }

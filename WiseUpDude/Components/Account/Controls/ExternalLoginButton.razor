@@ -5,6 +5,7 @@
   Identity external login endpoint. (The Identity endpoints are registered via MapAdditionalIdentityEndpoints().)
 -->
 <form action="Account/PerformExternalLogin" method="post" class="d-inline">
+    <AntiforgeryToken />
     <!-- Hidden field to pass the ReturnUrl -->
     <input type="hidden" name="returnUrl" value="@ReturnUrl" />
 

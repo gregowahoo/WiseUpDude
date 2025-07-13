@@ -137,36 +137,52 @@
             RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information during confirmation.", HttpContext);
         }
 
+        var user = await UserManager.FindByEmailAsync(Input.Email);
+        if (user is not null)
+        {
+            var result = await UserManager.AddLoginAsync(user, externalLoginInfo);
+            if (result.Succeeded)
+            {
+                await SignInManager.SignInAsync(user, isPersistent: true, externalLoginInfo.LoginProvider);
+                RedirectManager.RedirectTo(ReturnUrl);
+            }
+            else
+            {
+                message = $"Error: Could not associate external login. {string.Join(",", result.Errors.Select(e => e.Description))}";
+            }
+            return;
+        }
+
         var emailStore = GetEmailStore();
-        var user = CreateUser();
+        var newUser = CreateUser();
 
-        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-        await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+        await UserStore.SetUserNameAsync(newUser, Input.Email, CancellationToken.None);
+        await emailStore.SetEmailAsync(newUser, Input.Email, CancellationToken.None);
 
-        var result = await UserManager.CreateAsync(user);
-        if (result.Succeeded)
+        var createResult = await UserManager.CreateAsync(newUser);
+        if (createResult.Succeeded)
         {
             // Add user to the FreeSubscriber role
-            var roleResult = await UserManager.AddToRoleAsync(user, "FreeSubscriber");
+            var roleResult = await UserManager.AddToRoleAsync(newUser, "FreeSubscriber");
             if (!roleResult.Succeeded)
             {
                 message = $"Error adding user to FreeSubscriber role: {string.Join(",", roleResult.Errors.Select(error => error.Description))}";
                 return;
             }
 
-            result = await UserManager.AddLoginAsync(user, externalLoginInfo);
-            if (result.Succeeded)
+            var addLoginResult = await UserManager.AddLoginAsync(newUser, externalLoginInfo);
+            if (addLoginResult.Succeeded)
             {
                 Logger.LogInformation("User created an account using {Name} provider.", externalLoginInfo.LoginProvider);
 
-                var userId = await UserManager.GetUserIdAsync(user);
-                var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+                var userId = await UserManager.GetUserIdAsync(newUser);
+                var code = await UserManager.GenerateEmailConfirmationTokenAsync(newUser);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
                 var callbackUrl = NavigationManager.GetUriWithQueryParameters(
                     NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
                     new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
-                await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+                await EmailSender.SendConfirmationLinkAsync(newUser, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
                 // If account confirmation is required, we need to show the link if we don't have a real email sender
                 if (UserManager.Options.SignIn.RequireConfirmedAccount)
@@ -174,12 +190,18 @@
                     RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
                 }
 
-                await SignInManager.SignInAsync(user, isPersistent: true, externalLoginInfo.LoginProvider);
+                await SignInManager.SignInAsync(newUser, isPersistent: true, externalLoginInfo.LoginProvider);
                 RedirectManager.RedirectTo(ReturnUrl);
             }
+            else
+            {
+                message = $"Error: {string.Join(",", addLoginResult.Errors.Select(error => error.Description))}";
+            }
         }
-
-        message = $"Error: {string.Join(",", result.Errors.Select(error => error.Description))}";
+        else
+        {
+            message = $"Error: {string.Join(",", createResult.Errors.Select(error => error.Description))}";
+        }
     }
 
     private ApplicationUser CreateUser()

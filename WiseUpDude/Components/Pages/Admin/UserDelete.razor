@@ -1,0 +1,61 @@
+@page "/admin/users/delete/{UserId}"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+
+@using Microsoft.AspNetCore.Identity
+@using WiseUpDude.Data
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+
+<PageTitle>Delete User</PageTitle>
+
+<h2>Delete User</h2>
+
+@if (user == null)
+{
+    <p>Loading user...</p>
+}
+else
+{
+    <div class="alert alert-danger">
+        <strong>Are you sure you want to delete this user?</strong>
+        <br />
+        <span>@user.Email</span>
+    </div>
+    <button class="btn btn-danger" @onclick="DeleteUserConfirmed">Delete</button>
+    <button class="btn btn-secondary ms-2" @onclick="GoBack">Cancel</button>
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="alert alert-info mt-3">@message</div>
+    }
+}
+
+@code {
+    [Parameter] public string UserId { get; set; } = string.Empty;
+    private ApplicationUser? user;
+    private string? message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserManager.FindByIdAsync(UserId);
+    }
+
+    private async Task DeleteUserConfirmed()
+    {
+        if (user != null)
+        {
+            var result = await UserManager.DeleteAsync(user);
+            if (result.Succeeded)
+            {
+                message = "User deleted successfully.";
+                NavigationManager.NavigateTo("/admin/users");
+            }
+            else
+            {
+                message = string.Join("; ", result.Errors.Select(e => e.Description));
+            }
+        }
+    }
+
+    private void GoBack() => NavigationManager.NavigateTo("/admin/users");
+}

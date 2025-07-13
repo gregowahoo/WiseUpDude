@@ -1,0 +1,79 @@
+@page "/admin/users/add"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using WiseUpDude.Data
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+
+<PageTitle>Add User</PageTitle>
+
+<h2>Add New User</h2>
+
+<EditForm Model="newUser" OnValidSubmit="CreateUser">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="mb-3">
+        <label>Email</label>
+        <InputText @bind-Value="newUser.Email" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label>Password</label>
+        <InputText @bind-Value="newUser.Password" type="password" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label>Assign Role</label>
+        <InputSelect @bind-Value="selectedRole" class="form-control">
+            <option value="">Select a role</option>
+            @foreach (var role in roles)
+            {
+                <option value="@role">@role</option>
+            }
+        </InputSelect>
+    </div>
+    <button class="btn btn-success" type="submit">Create User</button>
+    <button class="btn btn-secondary ms-2" type="button" @onclick="GoBack">Cancel</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-info mt-3">@message</div>
+}
+
+@code {
+    private NewUserModel newUser = new();
+    private string selectedRole = "";
+    private string? message;
+    private List<string> roles = new() { "Admin", "FreeSubscriber", "PaidSubscriber", "EnterpriseSubscriber" };
+
+    private async Task CreateUser()
+    {
+        var user = new ApplicationUser { UserName = newUser.Email, Email = newUser.Email };
+        var result = await UserManager.CreateAsync(user, newUser.Password);
+        if (result.Succeeded)
+        {
+            if (!string.IsNullOrEmpty(selectedRole))
+                await UserManager.AddToRoleAsync(user, selectedRole);
+            message = "User created successfully.";
+            NavigationManager.NavigateTo("/admin/users");
+        }
+        else
+        {
+            message = string.Join("; ", result.Errors.Select(e => e.Description));
+        }
+    }
+
+    private void GoBack() => NavigationManager.NavigateTo("/admin/users");
+
+    public class NewUserModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+        [Required]
+        [MinLength(6)]
+        public string Password { get; set; } = string.Empty;
+    }
+}

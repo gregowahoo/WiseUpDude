@@ -1,0 +1,82 @@
+@page "/admin/users"  
+@rendermode InteractiveServer  
+@attribute [Authorize(Roles = "Admin")]  
+  
+@using Microsoft.AspNetCore.Identity  
+@using WiseUpDude.Data  
+@using Microsoft.EntityFrameworkCore  
+@inject UserManager<ApplicationUser> UserManager  
+@inject NavigationManager NavigationManager  
+  
+<PageTitle>Admin - User Management</PageTitle>  
+  
+<h2>User Management</h2>  
+  
+<p>  
+    <button class="btn btn-success" @onclick="AddUser">Add New User</button>  
+</p>  
+  
+@if (users == null)  
+{  
+    <p>Loading users...</p>  
+}  
+else if (!users.Any())  
+{  
+    <p>No users found.</p>  
+}  
+else  
+{  
+    <table class="table table-striped">  
+        <thead>  
+            <tr>  
+                <th>Email</th>  
+                <th>Roles</th>  
+                <th>Actions</th>  
+            </tr>  
+        </thead>  
+        <tbody>  
+            @foreach (var user in users)  
+            {  
+                <tr>  
+                    <td>@user.Email</td>  
+                    <td>@(userRoles.ContainsKey(user.Id) ? string.Join(", ", userRoles[user.Id]) : "Loading...")</td>  
+                    <td>  
+                        <button class="btn btn-primary btn-sm" @onclick="() => EditUser(user.Id)">Edit</button>  
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteUser(user.Id)">Delete</button>  
+                    </td>  
+                </tr>  
+            }  
+        </tbody>  
+    </table>  
+}  
+  
+@code {  
+    private List<ApplicationUser>? users;  
+    private Dictionary<string, IList<string>> userRoles = new();  
+  
+    protected override async Task OnInitializedAsync()  
+    {  
+        // Use ToList() instead of ToListAsync() for compatibility  
+        users = UserManager.Users.ToList();  
+        foreach (var user in users)  
+        {  
+            var roles = await UserManager.GetRolesAsync(user);  
+            userRoles[user.Id] = roles;  
+        }  
+    }  
+  
+    private void AddUser()  
+    {  
+        NavigationManager.NavigateTo("/admin/users/add");  
+    }  
+  
+    private void EditUser(string userId)  
+    {  
+        NavigationManager.NavigateTo($"/admin/users/edit/{userId}");  
+    }  
+  
+    private void DeleteUser(string userId)  
+    {  
+        NavigationManager.NavigateTo($"/admin/users/delete/{userId}");  
+    }  
+}  

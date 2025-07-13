@@ -34,6 +34,16 @@
                     </li>
                 </ul>
 
+                <AuthorizeView Roles="Admin">
+                    <Authorized>
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <NavLink class="nav-link px-2 text-white" href="/admin/users" Match="NavLinkMatch.Prefix">Admin Dashboard</NavLink>
+                            </li>
+                        </ul>
+                    </Authorized>
+                </AuthorizeView>
+
                 <!-- Right-aligned Content -->
                 <div class="text-end">
                     <AuthorizeView>

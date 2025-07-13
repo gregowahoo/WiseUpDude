@@ -1,0 +1,87 @@
+@page "/admin/users/edit/{UserId}"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+
+@using Microsoft.AspNetCore.Identity
+@using WiseUpDude.Data
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit User</PageTitle>
+
+<h2>Edit User</h2>
+
+@if (user == null)
+{
+    <p>Loading user...</p>
+}
+else
+{
+    <EditForm Model="user" OnValidSubmit="UpdateUser">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="mb-3">
+            <label>Email</label>
+            <InputText @bind-Value="user.Email" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label>Assign Role</label>
+            <InputSelect @bind-Value="selectedRole" class="form-control">
+                <option value="">Select a role</option>
+                @foreach (var role in roles)
+                {
+                    <option value="@role">@role</option>
+                }
+            </InputSelect>
+        </div>
+        <button class="btn btn-primary" type="submit">Update User</button>
+        <button class="btn btn-secondary ms-2" type="button" @onclick="GoBack">Cancel</button>
+    </EditForm>
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="alert alert-info mt-3">@message</div>
+    }
+}
+
+@code {
+    [Parameter] public string UserId { get; set; } = string.Empty;
+    private ApplicationUser? user;
+    private string selectedRole = "";
+    private string? message;
+    private List<string> roles = new() { "Admin", "FreeSubscriber", "PaidSubscriber", "EnterpriseSubscriber" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserManager.FindByIdAsync(UserId);
+        if (user != null)
+        {
+            var userRoles = await UserManager.GetRolesAsync(user);
+            selectedRole = userRoles.FirstOrDefault() ?? "";
+        }
+    }
+
+    private async Task UpdateUser()
+    {
+        if (user != null)
+        {
+            var result = await UserManager.UpdateAsync(user);
+            if (!string.IsNullOrEmpty(selectedRole))
+            {
+                var currentRoles = await UserManager.GetRolesAsync(user);
+                await UserManager.RemoveFromRolesAsync(user, currentRoles);
+                await UserManager.AddToRoleAsync(user, selectedRole);
+            }
+            if (result.Succeeded)
+            {
+                message = "User updated successfully.";
+                NavigationManager.NavigateTo("/admin/users");
+            }
+            else
+            {
+                message = string.Join("; ", result.Errors.Select(e => e.Description));
+            }
+        }
+    }
+
+    private void GoBack() => NavigationManager.NavigateTo("/admin/users");
+}

@@ -62,7 +62,10 @@ else
     </div>
     <div class="card-body">
         <!-- Score Tracker -->
-        <ScoreTracker TotalQuestions="@totalQuestions" CorrectAnswers="@correctAnswers" QuestionResults="@GetQuestionResults()" />
+        <ScoreTracker TotalQuestions="@totalQuestions" 
+                      CorrectAnswers="@correctAnswers" 
+                      QuestionResults="@GetQuestionResults()" 
+                      OnQuestionNavigate="@HandleQuestionNavigate" />
 
         <!-- Final Message -->
         @if (showFinalMessage)
@@ -119,7 +122,7 @@ else
             {
                 var question = UserQuiz.Questions[i];
                 bool canEdit = !learnMode || !answeredQuestions.Contains(i);
-                <div class="mb-4">
+                <div class="mb-4" id="question-@i">
                     <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p>
                     <div class="question-options-center">
                         <QuestionCard Question="question"
@@ -381,5 +384,12 @@ else
                 results.Add(null);
         }
         return results;
+    }
+
+    private async Task HandleQuestionNavigate(int questionIndex)
+    {
+        Logger.LogInformation($"HandleQuestionNavigate called for question index: {questionIndex}");
+        var questionElementId = $"question-{questionIndex}";
+        await JS.InvokeVoidAsync("scrollToElement", questionElementId);
     }
 }

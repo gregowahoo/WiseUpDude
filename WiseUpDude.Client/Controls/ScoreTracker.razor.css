@@ -36,6 +36,11 @@
     animation: popIn 0.4s cubic-bezier(.68,-0.55,.27,1.55);
 }
 
+.score-box:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
 .score-box-correct {
     background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
     border-color: #2ecc40;

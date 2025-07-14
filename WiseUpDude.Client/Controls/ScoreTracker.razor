@@ -8,14 +8,20 @@
             {
                 var result = QuestionResults[i];
                 var boxClass = result == true ? "score-box-correct" : result == false ? "score-box-incorrect" : "score-box-unanswered";
-                <div class="score-box @boxClass" title="Question @(i+1)"></div>
+                var questionIndex = i; // Capture loop variable for click handler
+                <div class="score-box @boxClass" 
+                     title="Question @(i+1) - Click to navigate" 
+                     @onclick="() => HandleScoreBoxClick(questionIndex)"></div>
             }
         }
         else
         {
             @for (int i = 0; i < TotalQuestions; i++)
             {
-                <div class="score-box score-box-unanswered" title="Question @(i+1)"></div>
+                var questionIndex = i; // Capture loop variable for click handler
+                <div class="score-box score-box-unanswered" 
+                     title="Question @(i+1) - Click to navigate" 
+                     @onclick="() => HandleScoreBoxClick(questionIndex)"></div>
             }
         }
     </div>
@@ -28,8 +34,17 @@
     [Parameter] public int TotalQuestions { get; set; }
     [Parameter] public int CorrectAnswers { get; set; }
     [Parameter] public List<bool?>? QuestionResults { get; set; } // true=correct, false=incorrect, null=unanswered
+    [Parameter] public EventCallback<int> OnQuestionNavigate { get; set; }
 
     // Percentage of questions answered that are correct (not out of total questions)
     private int AnsweredCount => QuestionResults?.Count(q => q != null) ?? 0;
     private double PercentCorrect => AnsweredCount > 0 ? Math.Round((double)CorrectAnswers / AnsweredCount * 100, 1) : 0;
+
+    private async Task HandleScoreBoxClick(int questionIndex)
+    {
+        if (OnQuestionNavigate.HasDelegate)
+        {
+            await OnQuestionNavigate.InvokeAsync(questionIndex);
+        }
+    }
 }

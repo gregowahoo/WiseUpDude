@@ -55,7 +55,10 @@ else
     </div>
     <div class="card-body">
         <!-- Score Tracker -->
-        <ScoreTracker TotalQuestions="@totalQuestions" CorrectAnswers="@correctAnswers" QuestionResults="@GetQuestionResults()" />
+        <ScoreTracker TotalQuestions="@totalQuestions" 
+                      CorrectAnswers="@correctAnswers" 
+                      QuestionResults="@GetQuestionResults()" 
+                      OnQuestionNavigate="@HandleQuestionNavigate" />
 
         <!-- Quiz Controls -->
         <div class="d-flex align-items-center gap-4 mb-3">
@@ -103,7 +106,7 @@ else
             {
                 var question = LearningTrackQuiz.Questions[i];
                 bool canEdit = !answeredQuestions.Contains(i);
-                <div class="mb-4">
+                <div class="mb-4" id="question-@i">
                     <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p>
                     <LearningTrackQuestionCard Question="question"
                                                QuestionIndex="i"
@@ -367,5 +370,12 @@ else
         if (percent >= 70) return "C";
         if (percent >= 60) return "D";
         return "F";
+    }
+
+    private async Task HandleQuestionNavigate(int questionIndex)
+    {
+        Logger.LogInformation("HandleQuestionNavigate called for question index: {QuestionIndex}", questionIndex);
+        var questionElementId = $"question-{questionIndex}";
+        await JS.InvokeVoidAsync("scrollToElement", questionElementId);
     }
 }

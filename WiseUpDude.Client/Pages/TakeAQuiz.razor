@@ -1,4 +1,6 @@
 ﻿@page "/TakeAQuiz/{QuizId:int}"
+
+@* @rendermode InteractiveAuto *@
 @rendermode InteractiveWebAssembly
 
 @using WiseUpDude.Client.Controls
@@ -22,7 +24,7 @@
 
 @inject NavigationManager Nav
 
-@* @if (OperatingSystem.IsBrowser())
+@if (OperatingSystem.IsBrowser())
 {
     <div class="alert alert-success">
         <strong>WASM Mode:</strong> This page is running in WebAssembly mode.
@@ -34,8 +36,8 @@ else
         <strong>Server Mode:</strong> This page is running in Blazor Server mode.
     </div>
 }
- *@
-@* <p>Running on: @(OperatingSystem.IsBrowser() ? "WASM" : "Server")</p> *@
+
+<p>Running on: @(OperatingSystem.IsBrowser() ? "WASM" : "Server")</p>
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -156,47 +158,66 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        UserQuiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
-        if (UserQuiz != null && UserQuiz.Questions != null)
+        Logger.LogInformation($"OnInitializedAsync START for QuizId={QuizId}");
+        try
         {
-            totalQuestions = UserQuiz.Questions.Count;
-            learnMode = UserQuiz.LearnMode;
-            // Populate answeredQuestions with already-answered questions
-            for (int i = 0; i < UserQuiz.Questions.Count; i++)
+            UserQuiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
+            Logger.LogInformation($"UserQuiz loaded: {{UserQuiz != null}}, Questions loaded: {{UserQuiz?.Questions?.Count ?? 0}}");
+            if (UserQuiz != null && UserQuiz.Questions != null)
             {
-                if (!string.IsNullOrEmpty(UserQuiz.Questions[i].UserAnswer))
+                totalQuestions = UserQuiz.Questions.Count;
+                learnMode = UserQuiz.LearnMode;
+                for (int i = 0; i < UserQuiz.Questions.Count; i++)
                 {
-                    answeredQuestions.Add(i);
-                    // Check if the answer is correct and increment correctAnswers
-                    if (UserQuiz.Questions[i].UserAnswer == UserQuiz.Questions[i].Answer)
+                    if (!string.IsNullOrEmpty(UserQuiz.Questions[i].UserAnswer))
                     {
-                        correctAnswers++;
+                        answeredQuestions.Add(i);
+                        if (UserQuiz.Questions[i].UserAnswer == UserQuiz.Questions[i].Answer)
+                        {
+                            correctAnswers++;
+                        }
                     }
                 }
+                totalAnswered = answeredQuestions.Count;
+                Logger.LogInformation($"Quiz state: totalQuestions={totalQuestions}, totalAnswered={totalAnswered}, correctAnswers={correctAnswers}, learnMode={learnMode}");
             }
-            // Set totalAnswered to the count of previously answered questions
-            totalAnswered = answeredQuestions.Count;
         }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Exception in OnInitializedAsync");
+        }
+        Logger.LogInformation("OnInitializedAsync END");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await JS.InvokeVoidAsync("initBootstrapTooltips");
+        Logger.LogInformation($"OnAfterRenderAsync START, firstRender={firstRender}");
+        try
+        {
+            await JS.InvokeVoidAsync("initBootstrapTooltips");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Exception in OnAfterRenderAsync");
+        }
+        Logger.LogInformation("OnAfterRenderAsync END");
     }
 
     private void ToggleAutoSubmit()
     {
+        Logger.LogInformation($"ToggleAutoSubmit called. autoSubmit={autoSubmit} -> {!autoSubmit}");
         autoSubmit = !autoSubmit;
     }
 
     private void ToggleMute()
     {
+        Logger.LogInformation($"ToggleMute called. muteSound={muteSound} -> {!muteSound}");
         muteSound = !muteSound;
     }
 
     private async Task ToggleLearnMode()
     {
-        // Re-check all questions for answers to ensure up-to-date state
+        Logger.LogInformation($"ToggleLearnMode called. Current learnMode={learnMode}");
         if (UserQuiz?.Questions != null)
         {
             answeredQuestions.Clear();
@@ -208,54 +229,53 @@ else
                 }
             }
         }
-
-        // If LearnMode is already ON and any question has been answered, do nothing
         if (learnMode && answeredQuestions.Count > 0)
+        {
+            Logger.LogInformation("LearnMode is ON and questions answered, skipping toggle.");
             return;
-
-        // If LearnMode is OFF and any question has been answered, do nothing (optional)
+        }
         if (!learnMode && answeredQuestions.Count > 0)
+        {
+            Logger.LogInformation("LearnMode is OFF and questions answered, skipping toggle.");
             return;
-
+        }
         learnMode = !learnMode;
+        Logger.LogInformation($"LearnMode toggled to {learnMode}");
         if (UserQuiz != null)
         {
-            UserQuiz.LearnMode = learnMode;
             await UserQuizApiService.UpdateLearnModeAsync(UserQuiz.Id, learnMode);
+            Logger.LogInformation($"LearnMode updated in DB for QuizId={UserQuiz.Id}");
         }
     }
 
     private async Task HandleAnswerSubmitted((bool isCorrect, int questionIndex, string userAnswer) args)
     {
+        Logger.LogInformation($"HandleAnswerSubmitted called: isCorrect={args.isCorrect}, questionIndex={args.questionIndex}, userAnswer={args.userAnswer}");
         var (isCorrect, questionIndex, userAnswer) = args;
         if (UserQuiz == null || UserQuiz.Questions == null || questionIndex < 0 || questionIndex >= UserQuiz.Questions.Count)
+        {
+            Logger.LogWarning("HandleAnswerSubmitted: Invalid question index or UserQuiz/Questions null");
             return;
-
-        // Prevent double-counting: If already answered, do nothing
+        }
         if (answeredQuestions.Contains(questionIndex))
+        {
+            Logger.LogInformation($"HandleAnswerSubmitted: Question {questionIndex} already answered");
             return;
-
+        }
         hasStartedQuiz = true;
-
-        // Always update UserQuizQuestion.UserAnswer in DB
         var userQuizQuestion = UserQuiz.Questions[questionIndex];
         userQuizQuestion.UserAnswer = userAnswer;
         await UserQuizApiService.UpdateUserQuizQuestionAnswerAsync(userQuizQuestion.Id, userAnswer);
-
+        Logger.LogInformation($"UserQuizQuestion answer updated in DB for QuestionId={userQuizQuestion.Id}");
         if (learnMode)
         {
-            // Learn Mode: lock after first answer, never allow change
             answeredQuestions.Add(questionIndex);
-
-            // Track time taken for this question
             DateTime questionStart;
             if (!questionStartTimes.TryGetValue(questionIndex, out questionStart))
             {
                 questionStart = AttemptStartTime ?? DateTime.UtcNow;
             }
             var timeTaken = (DateTime.UtcNow - questionStart).TotalSeconds;
-
-            // Record answer as UserQuizAttemptQuestion
             var attemptQuestion = new UserQuizAttemptQuestion
             {
                 UserQuizAttemptId = CurrentAttemptId ?? 0,
@@ -264,7 +284,6 @@ else
                 IsCorrect = isCorrect,
                 TimeTakenSeconds = timeTaken
             };
-
             if (CurrentAttempt == null)
             {
                 AttemptStartTime = DateTime.UtcNow;
@@ -281,6 +300,7 @@ else
                 if (CurrentAttempt != null)
                 {
                     CurrentAttemptId = CurrentAttempt.Id;
+                    Logger.LogInformation($"Quiz attempt created. AttemptId={CurrentAttemptId}");
                 }
                 else
                 {
@@ -295,21 +315,19 @@ else
                 CurrentAttempt.AttemptQuestions ??= new List<UserQuizAttemptQuestion>();
                 CurrentAttempt.AttemptQuestions.Add(attemptQuestion);
                 await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
+                Logger.LogInformation($"Quiz attempt updated. AttemptId={CurrentAttemptId}");
             }
         }
         else
         {
-            // Non-learn mode: allow edits, but only count first answer for progress
             answeredQuestions.Add(questionIndex);
         }
-
         totalAnswered++;
         if (isCorrect) correctAnswers++;
-
-        Console.WriteLine($"totalAnswered: {totalAnswered}, totalQuestions: {totalQuestions}");
-
+        Logger.LogInformation($"Quiz progress: totalAnswered={totalAnswered}, correctAnswers={correctAnswers}");
         if (totalAnswered == totalQuestions)
         {
+            Logger.LogInformation("All questions answered, calling HandleQuizCompletionAsync");
             if (learnMode)
             {
                 var duration = (AttemptStartTime.HasValue) ? (DateTime.UtcNow - AttemptStartTime.Value) : TimeSpan.Zero;
@@ -317,20 +335,19 @@ else
                 CurrentAttempt.Duration = duration;
                 CurrentAttempt.IsComplete = true;
                 await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
+                Logger.LogInformation($"Quiz attempt marked complete. AttemptId={CurrentAttemptId}");
             }
-
-            await HandleQuizCompletionAsync();      //TODO: Maybe for LearnMode change the final display, more professional ;-).
+            await HandleQuizCompletionAsync();
         }
         StateHasChanged();
     }
 
     private async Task HandleQuizCompletionAsync()
     {
-        Logger.LogInformation("HandleQuizCompletionAsync: All questions answered. Final score: {CorrectAnswers}/{TotalAnswered}", correctAnswers, totalAnswered);
+        Logger.LogInformation($"HandleQuizCompletionAsync: All questions answered. Final score: {correctAnswers}/{totalAnswered}");
         showFinalMessage = true;
         await JS.InvokeVoidAsync("scrollToTopSmooth");
         double scorePercent = totalAnswered > 0 ? (double)correctAnswers / totalAnswered : 0;
-
         if (scorePercent >= 0.8)
         {
             Logger.LogInformation("HandleQuizCompletionAsync: Score >= 80%, playing applause and launching confetti");
@@ -344,6 +361,7 @@ else
         }
         else
         {
+            Logger.LogInformation("HandleQuizCompletionAsync: Score < 80%, showing warning message");
             saveMessage = "Quiz completed. You might want to review the material and try again.";
             saveMessageType = "warning";
         }

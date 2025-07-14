@@ -1,0 +1,92 @@
+@page "/test-wasm"
+
+@rendermode InteractiveWebAssembly
+
+@* Test WASM page for TakeAQuiz component *@
+<PageTitle>Test WASM Page</PageTitle>
+
+
+@if (OperatingSystem.IsBrowser())
+{
+    <div class="alert alert-success">
+        <strong>WASM Mode:</strong> This page is running in WebAssembly mode.
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">
+        <strong>Server Mode:</strong> This page is running in Blazor Server mode.
+    </div>
+}
+
+<h2>Test WASM Page</h2>
+<p>This is a test page running in Blazor WebAssembly mode.</p>
+
+<!-- Page lifecycle event logs -->
+<div class="card mb-4">
+    <div class="card-header">Page Lifecycle Events</div>
+    <div class="card-body">
+        <ul>
+            <li>OnInitializedAsync: <strong>@(initialized ? "Fired" : "Not yet")</strong></li>
+            <li>OnParametersSetAsync: <strong>@(parametersSet ? "Fired" : "Not yet")</strong></li>
+            <li>OnAfterRenderAsync: <strong>@(afterRender ? "Fired" : "Not yet")</strong></li>
+        </ul>
+        <p class="text-muted">Lifecycle events update as the page loads and parameters change.</p>
+    </div>
+</div>
+
+<!-- Simple interactive counter demo -->
+<div class="card mb-4">
+    <div class="card-header">Sample Counter</div>
+    <div class="card-body">
+        <p>Current count: <strong>@count</strong></p>
+        <button class="btn btn-primary me-2" @onclick="Increment">Increment</button>
+        <button class="btn btn-secondary" @onclick="Decrement">Decrement</button>
+        <p class="mt-3">@message</p>
+    </div>
+</div>
+
+<!-- Include the TakeAQuiz component with a sample QuizId -->
+<TakeAQuiz QuizId="1" />
+
+@code {
+    private int count = 0;
+    private string message = "Counter ready.";
+
+    private bool initialized = false;
+    private bool parametersSet = false;
+    private bool afterRender = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        initialized = true;
+        message = "OnInitializedAsync fired.";
+        await Task.Delay(100); // Simulate async work
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        parametersSet = true;
+        message = "OnParametersSetAsync fired.";
+        await Task.Delay(100); // Simulate async work
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        afterRender = true;
+        message = $"OnAfterRenderAsync fired. FirstRender={firstRender}";
+        await Task.Delay(100); // Simulate async work
+    }
+
+    private void Increment()
+    {
+        count++;
+        message = $"You increased the count to {count}.";
+    }
+
+    private void Decrement()
+    {
+        count--;
+        message = $"You decreased the count to {count}.";
+    }
+}

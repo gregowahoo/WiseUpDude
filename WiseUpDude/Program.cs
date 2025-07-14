@@ -253,17 +253,13 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseA
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowClient", policy =>
+    options.AddPolicy("AllowBlazorClient", policy =>
         policy.WithOrigins("https://wiseupdude-fzauhwdug7cma9fb.centralus-01.azurewebsites.net/", "https://localhost:7150")
               .AllowAnyMethod()
               .AllowAnyHeader());
 });
 
 #endregion
-
-
-
-
 
 
 //Build the pipline
@@ -307,7 +303,7 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
-app.UseCors("AllowClient");
+app.UseCors("AllowBlazorClient");
 
 
 using (var scope = app.Services.CreateScope())

@@ -362,3 +362,4 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /WiseUpDude/appsettings.Development.json
+/WiseUpDude/wwwroot/js/site.js

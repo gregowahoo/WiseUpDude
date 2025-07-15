@@ -1,0 +1,73 @@
+@page "/perplexity-quiz"
+@using WiseUpDude.Services
+@using WiseUpDude.Model
+@inject IHttpClientFactory httpClientFactory
+@inject ContextualQuizService contextualQuizService
+@rendermode InteractiveServer
+
+<h3>Perplexity Quiz Generator</h3>
+
+<button @onclick="GenerateQuiz" disabled="@isLoading">Generate Quiz</button>
+
+@if (isLoading)
+{
+    <p><em>Generating quiz...</em></p>
+}
+
+@if (quiz is not null)
+{
+    <h4>@quiz.Name</h4>
+    <p>@quiz.Description</p>
+    <ul>
+        @foreach (var question in quiz.Questions)
+        {
+            <li>
+                <strong>@question.Question</strong>
+                <ul>
+                    @if (question.Options is not null)
+                    {
+                        @foreach (var option in question.Options)
+                        {
+                            <li>@option</li>
+                        }
+                    }
+                </ul>
+            </li>
+        }
+    </ul>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p style="color: red;">@errorMessage</p>
+}
+
+@code {
+    private Quiz? quiz;
+    private string? errorMessage;
+    private bool isLoading = false;
+
+    private async Task GenerateQuiz()
+    {
+        isLoading = true;
+        string explicitContext = "Summary of key points from the content or user-provided background.";
+        // string quizTopic = "https://example.com/recent-ai-developments";
+        string quizTopic = "Common household chores and tips for efficiency";
+
+        var (generatedQuiz, error) = await contextualQuizService.GenerateQuizWithContextAsync(
+            quizTopic,
+            explicitContext,
+            searchContextSize: "high"
+        );
+
+        if (error is not null)
+        {
+            errorMessage = error;
+        }
+        else
+        {
+            quiz = generatedQuiz;
+        }
+        isLoading = false;
+    }
+}

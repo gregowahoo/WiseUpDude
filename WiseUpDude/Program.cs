@@ -234,6 +234,8 @@ builder.Services.AddSingleton<WiseUpDude.Shared.Services.ToastService>();
 // Register PerplexityService and its dependencies
 builder.Services.AddScoped<PerplexityService>();
 
+builder.Services.AddScoped<ContextualQuizService>();
+
 builder.Services.AddScoped<GeminiService>(); 
 
 builder.Services.AddScoped<LearningTrackQuizService>();

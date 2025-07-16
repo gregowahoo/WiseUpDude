@@ -253,5 +253,68 @@ namespace WiseUpDude.Services
         {
             return await _urlMetaService.GetUrlMetaAsync(url);
         }
+
+        public async Task<(Quiz? Quiz, string? Error)> GenerateQuizWithContextAsync(
+            string contextSource,
+            string? explicitContextSummary,
+            string searchContextSize = "medium")
+        {
+            var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithContext(
+                contextSource, explicitContextSummary);
+
+            var client = _httpClientFactory.CreateClient("PerplexityAI");
+            var requestBody = new
+            {
+                model = "sonar",
+                search_context_size = searchContextSize,
+                messages = new[]
+                {
+                    new { role = "system", content =
+                        "You are a contextual quiz generator. For each quiz question, always provide a 1-2 sentence summary of why the question is relevant, before listing answer options. Context must be presented as a field in the JSON output. Base all questions, answers, and explanations only on the provided content and context." },
+                    new { role = "user", content = $"Context: {explicitContextSummary}\n\n{promptBody}" }
+                }
+            };
+
+            _logger.LogInformation("Calling Perplexity API for contextual quiz.");
+
+            var response = await client.PostAsJsonAsync("/chat/completions", requestBody);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return (null, $"API Error: {response.StatusCode}: {errorContent}");
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var (quiz, parseError) = ParseContextualQuizJson(content);
+            return (quiz, parseError);
+        }
+
+        private (Quiz? Quiz, string? Error) ParseContextualQuizJson(string json)
+        {
+            try
+            {
+                var options = new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false) }
+                };
+                bool truncated;
+                var cleanedJson = CleanJsonUtility.CleanJson(json, out truncated);
+                if (truncated)
+                {
+                    // Log a warning or handle as needed
+                }
+                var apiResponse = JsonSerializer.Deserialize<PerplexityApiResponse>(cleanedJson, options);
+                var quizJson = apiResponse?.Choices?.FirstOrDefault()?.Message?.Content;
+                if (string.IsNullOrWhiteSpace(quizJson))
+                    return (null, "No quiz content found in API response.");
+                var quiz = System.Text.Json.JsonSerializer.Deserialize<Quiz>(quizJson, options);
+                return (quiz, null);
+            }
+            catch (Exception ex)
+            {
+                return (null, $"Failed to parse quiz JSON: {ex.Message}. Raw response: {json}");
+            }
+        }
     }
 }

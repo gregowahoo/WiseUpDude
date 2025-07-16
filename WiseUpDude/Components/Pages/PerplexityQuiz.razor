@@ -52,7 +52,8 @@
         isLoading = true;
         string explicitContext = "Summary of key points from the content or user-provided background.";
         // string quizTopic = "https://example.com/recent-ai-developments";
-        string quizTopic = "Common household chores and tips for efficiency";
+        // string quizTopic = "Common household chores and tips for efficiency";
+        string quizTopic = "Elecctric cars in 2025";
 
         var (generatedQuiz, error) = await contextualQuizService.GenerateQuizWithContextAsync(
             quizTopic,

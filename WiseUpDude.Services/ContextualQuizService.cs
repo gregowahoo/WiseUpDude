@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using WiseUpDude.Model;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace WiseUpDude.Services
 {
@@ -62,8 +64,18 @@ namespace WiseUpDude.Services
         {
             try
             {
-                var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var apiResponse = System.Text.Json.JsonSerializer.Deserialize<PerplexityApiResponse>(json, options);
+                var options = new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false) }
+                };
+                bool truncated;
+                var cleanedJson = CleanJsonUtility.CleanJson(json, out truncated);
+                if (truncated)
+                {
+                    // Log a warning or handle as needed
+                }
+                var apiResponse = JsonSerializer.Deserialize<PerplexityApiResponse>(cleanedJson, options);
 
                 // Adjust this line to match your actual Choice/message structure
                 var quizJson = apiResponse?.Choices?.FirstOrDefault()?.Message?.Content;
@@ -79,5 +91,6 @@ namespace WiseUpDude.Services
                 return (null, $"Failed to parse quiz JSON: {ex.Message}. Raw response: {json}");
             }
         }
+
     }
 }

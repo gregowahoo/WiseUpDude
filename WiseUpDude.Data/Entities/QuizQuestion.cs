@@ -28,6 +28,9 @@ namespace WiseUpDude.Data.Entities
         public string Difficulty { get; set; } = string.Empty;
 
         public DateTime CreationDate { get; set; }
+
+        public string? ContextSnippet { get; set; }
+        public string? Citation { get; set; }
     }
 
     public enum QuizQuestionType

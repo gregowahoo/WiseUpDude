@@ -556,6 +556,12 @@ namespace WiseUpDude.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Citation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContextSnippet")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreationDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -781,6 +787,12 @@ namespace WiseUpDude.Data.Migrations
 
                     b.Property<string>("Answer")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Citation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContextSnippet")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreationDate")

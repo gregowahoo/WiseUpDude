@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Text.RegularExpressions;
 
 public static class CleanJsonUtility
 {
@@ -9,9 +10,21 @@ public static class CleanJsonUtility
         if (string.IsNullOrWhiteSpace(input))
             return string.Empty;
 
+        // Remove Markdown code block markers (e.g., ``` or ```json)
+        var lines = input.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        var sbClean = new StringBuilder();
+        foreach (var line in lines)
+        {
+            var trimmed = line.Trim();
+            if (trimmed.StartsWith("```", StringComparison.Ordinal))
+                continue;
+            sbClean.AppendLine(line);
+        }
+        string cleanedInput = sbClean.ToString();
+
         // Find the first '{' or '['
-        int objStart = input.IndexOf('{');
-        int arrStart = input.IndexOf('[');
+        int objStart = cleanedInput.IndexOf('{');
+        int arrStart = cleanedInput.IndexOf('[');
 
         int start = -1;
         if (objStart >= 0 && arrStart >= 0)
@@ -24,10 +37,10 @@ public static class CleanJsonUtility
         if (start == -1)
             return string.Empty;
 
-        string json = input.Substring(start).Trim();
+        string json = cleanedInput.Substring(start).Trim();
 
         // Count braces/brackets to check for truncation
-        int openCurly = 0, closeCurly = 0, openSquare = 0, closeSquare = 0, quoteCount = 0;
+        int openCurly = 0, closeCurly = 0, openSquare = 0, closeSquare = 0;
         bool inString = false;
         for (int i = 0; i < json.Length; i++)
         {

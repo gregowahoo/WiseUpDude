@@ -22,7 +22,8 @@ namespace WiseUpDude.Model
         public string Difficulty { get; set; } = string.Empty;
 
         public string? ContextSnippet { get; set; }
-        public string? Citation { get; set; }
+        //public string? Citation { get; set; }
+        public List<string>? Citation { get; set; }
     }
 
     public enum QuizQuestionType

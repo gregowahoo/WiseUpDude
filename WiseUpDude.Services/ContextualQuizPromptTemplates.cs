@@ -5,6 +5,7 @@
         public static string BuildQuizPromptWithContext(string topicOrUrl, string? explicitContext)
         {
             var intro = @"
+
 IMPORTANT: Base ALL questions, answers, and explanations ONLY on the content and explicit context provided from the following URL or prompt. Do NOT use outside knowledge, do NOT guess, and do NOT invent facts. If the content/context is insufficient, skip the question or return an error.
 
 Return ONLY valid raw JSON do NOT include explanations, markdown, or any extra text.
@@ -59,21 +60,17 @@ For all questions:
 
 - For each question:
 
-  - Include a ""ContextSnippet"" field containing a brief 1-2 sentence supporting summary, quote, or excerpt from the content/context explaining why the question is relevant.
+- Include a ""ContextSnippet"" field containing a brief 1-2 sentence supporting summary, quote, or excerpt from the content/context explaining why the question is relevant.
 
-  - Include a ""Citation"" field (source URL, reference, or descriptor) for this context snippet if possible.
+- Include a ""Citation"" field (source URL, reference, or descriptor) for this context snippet if possible.
 
-  - The ""Citation"" field must be formatted as a valid JSON string or an array of strings containing exact source URLs or references.
+- The ""Citation"" field MUST BE formatted as a valid JSON array of strings containing exact source URLs or references. Always return this field as an array, even if it contains a single string.
 
-  - Do NOT use shorthand numeric bracket notation like [1][2], numeric indices alone, or any other non-standard format.
+- Do NOT use shorthand numeric bracket notation like [1][2], numeric indices alone, or any other non-standard format.
 
-  - Example valid formats:
+- Example valid format:
 
-    ""Citation"": ""https://example.com/source1""
-
-    or
-
-    ""Citation"": [""https://example.com/source1"", ""https://example.com/source2""]
+""Citation"": [""https://example.com/source1""]
 
 QUIZ DIFFICULTY:
 
@@ -84,22 +81,37 @@ OUTPUT:
 - Return only valid JSON in the following shape:
 
 {{
-    ""Questions"": [
-        {{
-            ""Question"": ""..."",
-            ""Options"": [""..."", ""...""],
-            ""Answer"": ""..."",
-            ""Explanation"": ""..."",
-            ""QuestionType"": ""MultipleChoice"", // or ""TrueFalse""
-            ""Difficulty"": ""..."",
-            ""ContextSnippet"": ""..."",
-            ""Citation"": ""...""
-        }},
-        ...
-    ],
-    ""Type"": ""..."",
-    ""Description"": ""..."",
-    ""Difficulty"": ""...""
+""Questions"": [
+
+{{
+""Question"": ""..."",
+
+""Options"": [""..."", ""...""],
+
+""Answer"": ""..."",
+
+""Explanation"": ""..."",
+
+""QuestionType"": ""MultipleChoice"", // or ""TrueFalse""
+
+""Difficulty"": ""..."",
+
+""ContextSnippet"": ""..."",
+
+""Citation"": [""...""]
+
+}},
+
+...
+
+],
+
+""Type"": ""..."",
+
+""Description"": ""..."",
+
+""Difficulty"": ""...""
+
 }}
 
 - Return only the raw JSON, without any code block formatting or prefixes like 'json'.

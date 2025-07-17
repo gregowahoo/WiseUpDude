@@ -295,13 +295,13 @@
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                   ?? user.FindFirst("sub")?.Value;
+        var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value;
 
         try
         {
             Logger.LogInformation("Sending prompt to PerplexityService: {UserPrompt}", UserPrompt);
-            var (quiz, error) = await PerplexityService.GenerateQuizFromPromptAsync(UserPrompt, userId);
+            // var (quiz, error) = await PerplexityService.GenerateQuizFromPromptAsync(UserPrompt, userId);
+            var (quiz, error) = await PerplexityService.GenerateQuizWithContextFromPromptAsync(UserPrompt, userId);
             if (quiz == null)
             {
                 Logger.LogError("PerplexityService returned no quiz. Error: {Error}", error);
@@ -346,7 +346,8 @@
 
         try
         {
-            var (quiz, error) = await PerplexityService.GenerateQuizFromUrlAsync(QuizUrl, userId);
+            // var (quiz, error) = await PerplexityService.GenerateQuizFromUrlAsync(QuizUrl, userId);
+            var (quiz, error) = await PerplexityService.GenerateQuizWithContextFromUrlAsync(QuizUrl, userId);
             if (quiz == null)
             {
                 UrlErrorMessage = error ?? "Failed to generate quiz from URL.";

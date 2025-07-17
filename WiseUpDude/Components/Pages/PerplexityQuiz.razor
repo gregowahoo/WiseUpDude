@@ -1,8 +1,13 @@
 @page "/perplexity-quiz"
 @using WiseUpDude.Services
 @using WiseUpDude.Model
+@using Microsoft.AspNetCore.Authorization
+
 @inject IHttpClientFactory httpClientFactory
 @inject ContextualQuizService contextualQuizService
+@inject WiseUpDude.Services.PerplexityService perplexityService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+        
 @rendermode InteractiveServer
 
 <h3>Perplexity Quiz Generator</h3>
@@ -42,7 +47,7 @@
     <p style="color: red;">@errorMessage</p>
 }
 
-@code {
+@* @code {
     private Quiz? quiz;
     private string? errorMessage;
     private bool isLoading = false;
@@ -55,10 +60,19 @@
         string quizTopic = "Common household chores and tips for efficiency";
         // string quizTopic = "Electric cars in 2025";
 
-        var (generatedQuiz, error) = await contextualQuizService.GenerateQuizWithContextAsync(
+        // var (generatedQuiz, error) = await contextualQuizService.GenerateQuizWithContextAsync(
+        //     quizTopic,
+        //     explicitContext,
+        //     searchContextSize: "high"
+        // );
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value;
+
+        var (generatedQuiz, error) = await perplexityService.GenerateQuizWithContextFromPromptAsync(
             quizTopic,
-            explicitContext,
-            searchContextSize: "high"
+            userId
         );
 
         if (error is not null)
@@ -70,5 +84,50 @@
             quiz = generatedQuiz;
         }
         isLoading = false;
+    }
+} *@
+
+
+    @code {  
+        private Quiz? quiz;  
+        private string? errorMessage;  
+        private bool isLoading = false;  
+
+
+        private async Task GenerateQuiz()  
+        {  
+            isLoading = true;  
+
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();  
+            var user = authState.User;  
+            var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value;  
+
+            // string prompt = "Common household chores and tips for efficiency";
+            // (Quiz? generatedPromptQuiz, string? errorFromPrompt) = await perplexityService.GenerateQuizWithContextFromPromptAsync(prompt, userId);
+
+            string url = "https://en.wikipedia.org/wiki/Carbon_Cycle";
+
+            (Quiz? generatedUrlQuiz, string? errorFromUrl) = await perplexityService.GenerateQuizWithContextFromUrlAsync(url, userId);
+
+        // if (errorFromPrompt is not null)
+        //     {  
+        //         errorMessage = errorFromPrompt;
+        //     }  
+        //     else  
+        //     {  
+        //         quiz = generatedPromptQuiz;
+        //     }  
+
+        if (errorFromUrl is not null)
+            {  
+                errorMessage = errorFromUrl;
+            }  
+            else  
+            {  
+                quiz = generatedUrlQuiz;
+            }  
+
+            isLoading = false;  
+        }  
     }
 }

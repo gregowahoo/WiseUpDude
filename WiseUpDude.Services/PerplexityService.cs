@@ -1,14 +1,16 @@
+using AngleSharp.Dom;
+using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Client;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WiseUpDude.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Extensions.Logging;
-using System.Text.RegularExpressions;
 
 namespace WiseUpDude.Services
 {
@@ -254,13 +256,12 @@ namespace WiseUpDude.Services
             return await _urlMetaService.GetUrlMetaAsync(url);
         }
 
-        public async Task<(Quiz? Quiz, string? Error)> GenerateQuizWithContextAsync(
-            string contextSource,
-            string? explicitContextSummary,
-            string searchContextSize = "medium")
+        public async Task<(Quiz? Quiz, string? Error)> GenerateQuizWithContextFromPromptAsync(string prompt, string? userId)
         {
-            var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithContext(
-                contextSource, explicitContextSummary);
+            var explicitContextSummary = "Summary of key points from the content or user-provided background.";
+            var searchContextSize = "medium"; // Default size, can be adjusted as needed
+
+            var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithContext(prompt, explicitContextSummary);
 
             var client = _httpClientFactory.CreateClient("PerplexityAI");
             var requestBody = new
@@ -269,8 +270,7 @@ namespace WiseUpDude.Services
                 search_context_size = searchContextSize,
                 messages = new[]
                 {
-                    new { role = "system", content =
-                        "You are a contextual quiz generator. For each quiz question, always provide a 1-2 sentence summary of why the question is relevant, before listing answer options. Context must be presented as a field in the JSON output. Base all questions, answers, and explanations only on the provided content and context." },
+                    new { role = "system", content = "You are a contextual quiz generator. For each quiz question, always provide a 1-2 sentence summary of why the question is relevant, before listing answer options. Context must be presented as a field in the JSON output. Base all questions, answers, and explanations only on the provided content and context." },
                     new { role = "user", content = $"Context: {explicitContextSummary}\n\n{promptBody}" }
                 }
             };
@@ -286,9 +286,74 @@ namespace WiseUpDude.Services
 
             var content = await response.Content.ReadAsStringAsync();
             var (quiz, parseError) = ParseContextualQuizJson(content);
+
+
+            if (quiz != null)
+            {
+                if (quiz.Questions == null || !quiz.Questions.Any())
+                    return (null, "No quiz questions found in Perplexity response.");
+                // Set additional properties for the quiz
+                quiz.UserId = userId;
+                quiz.Type = "Prompt";
+                quiz.Prompt = prompt;
+                quiz.Name = prompt;
+                quiz.Description = prompt;
+                quiz.CreationDate = DateTime.UtcNow;
+            }
+
             return (quiz, parseError);
         }
 
+        public async Task<(Quiz? Quiz, string? Error)> GenerateQuizWithContextFromUrlAsync(string url, string? userId)
+        {
+            var explicitContextSummary = "Summary of key points from the content or user-provided background.";
+            var searchContextSize = "medium"; // Default size, can be adjusted as needed
+
+            var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithContext(url, explicitContextSummary);
+
+            var client = _httpClientFactory.CreateClient("PerplexityAI");
+            var requestBody = new
+            {
+                model = "sonar",
+                search_context_size = searchContextSize,
+                messages = new[]
+                {
+                    new { role = "system", content = "You are a contextual quiz generator. For each quiz question, always provide a 1-2 sentence summary of why the question is relevant, before listing answer options. Context must be presented as a field in the JSON output. Base all questions, answers, and explanations only on the provided content and context." },
+                    new { role = "user", content = $"Context: {explicitContextSummary}\n\n{promptBody}" }
+                }
+            };
+
+            _logger.LogInformation("Calling Perplexity API for contextual quiz.");
+
+            var response = await client.PostAsJsonAsync("/chat/completions", requestBody);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return (null, $"API Error: {response.StatusCode}: {errorContent}");
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var (quiz, parseError) = ParseContextualQuizJson(content);
+
+            if (quiz != null)
+            {
+                if (quiz.Questions == null || !quiz.Questions.Any())
+                    return (null, "No quiz questions found in Perplexity response.");
+
+                // Set additional properties for the quiz
+                var meta = await GetUrlMetaAsync(url);                                      // Fetch meta data for the URL
+
+                quiz.UserId = userId;
+                quiz.Prompt = string.Empty;
+                quiz.Type = "Url";
+                quiz.Name = meta.Title ?? url;
+                quiz.Description = meta.Description ?? meta.Title;
+                quiz.Url = url;
+                quiz.CreationDate = DateTime.UtcNow;
+            }
+
+            return (quiz, parseError);
+        }
         private (Quiz? Quiz, string? Error) ParseContextualQuizJson(string json)
         {
             try
@@ -306,9 +371,16 @@ namespace WiseUpDude.Services
                 }
                 var apiResponse = JsonSerializer.Deserialize<PerplexityApiResponse>(cleanedJson, options);
                 var quizJson = apiResponse?.Choices?.FirstOrDefault()?.Message?.Content;
+
                 if (string.IsNullOrWhiteSpace(quizJson))
                     return (null, "No quiz content found in API response.");
-                var quiz = System.Text.Json.JsonSerializer.Deserialize<Quiz>(quizJson, options);
+                
+                var cleanedQuizJson = CleanJsonUtility.CleanJson(quizJson, out truncated);
+
+                var quiz = System.Text.Json.JsonSerializer.Deserialize<Quiz>(cleanedQuizJson, options);
+                if (quiz == null)
+                    return (null, "Failed to deserialize quiz from API response."); 
+
                 return (quiz, null);
             }
             catch (Exception ex)

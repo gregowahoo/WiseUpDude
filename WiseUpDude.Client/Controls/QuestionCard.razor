@@ -14,6 +14,10 @@
     private string userAnswer = string.Empty; // Tracks the user's selected answer
     private bool submitted = false;
     private bool showContextPopover = false;
+    private int? showCitationPopoverIndex = null;
+    private HashSet<int> openCitationPopovers = new();
+    private int? hoveredCitationIndex = null;
+    private bool citationPopoverHovered = false;
 
     protected override void OnParametersSet()
     {
@@ -101,6 +105,25 @@
 
     private void ShowContextPopover() => showContextPopover = true;
     private void HideContextPopover() => showContextPopover = false;
+    private void ShowCitationPopover(int index) { hoveredCitationIndex = index; StateHasChanged(); }
+    private void HideCitationPopover(int index) { if (hoveredCitationIndex == index) hoveredCitationIndex = null; StateHasChanged(); }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Inline Bootstrap popover initialization
+            await JS.InvokeVoidAsync("eval", @"
+                var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle=""popover""]'));
+                popoverTriggerList.forEach(function (el) {
+                    if (el._popoverInstance) {
+                        el._popoverInstance.dispose();
+                    }
+                    el._popoverInstance = new bootstrap.Popover(el);
+                });
+            ");
+        }
+    }
 }
 
 <div class="card mb-3 shadow-sm">
@@ -122,6 +145,34 @@
             }
         </div>
         <div class="mb-3"></div>
+
+        @* Citation popovers *@
+        @if (Question?.Citation != null && Question.Citation.Any())
+        {
+            <div class="mb-2">
+                <span class="small text-muted">Sources:
+                    @for (int i = 0; i < Question.Citation.Count; i++)
+                    {
+                        var citation = Question.Citation[i];
+                        var displayIndex = i + 1;
+                        var popoverId = $"citation-popover-{QuestionIndex}-{i}";
+                        <span class="ms-2">
+                            <sup id="@popoverId"
+                                 tabindex="0"
+                                 data-bs-toggle="popover"
+                                 data-bs-trigger="focus"
+                                 data-bs-placement="top"
+                                 data-bs-html="true"
+                                 data-bs-content="@((!string.IsNullOrWhiteSpace(citation)) ? $"<a href='{citation}' target='_blank' rel='noopener'>{citation}</a>" : citation)"
+                                 style="background:#e9ecef; border-radius:3px; padding:2px 5px; font-weight:bold; cursor:pointer;"
+                                 title="Click to view citation">
+                                @displayIndex
+                            </sup>
+                        </span>
+                    }
+                </span>
+            </div>
+        }
 
         <div class="options-center">
         @if (Question?.Options != null && Question.Options.Count > 0)

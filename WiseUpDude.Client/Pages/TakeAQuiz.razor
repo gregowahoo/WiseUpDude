@@ -24,7 +24,7 @@
 
 @inject NavigationManager Nav
 
-@if (OperatingSystem.IsBrowser())
+@* @if (OperatingSystem.IsBrowser())
 {
     <div class="alert alert-success">
         <strong>WASM Mode:</strong> This page is running in WebAssembly mode.
@@ -36,8 +36,9 @@ else
         <strong>Server Mode:</strong> This page is running in Blazor Server mode.
     </div>
 }
+ *@
 
-<p>Running on: @(OperatingSystem.IsBrowser() ? "WASM" : "Server")</p>
+@* <p>Running on: @(OperatingSystem.IsBrowser() ? "WASM" : "Server")</p> *@
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -125,15 +126,6 @@ else
                 <div class="mb-4" id="question-@i">
                     <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p>
 
-                    @* Remove inline context snippet display *@
-                    @* If you want to show the info icon, you can optionally add it here, but context display is handled in QuestionCard *@
-@*                     @if (!string.IsNullOrWhiteSpace(question.ContextSnippet))
-                    {
-                        <span class="me-2">
-                            <i class="bi bi-info-circle" style="cursor:pointer;" title="Show context"></i>
-                        </span>
-                    } *@
-
                     <div class="question-options-center">
                         <QuestionCard Question="question"
                                       QuestionIndex="i"
@@ -142,29 +134,6 @@ else
                                       CanEdit="@canEdit"
                                       OnAnswerSubmitted="@((args) => HandleAnswerSubmitted(args))" />
                     </div>
-
-                    @* Display citations if available *@
-                    @if (question.Citation != null && question.Citation.Any())
-                    {
-                        <div class="mt-2 small text-muted">
-                            <strong>Sources:</strong>
-                            <ul class="mb-2">
-                                @foreach (var citation in question.Citation)
-                                {
-                                    <li>
-                                        @if (!string.IsNullOrWhiteSpace(citation))
-                                        {
-                                            <a href="@citation" target="_blank" rel="noopener">@citation</a>
-                                        }
-                                        else
-                                        {
-                                            @citation
-                                        }
-                                    </li>
-                                }
-                            </ul>
-                        </div>
-                    }
                 </div>
             }
         }

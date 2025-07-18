@@ -102,12 +102,13 @@
 
     private void ShowContextPopover() => showContextPopover = true;
     private void HideContextPopover() => showContextPopover = false;
-    private void ShowCitationPopover(int index) => hoveredCitationIndex = index;
-    private void HideCitationPopover() => hoveredCitationIndex = null;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // No longer needed since we're using custom CSS-based popovers
+        // if (firstRender)
+        // {
+        //     await JS.InvokeVoidAsync("initBootstrapTooltipsAndPopovers");
+        // }
     }
 }
 
@@ -130,44 +131,6 @@
             }
         </div>
         <div class="mb-3"></div>
-
-        @* Citation popovers *@
-        @if (Question?.Citation != null && Question.Citation.Any())
-        {
-            <div class="mb-2">
-                <span class="small text-muted">Sources:
-                    @for (int i = 0; i < Question.Citation.Count; i++)
-                    {
-                        var citation = Question.Citation[i];
-                        var displayIndex = i + 1;
-                        var currentIndex = i; // Capture for closure
-                        <span class="ms-2 citation-container">
-                            <sup class="citation-number"
-                                 @onmouseenter="() => ShowCitationPopover(currentIndex)"
-                                 @onmouseleave="HideCitationPopover"
-                                 title="Hover to view citation">
-                                @displayIndex
-                            </sup>
-                            @if (hoveredCitationIndex == currentIndex)
-                            {
-                                <div class="citation-popover show">
-                                    @if (!string.IsNullOrWhiteSpace(citation))
-                                    {
-                                        <a href="@citation" target="_blank" rel="noopener noreferrer" class="citation-url">
-                                            @citation
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">No citation available</span>
-                                    }
-                                </div>
-                            }
-                        </span>
-                    }
-                </span>
-            </div>
-        }
 
         <div class="options-center">
         @if (Question?.Options != null && Question.Options.Count > 0)
@@ -221,4 +184,14 @@
             </div>
         }
     </div>
+
+    @if (Question?.Citation != null && Question.Citation.Any(citation => !string.IsNullOrWhiteSpace(citation)))
+    {
+        <div class="card-footer text-muted" style="font-size: small;">
+            @foreach (var citation in Question.Citation.Where(citation => !string.IsNullOrWhiteSpace(citation)))
+            {
+                <div><a href="@citation" target="_blank" rel="noopener noreferrer">@citation</a></div>
+            }
+        </div>
+    }
 </div>

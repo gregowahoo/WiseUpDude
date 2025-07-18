@@ -21,9 +21,31 @@ window.initBootstrapTooltips = function() {
     });
 };
 
+// Ensure Bootstrap tooltips and popovers are initialized correctly
+window.initBootstrapTooltipsAndPopovers = function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+        if (tooltipTriggerEl._tooltipInstance) {
+            tooltipTriggerEl._tooltipInstance.dispose();
+        }
+        tooltipTriggerEl._tooltipInstance = new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Initialize popovers
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    popoverTriggerList.forEach(function (popoverTriggerEl) {
+        if (popoverTriggerEl._popoverInstance) {
+            popoverTriggerEl._popoverInstance.dispose();
+        }
+        popoverTriggerEl._popoverInstance = new bootstrap.Popover(popoverTriggerEl);
+    });
+};
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     initBootstrapTooltips();
+    initBootstrapPopovers();
 });
 
 // Scroll to element smoothly

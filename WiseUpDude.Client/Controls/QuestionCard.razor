@@ -112,16 +112,8 @@
     {
         if (firstRender)
         {
-            // Inline Bootstrap popover initialization
-            await JS.InvokeVoidAsync("eval", @"
-                var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle=""popover""]'));
-                popoverTriggerList.forEach(function (el) {
-                    if (el._popoverInstance) {
-                        el._popoverInstance.dispose();
-                    }
-                    el._popoverInstance = new bootstrap.Popover(el);
-                });
-            ");
+            // Initialize Bootstrap popovers
+            await JS.InvokeVoidAsync("initBootstrapTooltips");
         }
     }
 }
@@ -160,12 +152,12 @@
                             <sup id="@popoverId"
                                  tabindex="0"
                                  data-bs-toggle="popover"
-                                 data-bs-trigger="focus"
-                                 data-bs-placement="top"
+                                 data-bs-trigger="hover"
+                                 data-bs-placement="bottom"
                                  data-bs-html="true"
                                  data-bs-content="@((!string.IsNullOrWhiteSpace(citation)) ? $"<a href='{citation}' target='_blank' rel='noopener'>{citation}</a>" : citation)"
                                  style="background:#e9ecef; border-radius:3px; padding:2px 5px; font-weight:bold; cursor:pointer;"
-                                 title="Click to view citation">
+                                 title="Hover to view citation">
                                 @displayIndex
                             </sup>
                         </span>

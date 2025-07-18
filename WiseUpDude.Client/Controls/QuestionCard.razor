@@ -13,6 +13,7 @@
 
     private string userAnswer = string.Empty; // Tracks the user's selected answer
     private bool submitted = false;
+    private bool showContextPopover = false;
 
     protected override void OnParametersSet()
     {
@@ -97,11 +98,30 @@
 
         return "btn btn-outline-secondary me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
     }
+
+    private void ShowContextPopover() => showContextPopover = true;
+    private void HideContextPopover() => showContextPopover = false;
 }
 
 <div class="card mb-3 shadow-sm">
     <div class="card-body">
-        <h5 class="card-title">@($"Q{QuestionIndex + 1}: {Question?.Question}")</h5>
+        <div class="d-flex justify-content-between align-items-center position-relative">
+            <h5 class="card-title mb-0">@($"Q{QuestionIndex + 1}: {Question?.Question}")</h5>
+            @if (!string.IsNullOrWhiteSpace(Question?.ContextSnippet))
+            {
+                <span @onmouseover="ShowContextPopover" @onmouseout="HideContextPopover" style="cursor:pointer;">
+                    <i class="bi bi-info-circle" style="font-size: 1.25rem;" title="Show context"></i>
+                    @if (showContextPopover)
+                    {
+                        <div class="popover fade show position-absolute end-0 mt-2" style="z-index:1050; min-width:250px; max-width:350px;">
+                            <div class="popover-header fw-bold">Context</div>
+                            <div class="popover-body small">@Question.ContextSnippet</div>
+                        </div>
+                    }
+                </span>
+            }
+        </div>
+        <div class="mb-3"></div>
 
         <div class="options-center">
         @if (Question?.Options != null && Question.Options.Count > 0)
@@ -152,20 +172,6 @@
                 }
 
                 <div class="mt-1"><em>Explanation:</em> @Question?.Explanation</div>
-            </div>
-        }
-
-        @if (!string.IsNullOrWhiteSpace(Question?.ContextSnippet))
-        {
-            var collapseId = $"context-collapse-{QuestionIndex}";
-            <button class="btn btn-link p-0 mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
-                <i class="bi bi-info-circle me-1"></i>
-            </button>
-            <div class="collapse mt-2" id="@collapseId">
-                <div class="card card-body bg-light">
-                    <strong>Context:</strong>
-                    <div class="small">@Question.ContextSnippet</div>
-                </div>
             </div>
         }
     </div>

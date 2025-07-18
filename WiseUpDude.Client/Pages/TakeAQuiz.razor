@@ -125,13 +125,14 @@ else
                 <div class="mb-4" id="question-@i">
                     <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p>
 
-                    @* Display context snippet if available *@
-                    @if (!string.IsNullOrWhiteSpace(question.ContextSnippet))
+                    @* Remove inline context snippet display *@
+                    @* If you want to show the info icon, you can optionally add it here, but context display is handled in QuestionCard *@
+@*                     @if (!string.IsNullOrWhiteSpace(question.ContextSnippet))
                     {
-                        <div class="alert alert-light border-start border-primary ps-3 mb-2" role="note">
-                            <strong>Context:</strong> @question.ContextSnippet
-                        </div>
-                    }
+                        <span class="me-2">
+                            <i class="bi bi-info-circle" style="cursor:pointer;" title="Show context"></i>
+                        </span>
+                    } *@
 
                     <div class="question-options-center">
                         <QuestionCard Question="question"

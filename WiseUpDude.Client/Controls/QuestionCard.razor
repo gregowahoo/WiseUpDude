@@ -154,5 +154,19 @@
                 <div class="mt-1"><em>Explanation:</em> @Question?.Explanation</div>
             </div>
         }
+
+        @if (!string.IsNullOrWhiteSpace(Question?.ContextSnippet))
+        {
+            var collapseId = $"context-collapse-{QuestionIndex}";
+            <button class="btn btn-link p-0 mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
+                <i class="bi bi-info-circle me-1"></i>
+            </button>
+            <div class="collapse mt-2" id="@collapseId">
+                <div class="card card-body bg-light">
+                    <strong>Context:</strong>
+                    <div class="small">@Question.ContextSnippet</div>
+                </div>
+            </div>
+        }
     </div>
 </div>

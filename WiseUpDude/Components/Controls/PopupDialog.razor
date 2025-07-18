@@ -1,7 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Components.Forms
 
-<div class="popup-container">
-    <div class="popup-box">
+<div class="popup-container" @onclick="OnCancel">
+    <div class="popup-box" @onclick:stopPropagation="true">
         <div class="popup-header d-flex justify-content-between">
             <strong>Edit @Model.GetType().Name</strong>
             <button class="btn-close" @onclick="OnCancel"></button>

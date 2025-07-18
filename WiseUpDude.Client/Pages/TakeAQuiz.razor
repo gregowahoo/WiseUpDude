@@ -45,13 +45,13 @@ else
             <h3 class="mb-0">
                 🧠 Take Quiz -
                 @(UserQuiz is null ? ""
-                    : UserQuiz.Type switch
-                    {
-                        "Topic" => UserQuiz.Topic,
-                        "Prompt" => UserQuiz.Prompt,
-                        "Url" => UserQuiz.Url,
-                        _ => UserQuiz.Description
-                    })
+                                : UserQuiz.Type switch
+                                {
+                                    "Topic" => UserQuiz.Topic,
+                                    "Prompt" => UserQuiz.Prompt,
+                                    "Url" => UserQuiz.Url,
+                                    _ => UserQuiz.Description
+                                })
             </h3>
             <p class="mb-0">Select an answer for each question to see if you're correct.</p>
             @if (!string.IsNullOrWhiteSpace(UserQuiz?.Difficulty))
@@ -62,9 +62,9 @@ else
     </div>
     <div class="card-body">
         <!-- Score Tracker -->
-        <ScoreTracker TotalQuestions="@totalQuestions" 
-                      CorrectAnswers="@correctAnswers" 
-                      QuestionResults="@GetQuestionResults()" 
+        <ScoreTracker TotalQuestions="@totalQuestions"
+                      CorrectAnswers="@correctAnswers"
+                      QuestionResults="@GetQuestionResults()"
                       OnQuestionNavigate="@HandleQuestionNavigate" />
 
         <!-- Final Message -->
@@ -124,6 +124,15 @@ else
                 bool canEdit = !learnMode || !answeredQuestions.Contains(i);
                 <div class="mb-4" id="question-@i">
                     <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p>
+
+                    @* Display context snippet if available *@
+                    @if (!string.IsNullOrWhiteSpace(question.ContextSnippet))
+                    {
+                        <div class="alert alert-light border-start border-primary ps-3 mb-2" role="note">
+                            <strong>Context:</strong> @question.ContextSnippet
+                        </div>
+                    }
+
                     <div class="question-options-center">
                         <QuestionCard Question="question"
                                       QuestionIndex="i"
@@ -132,6 +141,29 @@ else
                                       CanEdit="@canEdit"
                                       OnAnswerSubmitted="@((args) => HandleAnswerSubmitted(args))" />
                     </div>
+
+                    @* Display citations if available *@
+                    @if (question.Citation != null && question.Citation.Any())
+                    {
+                        <div class="mt-2 small text-muted">
+                            <strong>Sources:</strong>
+                            <ul class="mb-2">
+                                @foreach (var citation in question.Citation)
+                                {
+                                    <li>
+                                        @if (!string.IsNullOrWhiteSpace(citation))
+                                        {
+                                            <a href="@citation" target="_blank" rel="noopener">@citation</a>
+                                        }
+                                        else
+                                        {
+                                            @citation
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
                 </div>
             }
         }
@@ -165,7 +197,6 @@ else
         try
         {
             UserQuiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
-            Logger.LogInformation($"UserQuiz loaded: {{UserQuiz != null}}, Questions loaded: {{UserQuiz?.Questions?.Count ?? 0}}");
             if (UserQuiz != null && UserQuiz.Questions != null)
             {
                 totalQuestions = UserQuiz.Questions.Count;
@@ -182,7 +213,6 @@ else
                     }
                 }
                 totalAnswered = answeredQuestions.Count;
-                Logger.LogInformation($"Quiz state: totalQuestions={totalQuestions}, totalAnswered={totalAnswered}, correctAnswers={correctAnswers}, learnMode={learnMode}");
             }
         }
         catch (Exception ex)
@@ -194,33 +224,25 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        Logger.LogInformation($"OnAfterRenderAsync START, firstRender={firstRender}");
-        try
+        if (firstRender)
         {
-            await JS.InvokeVoidAsync("initBootstrapTooltips");
+            try
+            {
+                await JS.InvokeVoidAsync("initBootstrapTooltips");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Exception in OnAfterRenderAsync");
+            }
         }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Exception in OnAfterRenderAsync");
-        }
-        Logger.LogInformation("OnAfterRenderAsync END");
     }
 
-    private void ToggleAutoSubmit()
-    {
-        Logger.LogInformation($"ToggleAutoSubmit called. autoSubmit={autoSubmit} -> {!autoSubmit}");
-        autoSubmit = !autoSubmit;
-    }
+    private void ToggleAutoSubmit() => autoSubmit = !autoSubmit;
 
-    private void ToggleMute()
-    {
-        Logger.LogInformation($"ToggleMute called. muteSound={muteSound} -> {!muteSound}");
-        muteSound = !muteSound;
-    }
+    private void ToggleMute() => muteSound = !muteSound;
 
     private async Task ToggleLearnMode()
     {
-        Logger.LogInformation($"ToggleLearnMode called. Current learnMode={learnMode}");
         if (UserQuiz?.Questions != null)
         {
             answeredQuestions.Clear();
@@ -232,128 +254,106 @@ else
                 }
             }
         }
-        if (learnMode && answeredQuestions.Count > 0)
+        if ((learnMode && answeredQuestions.Count > 0) ||
+            (!learnMode && answeredQuestions.Count > 0))
         {
-            Logger.LogInformation("LearnMode is ON and questions answered, skipping toggle.");
             return;
         }
-        if (!learnMode && answeredQuestions.Count > 0)
-        {
-            Logger.LogInformation("LearnMode is OFF and questions answered, skipping toggle.");
-            return;
-        }
+
         learnMode = !learnMode;
-        Logger.LogInformation($"LearnMode toggled to {learnMode}");
         if (UserQuiz != null)
         {
             await UserQuizApiService.UpdateLearnModeAsync(UserQuiz.Id, learnMode);
-            Logger.LogInformation($"LearnMode updated in DB for QuizId={UserQuiz.Id}");
         }
     }
 
     private async Task HandleAnswerSubmitted((bool isCorrect, int questionIndex, string userAnswer) args)
     {
-        Logger.LogInformation($"HandleAnswerSubmitted called: isCorrect={args.isCorrect}, questionIndex={args.questionIndex}, userAnswer={args.userAnswer}");
         var (isCorrect, questionIndex, userAnswer) = args;
         if (UserQuiz == null || UserQuiz.Questions == null || questionIndex < 0 || questionIndex >= UserQuiz.Questions.Count)
-        {
-            Logger.LogWarning("HandleAnswerSubmitted: Invalid question index or UserQuiz/Questions null");
             return;
-        }
-        if (answeredQuestions.Contains(questionIndex))
-        {
-            Logger.LogInformation($"HandleAnswerSubmitted: Question {questionIndex} already answered");
-            return;
-        }
+
+        if (answeredQuestions.Contains(questionIndex)) return;
+
         hasStartedQuiz = true;
         var userQuizQuestion = UserQuiz.Questions[questionIndex];
         userQuizQuestion.UserAnswer = userAnswer;
         await UserQuizApiService.UpdateUserQuizQuestionAnswerAsync(userQuizQuestion.Id, userAnswer);
-        Logger.LogInformation($"UserQuizQuestion answer updated in DB for QuestionId={userQuizQuestion.Id}");
+
         if (learnMode)
         {
             answeredQuestions.Add(questionIndex);
-            DateTime questionStart;
-            if (!questionStartTimes.TryGetValue(questionIndex, out questionStart))
-            {
-                questionStart = AttemptStartTime ?? DateTime.UtcNow;
-            }
-            var timeTaken = (DateTime.UtcNow - questionStart).TotalSeconds;
+            DateTime questionStart = questionStartTimes.ContainsKey(questionIndex)
+                ? questionStartTimes[questionIndex]
+                : AttemptStartTime ?? DateTime.UtcNow;
+
             var attemptQuestion = new UserQuizAttemptQuestion
             {
                 UserQuizAttemptId = CurrentAttemptId ?? 0,
                 UserQuizQuestionId = userQuizQuestion.Id,
                 UserAnswer = userAnswer,
                 IsCorrect = isCorrect,
-                TimeTakenSeconds = timeTaken
+                TimeTakenSeconds = (DateTime.UtcNow - questionStart).TotalSeconds
             };
+
             if (CurrentAttempt == null)
             {
                 AttemptStartTime = DateTime.UtcNow;
-                var attempt = new UserQuizAttempt
+                var newAttempt = new UserQuizAttempt
                 {
                     UserQuizId = QuizId,
                     AttemptDate = AttemptStartTime.Value,
                     Score = 0,
                     Duration = TimeSpan.Zero,
                     AttemptQuestions = new List<UserQuizAttemptQuestion> { attemptQuestion },
-                    IsComplete = false
+                    IsComplete = false,
                 };
-                CurrentAttempt = await UserQuizAttemptApiService.CreateAsync(attempt);
-                if (CurrentAttempt != null)
-                {
-                    CurrentAttemptId = CurrentAttempt.Id;
-                    Logger.LogInformation($"Quiz attempt created. AttemptId={CurrentAttemptId}");
-                }
-                else
-                {
-                    saveMessage = "Failed to start quiz attempt.";
-                    saveMessageType = "danger";
-                    Logger.LogError("Failed to create UserQuizAttempt");
-                    return;
-                }
+                CurrentAttempt = await UserQuizAttemptApiService.CreateAsync(newAttempt);
+                CurrentAttemptId = CurrentAttempt?.Id;
             }
             else
             {
                 CurrentAttempt.AttemptQuestions ??= new List<UserQuizAttemptQuestion>();
                 CurrentAttempt.AttemptQuestions.Add(attemptQuestion);
                 await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
-                Logger.LogInformation($"Quiz attempt updated. AttemptId={CurrentAttemptId}");
             }
         }
         else
         {
             answeredQuestions.Add(questionIndex);
         }
+
         totalAnswered++;
         if (isCorrect) correctAnswers++;
-        Logger.LogInformation($"Quiz progress: totalAnswered={totalAnswered}, correctAnswers={correctAnswers}");
+
         if (totalAnswered == totalQuestions)
         {
-            Logger.LogInformation("All questions answered, calling HandleQuizCompletionAsync");
             if (learnMode)
             {
-                var duration = (AttemptStartTime.HasValue) ? (DateTime.UtcNow - AttemptStartTime.Value) : TimeSpan.Zero;
-                CurrentAttempt.Score = totalQuestions > 0 ? (double)correctAnswers / totalQuestions : 0;
-                CurrentAttempt.Duration = duration;
-                CurrentAttempt.IsComplete = true;
-                await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
-                Logger.LogInformation($"Quiz attempt marked complete. AttemptId={CurrentAttemptId}");
+                var duration = AttemptStartTime.HasValue ? DateTime.UtcNow - AttemptStartTime.Value : TimeSpan.Zero;
+                if (CurrentAttempt != null)
+                {
+                    CurrentAttempt.Score = totalQuestions > 0 ? (double)correctAnswers / totalQuestions : 0;
+                    CurrentAttempt.Duration = duration;
+                    CurrentAttempt.IsComplete = true;
+                    await UserQuizAttemptApiService.UpdateAsync(CurrentAttempt);
+                }
             }
             await HandleQuizCompletionAsync();
         }
+
         StateHasChanged();
     }
 
     private async Task HandleQuizCompletionAsync()
     {
-        Logger.LogInformation($"HandleQuizCompletionAsync: All questions answered. Final score: {correctAnswers}/{totalAnswered}");
         showFinalMessage = true;
         await JS.InvokeVoidAsync("scrollToTopSmooth");
+
         double scorePercent = totalAnswered > 0 ? (double)correctAnswers / totalAnswered : 0;
+
         if (scorePercent >= 0.8)
         {
-            Logger.LogInformation("HandleQuizCompletionAsync: Score >= 80%, playing applause and launching confetti");
             if (!muteSound)
             {
                 await JS.InvokeVoidAsync("playSound", "/sounds/applause.mp3");
@@ -364,7 +364,6 @@ else
         }
         else
         {
-            Logger.LogInformation("HandleQuizCompletionAsync: Score < 80%, showing warning message");
             saveMessage = "Quiz completed. You might want to review the material and try again.";
             saveMessageType = "warning";
         }
@@ -374,21 +373,15 @@ else
     {
         if (UserQuiz?.Questions == null)
             return Enumerable.Repeat<bool?>(null, totalQuestions).ToList();
-        var results = new List<bool?>();
-        for (int i = 0; i < totalQuestions; i++)
-        {
-            var q = UserQuiz.Questions[i];
-            if (!string.IsNullOrEmpty(q.UserAnswer))
-                results.Add(q.UserAnswer == q.Answer ? true : false);
-            else
-                results.Add(null);
-        }
-        return results;
+
+        return UserQuiz.Questions.Select(q =>
+            string.IsNullOrEmpty(q.UserAnswer)
+                ? (bool?)null
+                : q.UserAnswer == q.Answer).ToList();
     }
 
     private async Task HandleQuestionNavigate(int questionIndex)
     {
-        Logger.LogInformation($"HandleQuestionNavigate called for question index: {questionIndex}");
         var questionElementId = $"question-{questionIndex}";
         await JS.InvokeVoidAsync("scrollToElement", questionElementId);
     }

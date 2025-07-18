@@ -385,7 +385,8 @@ namespace WiseUpDude.Services
             }
             catch (Exception ex)
             {
-                return (null, $"Failed to parse quiz JSON: {ex.Message}. Raw response: {json}");
+                //return (null, $"Failed to parse quiz JSON: {ex.Message}. Raw response: {json}");
+                return (null, $"Failed to parse quiz JSON: {ex.Message}. Please try again.");
             }
         }
     }

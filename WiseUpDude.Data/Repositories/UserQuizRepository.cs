@@ -150,6 +150,8 @@ namespace WiseUpDude.Data.Repositories
                     OptionsJson = q.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(q.Options),
                     UserAnswer = q.UserAnswer,
                     Difficulty = q.Difficulty,
+                    Citation = q.Citation, // Include Citation if needed
+                    ContextSnippet = q.ContextSnippet, // Include ContextSnippet if needed
                     Quiz = null
                 }).ToList()
             };

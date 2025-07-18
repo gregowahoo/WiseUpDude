@@ -17,6 +17,7 @@
 @inject ITenorGifService TenorGifService
 @inject IPromptSuggestionCacheService PromptCache
 @inject IUrlSuggestionCacheService UrlCache
+@inject WiseUpDude.Shared.Services.ToastService ToastService
 
 @rendermode InteractiveServer
 @attribute [Authorize(Roles = "FreeSubscriber,PaidSubscriber,Admin,EnterpriseSubscriber")]
@@ -285,6 +286,7 @@
         if (string.IsNullOrWhiteSpace(UserPrompt))
         {
             ErrorMessage = "Please enter a valid prompt.";
+            await ToastService.ShowToast(ErrorMessage, ToastLevel.Warning);
             return;
         }
 
@@ -300,22 +302,24 @@
         try
         {
             Logger.LogInformation("Sending prompt to PerplexityService: {UserPrompt}", UserPrompt);
-            // var (quiz, error) = await PerplexityService.GenerateQuizFromPromptAsync(UserPrompt, userId);
             var (quiz, error) = await PerplexityService.GenerateQuizWithContextFromPromptAsync(UserPrompt, userId);
             if (quiz == null)
             {
                 Logger.LogError("PerplexityService returned no quiz. Error: {Error}", error);
                 ErrorMessage = error ?? "Failed to generate quiz from prompt. Please try again.";
+                await ToastService.ShowToast(ErrorMessage, ToastLevel.Error);
                 return;
             }
             var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
             Logger.LogInformation("Quiz successfully saved to the UserQuiz table. QuizId: {QuizId}", userQuizId);
+            await ToastService.ShowToast("Quiz generated successfully!", ToastLevel.Success);
             NavigationManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Exception during quiz save.");
             ErrorMessage = "An error occurred while generating or saving the quiz. Please try again later.";
+            await ToastService.ShowToast(ErrorMessage, ToastLevel.Error);
         }
         finally
         {
@@ -334,6 +338,7 @@
         if (string.IsNullOrWhiteSpace(QuizUrl))
         {
             UrlErrorMessage = "Please enter a valid URL.";
+            await ToastService.ShowToast(UrlErrorMessage, ToastLevel.Warning);
             return;
         }
         IsUrlGenerating = true;
@@ -346,21 +351,23 @@
 
         try
         {
-            // var (quiz, error) = await PerplexityService.GenerateQuizFromUrlAsync(QuizUrl, userId);
             var (quiz, error) = await PerplexityService.GenerateQuizWithContextFromUrlAsync(QuizUrl, userId);
             if (quiz == null)
             {
                 UrlErrorMessage = error ?? "Failed to generate quiz from URL.";
+                await ToastService.ShowToast(UrlErrorMessage, ToastLevel.Error);
                 return;
             }
             quiz.Url = QuizUrl;
             var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
+            await ToastService.ShowToast("Quiz generated successfully!", ToastLevel.Success);
             NavigationManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
         }
         catch (Exception ex)
         {
             UrlErrorMessage = "An error occurred while generating or saving the quiz. Please try again later.";
             Logger.LogError(ex, "Exception during quiz save from URL.");
+            await ToastService.ShowToast(UrlErrorMessage, ToastLevel.Error);
         }
         finally
         {

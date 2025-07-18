@@ -40,7 +40,9 @@ namespace WiseUpDude.Data.Repositories
                     QuestionType = (WiseUpDude.Model.QuizQuestionType)q.QuestionType,
                     Options = string.IsNullOrEmpty(q.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson),
                     UserAnswer = q.UserAnswer,
-                    Difficulty = q.Difficulty // Include question-level difficulty
+                    Difficulty = q.Difficulty,
+                    Citation = string.IsNullOrEmpty(q.CitationJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.CitationJson),
+                    ContextSnippet = q.ContextSnippet 
                 }).ToList(),
                 Type = uq.Type,
                 Topic = uq.Topic,
@@ -78,7 +80,9 @@ namespace WiseUpDude.Data.Repositories
                     QuestionType = (WiseUpDude.Model.QuizQuestionType)q.QuestionType,
                     Options = string.IsNullOrEmpty(q.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson),
                     UserAnswer = q.UserAnswer,
-                    Difficulty = q.Difficulty // Include question-level difficulty
+                    Difficulty = q.Difficulty, // Include question-level difficulty
+                    Citation = string.IsNullOrEmpty(q.CitationJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.CitationJson),
+                    ContextSnippet = q.ContextSnippet 
                 }).ToList(),
                 Type = userQuiz.Type,
                 Topic = userQuiz.Topic,
@@ -113,6 +117,8 @@ namespace WiseUpDude.Data.Repositories
                     OptionsJson = q.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(q.Options),
                     UserAnswer = q.UserAnswer,
                     Difficulty = q.Difficulty, // Save question-level difficulty
+                    Citation = q.Citation,
+                    ContextSnippet = q.ContextSnippet,
                     Quiz = null // Will be set before saving
                 }).ToList()
             };
@@ -206,6 +212,8 @@ namespace WiseUpDude.Data.Repositories
                 OptionsJson = q.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(q.Options),
                 UserAnswer = q.UserAnswer,
                 Difficulty = q.Difficulty, // Update question-level difficulty
+                Citation = q.Citation,
+                ContextSnippet = q.ContextSnippet,
                 Quiz = userQuiz // Set the Quiz property
             }));
 
@@ -279,7 +287,9 @@ namespace WiseUpDude.Data.Repositories
                         ? new List<string>()
                         : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson),
                     UserAnswer = q.UserAnswer,
-                    Difficulty = q.Difficulty
+                    Difficulty = q.Difficulty,
+                    Citation = string.IsNullOrEmpty(q.CitationJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.CitationJson),
+                    ContextSnippet = q.ContextSnippet
                 }).ToList(),
                 Type = uq.Type,
                 Topic = uq.Topic,

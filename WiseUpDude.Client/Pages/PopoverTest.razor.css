@@ -1,0 +1,61 @@
+/* Perplexity badge and popover styles scoped to PopoverTest.razor */
+.perplexity-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 12px;
+    background: #f5f7fa;
+    color: #222;
+    font-weight: 600;
+    font-size: 0.95rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    border: 1px solid #e0e4ea;
+    cursor: pointer;
+    transition: background 0.2s;
+    outline: none;
+    margin-right: 8px;
+    text-decoration: none;
+}
+.perplexity-pill:focus, .perplexity-pill:hover {
+    background: #e9eef6;
+    color: #007bff;
+    border-color: #cfd8e3;
+}
+.perplexity-pill-number {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #222;
+    padding: 0 2px;
+    line-height: 1;
+}
+.perplexity-popover {
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10), 0 1.5px 4px rgba(0, 0, 0, 0.08);
+    padding: 18px 22px 18px 22px;
+    background: #fff;
+    min-width: 320px;
+    max-width: 380px;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    color: #222;
+}
+.perplexity-popover-content {
+    font-size: 1rem;
+}
+.perplexity-popover .domain {
+    font-size: 0.95rem;
+    color: #888;
+    font-weight: 500;
+}
+.perplexity-popover .popover-title {
+    font-size: 1.08rem;
+    font-weight: 600;
+    color: #222;
+}
+.perplexity-popover .popover-desc {
+    font-size: 0.98rem;
+    color: #444;
+    margin-top: 2px;
+}

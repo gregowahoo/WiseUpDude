@@ -150,6 +150,21 @@
         </div>
     </div>
 
+    <!-- Dismiss on Next Click Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2>Dismiss on Next Click</h2>
+            <p>This popover uses the <code>focus</code> trigger and is dismissed when you click elsewhere. For proper cross-browser behavior, it uses an <code>&lt;a&gt;</code> tag with <code>tabindex</code>.</p>
+            <a tabindex="0" class="btn btn-lg btn-danger popover-dismiss" role="button"
+               data-bs-toggle="popover" data-bs-trigger="focus"
+               data-bs-title="Dismissible popover"
+               data-bs-html="true"
+               data-bs-content="<div style='min-width:220px'>And here's some amazing content. It's very engaging. <br><input type='text' class='form-control mt-2' placeholder='Type here...'><br><a href='#' class='btn btn-sm btn-outline-primary mt-2'>Click me!</a></div>">
+                Dismissible popover
+            </a>
+        </div>
+    </div>
+
     <!-- Programmatic Control Section -->
     <div class="row mb-5">
         <div class="col-12">
@@ -301,6 +316,66 @@
             </div>
         </div>
     </div>
+
+    <!-- Perplexity-style Mouse-over Popover Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2>Perplexity-style Mouse-over Popover</h2>
+            <p>Hover over the link below to see a popover styled like Perplexity's mouse-over cards:</p>
+            <a tabindex="0" class="perplexity-popover-trigger" role="button"
+               data-bs-toggle="popover" data-bs-trigger="hover focus"
+               data-bs-html="true"
+               data-bs-custom-class="perplexity-popover"
+               data-bs-placement="bottom"
+               data-bs-title=" "
+               data-bs-content="<div class='perplexity-popover-content'>
+                   <div class='d-flex align-items-center mb-2'>
+                       <img src='https://www.altindex.com/favicon.ico' alt='altindex.com' style='width:24px;height:24px;margin-right:8px;'>
+                       <span class='domain'>altindex.com</span>
+                   </div>
+                   <div class='popover-title mb-1'>
+                       <strong>NVDA (NVIDIA) Sentiment Statistics 2025 - AltIndex</strong>
+                   </div>
+                   <div class='popover-desc'>
+                       Analyze Sentiment for NVIDIA and gain a competitive edge with unique and comprehensive information.
+                   </div>
+               </div>">
+                <span style="text-decoration:underline;cursor:pointer;">NVDA Sentiment Card</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Perplexity-style Dismiss-on-Next-Click Popover Badge -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2>Perplexity-style Dismiss-on-Next-Click Popover Badge</h2>
+            <p>Click or tab to the badge below to show a Perplexity-style popover. The popover is interactive and will only dismiss when you click elsewhere.</p>
+            <a tabindex="0" role="button"
+               class="perplexity-pill popover-dismiss"
+               data-bs-toggle="popover"
+               data-bs-trigger="focus"
+               data-bs-html="true"
+               data-bs-custom-class="perplexity-popover"
+               data-bs-title=" "
+               data-bs-content="<div class='perplexity-popover-content'>
+                   <div class='d-flex align-items-center mb-2'>
+                       <img src='https://www.altindex.com/favicon.ico' alt='altindex.com' style='width:24px;height:24px;margin-right:8px;'>
+                       <span class='domain'>altindex.com</span>
+                   </div>
+                   <div class='popover-title mb-1'>
+                       <strong>NVDA (NVIDIA) Sentiment Statistics 2025 - AltIndex</strong>
+                   </div>
+                   <div class='popover-desc mb-2'>
+                       Analyze Sentiment for NVIDIA and gain a competitive edge with unique and comprehensive information.
+                   </div>
+                   <input type='text' class='form-control mb-2' placeholder='Type here...'>
+                   <button class='btn btn-sm btn-outline-primary'>Interact</button>
+                   <a href='https://www.altindex.com' target='_blank' rel='noopener' class='btn btn-link btn-sm mt-2'>Go to altindex.com</a>
+               </div>">
+                <span class="perplexity-pill-number">2</span>
+            </a>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -314,6 +389,7 @@
         background: linear-gradient(45deg, #0056b3, #5a2d91);
         color: white;
     }
+    /* Removed Perplexity badge and popover styles from here, now in PopoverTest.razor.css */
 </style>
 
 @code {

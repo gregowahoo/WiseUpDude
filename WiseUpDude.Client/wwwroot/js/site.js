@@ -77,7 +77,17 @@ window.initializePopovers = () => {
         if (el._popoverInstance) {
             el._popoverInstance.dispose();
         }
-        el._popoverInstance = new bootstrap.Popover(el);
+        // Always provide a string for title
+        var title = el.getAttribute('data-bs-title');
+        if (title === null) title = "";
+        el._popoverInstance = new bootstrap.Popover(el, {
+            title: title,
+            html: el.getAttribute('data-bs-html') === 'true',
+            customClass: el.getAttribute('data-bs-custom-class'),
+            trigger: el.getAttribute('data-bs-trigger') || 'click',
+            placement: el.getAttribute('data-bs-placement') || 'top',
+            content: el.getAttribute('data-bs-content')
+        });
     });
     // Initialize dismiss-on-next-click popovers (interactive)
     var dismissList = [].slice.call(document.querySelectorAll('.popover-dismiss'));

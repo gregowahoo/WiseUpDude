@@ -108,3 +108,26 @@ window.togglePopover = (elementId) => {
         element._popoverInstance.toggle();
     }
 };
+
+window.showPopoverDismissOnNextClick = (elementId) => {
+    const element = document.getElementById(elementId);
+    if (element && element._popoverInstance) {
+        // Show the popover
+        element._popoverInstance.show();
+        
+        // Set up one-time click handler to dismiss on next click anywhere
+        const dismissHandler = (event) => {
+            // Don't dismiss if clicking on the trigger button itself
+            if (!element.contains(event.target)) {
+                element._popoverInstance.hide();
+                // Remove the event listener after use
+                document.removeEventListener('click', dismissHandler);
+            }
+        };
+        
+        // Add the event listener with a small delay to avoid immediate dismissal
+        setTimeout(() => {
+            document.addEventListener('click', dismissHandler);
+        }, 100);
+    }
+};

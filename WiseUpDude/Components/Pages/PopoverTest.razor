@@ -165,6 +165,34 @@
         </div>
     </div>
 
+    <!-- Dismiss on Next Click Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2>Dismiss on Next Click</h2>
+            <p>Popover that automatically dismisses when you click anywhere else on the page:</p>
+            
+            <div class="d-flex gap-3 flex-wrap align-items-center">
+                <button type="button" 
+                        id="dismissOnClickPopover"
+                        class="btn btn-outline-info" 
+                        data-bs-toggle="popover" 
+                        data-bs-trigger="manual"
+                        data-bs-title="Dismiss on Next Click" 
+                        data-bs-content="This popover will automatically dismiss when you click anywhere else on the page. Try clicking somewhere else to see it disappear!">
+                    Dismiss on Next Click
+                </button>
+
+                <button type="button" class="btn btn-sm btn-primary" @onclick="ShowDismissOnNextClickPopover">
+                    <i class="bi bi-cursor"></i> Show & Auto-Dismiss
+                </button>
+                
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i> Click the button, then click anywhere else to see the auto-dismiss behavior
+                </small>
+            </div>
+        </div>
+    </div>
+
     <!-- Custom Styling Section -->
     <div class="row mb-5">
         <div class="col-12">
@@ -337,5 +365,10 @@
     private async Task TogglePopover()
     {
         await JSRuntime.InvokeVoidAsync("togglePopover", "programmaticPopover");
+    }
+
+    private async Task ShowDismissOnNextClickPopover()
+    {
+        await JSRuntime.InvokeVoidAsync("showPopoverDismissOnNextClick", "dismissOnClickPopover");
     }
 }

@@ -76,6 +76,23 @@ window.initializePopovers = () => {
         }
         el._popoverInstance = new bootstrap.Popover(el);
     });
+    // Initialize dismiss-on-next-click popovers (interactive)
+    var dismissList = [].slice.call(document.querySelectorAll('.popover-dismiss'));
+    dismissList.forEach(function (el) {
+        if (el._popoverInstance) {
+            el._popoverInstance.dispose();
+        }
+        el._popoverInstance = new bootstrap.Popover(el, { trigger: 'focus', html: true });
+        // Prevent popover from closing when clicking inside
+        el.addEventListener('shown.bs.popover', function () {
+            var popover = document.querySelector('.popover');
+            if (popover) {
+                popover.addEventListener('mousedown', function (e) {
+                    e.stopPropagation();
+                });
+            }
+        });
+    });
 };
 
 window.disposeAllPopovers = () => {

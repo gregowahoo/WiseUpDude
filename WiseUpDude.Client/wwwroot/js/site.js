@@ -68,3 +68,63 @@ window.playSound = function(soundUrl) {
         console.log('Error playing sound:', error);
     });
 };
+
+// Bootstrap Popover functions for WASM
+window.initializePopovers = () => {
+    // Dispose existing popovers first
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    popoverTriggerList.forEach(function (el) {
+        if (el._popoverInstance) {
+            el._popoverInstance.dispose();
+        }
+        el._popoverInstance = new bootstrap.Popover(el);
+    });
+    // Initialize dismiss-on-next-click popovers (interactive)
+    var dismissList = [].slice.call(document.querySelectorAll('.popover-dismiss'));
+    dismissList.forEach(function (el) {
+        if (el._popoverInstance) {
+            el._popoverInstance.dispose();
+        }
+        el._popoverInstance = new bootstrap.Popover(el, { trigger: 'focus', html: true });
+        // Prevent popover from closing when clicking inside
+        el.addEventListener('shown.bs.popover', function () {
+            var popover = document.querySelector('.popover');
+            if (popover) {
+                popover.addEventListener('mousedown', function (e) {
+                    e.stopPropagation();
+                });
+            }
+        });
+    });
+};
+
+window.disposeAllPopovers = () => {
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    popoverTriggerList.forEach(function (el) {
+        if (el._popoverInstance) {
+            el._popoverInstance.dispose();
+            el._popoverInstance = null;
+        }
+    });
+};
+
+window.showPopover = (elementId) => {
+    const element = document.getElementById(elementId);
+    if (element && element._popoverInstance) {
+        element._popoverInstance.show();
+    }
+};
+
+window.hidePopover = (elementId) => {
+    const element = document.getElementById(elementId);
+    if (element && element._popoverInstance) {
+        element._popoverInstance.hide();
+    }
+};
+
+window.togglePopover = (elementId) => {
+    const element = document.getElementById(elementId);
+    if (element && element._popoverInstance) {
+        element._popoverInstance.toggle();
+    }
+};

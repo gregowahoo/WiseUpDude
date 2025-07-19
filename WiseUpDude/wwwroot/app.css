@@ -102,3 +102,53 @@ h1:focus {
     }
 }
 
+/* Custom Popover Styles */
+.custom-popover {
+    --bs-popover-max-width: 300px;
+    --bs-popover-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --bs-popover-border-color: #764ba2;
+    --bs-popover-header-bg: rgba(255, 255, 255, 0.1);
+    --bs-popover-header-color: white;
+    --bs-popover-body-color: white;
+    --bs-popover-arrow-border: #764ba2;
+}
+
+.large-popover {
+    --bs-popover-max-width: 400px;
+    --bs-popover-font-size: 0.95rem;
+}
+
+.custom-popover .popover-header {
+    background: var(--bs-popover-header-bg);
+    color: var(--bs-popover-header-color);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.custom-popover .popover-body {
+    color: var(--bs-popover-body-color);
+}
+
+/* Enhanced popover animations */
+.popover {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.popover.show {
+    opacity: 1;
+}
+
+/* Popover test page specific styles */
+.btn-gradient {
+    background: linear-gradient(45deg, #007bff, #6f42c1);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+    background: linear-gradient(45deg, #0056b3, #5a2d91);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+

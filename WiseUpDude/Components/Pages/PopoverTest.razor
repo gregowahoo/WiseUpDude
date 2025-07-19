@@ -1,0 +1,339 @@
+@page "/popover-test"
+@using Microsoft.AspNetCore.Components.Web
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Bootstrap Popover Test</PageTitle>
+
+<div class="container-fluid p-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Bootstrap Popover Test Page</h1>
+            <p class="lead">This page demonstrates various Bootstrap Popover implementations in Blazor Server.</p>
+        </div>
+    </div>
+
+    <!-- Basic Popovers Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2>Basic Popovers</h2>
+            <p>Click the buttons below to see basic popovers with different placements:</p>
+            
+            <div class="d-flex gap-3 flex-wrap">
+                <button type="button" 
+                        class="btn btn-primary" 
+                        data-bs-toggle="popover" 
+                        data-bs-placement="top" 
+                        data-bs-title="Top Popover" 
+                        data-bs-content="This popover appears on top!">
+                    Top Popover
+                </button>
+
+                <button type="button" 
+                        class="btn btn-secondary" 
+                        data-bs-toggle="popover" 
+                        data-bs-placement="right" 
+                        data-bs-title="Right Popover" 
+                        data-bs-content="This popover appears on the right side!">
+                    Right Popover
+                </button>
+
+                <button type="button" 
+                        class="btn btn-success" 
+                        data-bs-toggle="popover" 
+                        data-bs-placement="bottom" 
+                        data-bs-title="Bottom Popover" 
+                        data-bs-content="This popover appears at the bottom!">
+                    Bottom Popover
+                </button>
+
+                <button type="button" 
+                        class="btn btn-warning" 
+                        data-bs-toggle="popover" 
+                        data-bs-placement="left" 
+                        data-bs-title="Left Popover" 
+                        data-bs-content="This popover appears on the left side!">
+                    Left Popover
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HTML Content Popovers Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2>HTML Content Popovers</h2>
+            <p>Popovers can contain rich HTML content:</p>
+            
+            <div class="d-flex gap-3 flex-wrap">
+                <button type="button" 
+                        class="btn btn-info" 
+                        data-bs-toggle="popover" 
+                        data-bs-html="true"
+                        data-bs-title="Rich HTML Content" 
+                        data-bs-content="<strong>Bold text</strong><br><em>Italic text</em><br><a href='#' class='btn btn-sm btn-outline-primary mt-2'>Click me!</a>">
+                    HTML Popover
+                </button>
+
+                <button type="button" 
+                        class="btn btn-dark" 
+                        data-bs-toggle="popover" 
+                        data-bs-html="true"
+                        data-bs-title="<i class='bi bi-star-fill text-warning'></i> Featured Content" 
+                        data-bs-content="<ul class='list-unstyled mb-0'><li><i class='bi bi-check-circle text-success'></i> Feature 1</li><li><i class='bi bi-check-circle text-success'></i> Feature 2</li><li><i class='bi bi-check-circle text-success'></i> Feature 3</li></ul>">
+                    Feature List Popover
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Different Trigger Types Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2>Different Trigger Types</h2>
+            <p>Popovers can be triggered by different events:</p>
+            
+            <div class="d-flex gap-3 flex-wrap">
+                <button type="button" 
+                        class="btn btn-outline-primary" 
+                        data-bs-toggle="popover" 
+                        data-bs-trigger="click"
+                        data-bs-title="Click Trigger" 
+                        data-bs-content="This popover is triggered by clicking the button.">
+                    Click to Toggle
+                </button>
+
+                <button type="button" 
+                        class="btn btn-outline-secondary" 
+                        data-bs-toggle="popover" 
+                        data-bs-trigger="hover"
+                        data-bs-title="Hover Trigger" 
+                        data-bs-content="This popover appears when you hover over the button.">
+                    Hover Me
+                </button>
+
+                <button type="button" 
+                        class="btn btn-outline-success" 
+                        data-bs-toggle="popover" 
+                        data-bs-trigger="focus"
+                        data-bs-title="Focus Trigger" 
+                        data-bs-content="This popover appears when the button receives focus.">
+                    Focus Me
+                </button>
+
+                <button type="button" 
+                        class="btn btn-outline-warning" 
+                        data-bs-toggle="popover" 
+                        data-bs-trigger="hover focus"
+                        data-bs-title="Multiple Triggers" 
+                        data-bs-content="This popover responds to both hover and focus events.">
+                    Hover or Focus
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Programmatic Control Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2>Programmatic Control</h2>
+            <p>Control popovers via JavaScript/Blazor:</p>
+            
+            <div class="d-flex gap-3 flex-wrap align-items-center">
+                <button type="button" 
+                        id="programmaticPopover"
+                        class="btn btn-outline-danger" 
+                        data-bs-toggle="popover" 
+                        data-bs-title="Programmatic Popover" 
+                        data-bs-content="This popover is controlled programmatically!">
+                    Controlled Popover
+                </button>
+
+                <button type="button" class="btn btn-sm btn-success" @onclick="ShowPopover">
+                    Show
+                </button>
+
+                <button type="button" class="btn btn-sm btn-danger" @onclick="HidePopover">
+                    Hide
+                </button>
+
+                <button type="button" class="btn btn-sm btn-warning" @onclick="TogglePopover">
+                    Toggle
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Styling Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2>Custom Styled Popovers</h2>
+            <p>Popovers with custom CSS classes:</p>
+            
+            <div class="d-flex gap-3 flex-wrap">
+                <button type="button" 
+                        class="btn btn-gradient" 
+                        data-bs-toggle="popover" 
+                        data-bs-custom-class="custom-popover"
+                        data-bs-title="Custom Styled" 
+                        data-bs-content="This popover has custom styling applied!">
+                    Custom Style
+                </button>
+
+                <button type="button" 
+                        class="btn btn-outline-info" 
+                        data-bs-toggle="popover" 
+                        data-bs-custom-class="large-popover"
+                        data-bs-title="Large Popover" 
+                        data-bs-content="This is a larger popover with more space for content. You can customize the size and appearance using CSS.">
+                    Large Popover
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Example Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2>Interactive Example</h2>
+            <p>A practical example of using popovers for help tooltips:</p>
+            
+            <div class="card">
+                <div class="card-header d-flex align-items-center">
+                    <h5 class="mb-0 me-2">User Profile Form</h5>
+                    <button type="button" 
+                            class="btn btn-outline-info btn-sm" 
+                            data-bs-toggle="popover" 
+                            data-bs-html="true"
+                            data-bs-title="Form Help" 
+                            data-bs-content="<p>Fill out this form with your information:</p><ul class='mb-0'><li>Name: Your full name</li><li>Email: Valid email address</li><li>Bio: Brief description about yourself</li></ul>">
+                        <i class="bi bi-question-circle"></i> Help
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="userName" class="form-label d-flex align-items-center">
+                            Name 
+                            <button type="button" 
+                                    class="btn btn-link btn-sm p-0 ms-1" 
+                                    data-bs-toggle="popover" 
+                                    data-bs-trigger="hover"
+                                    data-bs-title="Name Field" 
+                                    data-bs-content="Enter your full name as it appears on official documents.">
+                                <i class="bi bi-info-circle text-muted"></i>
+                            </button>
+                        </label>
+                        <input type="text" class="form-control" id="userName" placeholder="Enter your name">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="userEmail" class="form-label d-flex align-items-center">
+                            Email 
+                            <button type="button" 
+                                    class="btn btn-link btn-sm p-0 ms-1" 
+                                    data-bs-toggle="popover" 
+                                    data-bs-trigger="hover"
+                                    data-bs-title="Email Field" 
+                                    data-bs-content="This email will be used for notifications and account recovery.">
+                                <i class="bi bi-info-circle text-muted"></i>
+                            </button>
+                        </label>
+                        <input type="email" class="form-control" id="userEmail" placeholder="Enter your email">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="userBio" class="form-label d-flex align-items-center">
+                            Bio 
+                            <button type="button" 
+                                    class="btn btn-link btn-sm p-0 ms-1" 
+                                    data-bs-toggle="popover" 
+                                    data-bs-trigger="hover"
+                                    data-bs-html="true"
+                                    data-bs-title="Bio Field" 
+                                    data-bs-content="Write a brief description about yourself.<br><strong>Tip:</strong> Keep it under 200 characters.">
+                                <i class="bi bi-info-circle text-muted"></i>
+                            </button>
+                        </label>
+                        <textarea class="form-control" id="userBio" rows="3" placeholder="Tell us about yourself"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status and Controls Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h5><i class="bi bi-info-circle"></i> About This Test Page</h5>
+                <p class="mb-0">
+                    This page demonstrates Bootstrap 5.3.2 Popovers working in a Blazor Server application. 
+                    All popovers are initialized automatically when the page loads. The examples show different 
+                    placements, trigger types, HTML content, and programmatic control options.
+                </p>
+            </div>
+            
+            <div class="text-center">
+                <button type="button" class="btn btn-outline-primary me-2" @onclick="InitializeAllPopovers">
+                    <i class="bi bi-arrow-clockwise"></i> Reinitialize All Popovers
+                </button>
+                
+                <button type="button" class="btn btn-outline-secondary" @onclick="DisposeAllPopovers">
+                    <i class="bi bi-x-circle"></i> Dispose All Popovers
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-gradient {
+        background: linear-gradient(45deg, #007bff, #6f42c1);
+        border: none;
+        color: white;
+    }
+    
+    .btn-gradient:hover {
+        background: linear-gradient(45deg, #0056b3, #5a2d91);
+        color: white;
+    }
+</style>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializePopovers();
+        }
+    }
+
+    private async Task InitializePopovers()
+    {
+        await JSRuntime.InvokeVoidAsync("initializePopovers");
+    }
+
+    private async Task InitializeAllPopovers()
+    {
+        await JSRuntime.InvokeVoidAsync("initializePopovers");
+    }
+
+    private async Task DisposeAllPopovers()
+    {
+        await JSRuntime.InvokeVoidAsync("disposeAllPopovers");
+    }
+
+    private async Task ShowPopover()
+    {
+        await JSRuntime.InvokeVoidAsync("showPopover", "programmaticPopover");
+    }
+
+    private async Task HidePopover()
+    {
+        await JSRuntime.InvokeVoidAsync("hidePopover", "programmaticPopover");
+    }
+
+    private async Task TogglePopover()
+    {
+        await JSRuntime.InvokeVoidAsync("togglePopover", "programmaticPopover");
+    }
+}

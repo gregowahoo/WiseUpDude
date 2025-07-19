@@ -65,3 +65,46 @@ window.initTippyPopovers = function () {
         });
     }
 };
+
+// Bootstrap Popover functions
+window.initializePopovers = () => {
+    // Dispose existing popovers first
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    popoverTriggerList.forEach(function (el) {
+        if (el._popoverInstance) {
+            el._popoverInstance.dispose();
+        }
+        el._popoverInstance = new bootstrap.Popover(el);
+    });
+};
+
+window.disposeAllPopovers = () => {
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    popoverTriggerList.forEach(function (el) {
+        if (el._popoverInstance) {
+            el._popoverInstance.dispose();
+            el._popoverInstance = null;
+        }
+    });
+};
+
+window.showPopover = (elementId) => {
+    const element = document.getElementById(elementId);
+    if (element && element._popoverInstance) {
+        element._popoverInstance.show();
+    }
+};
+
+window.hidePopover = (elementId) => {
+    const element = document.getElementById(elementId);
+    if (element && element._popoverInstance) {
+        element._popoverInstance.hide();
+    }
+};
+
+window.togglePopover = (elementId) => {
+    const element = document.getElementById(elementId);
+    if (element && element._popoverInstance) {
+        element._popoverInstance.toggle();
+    }
+};

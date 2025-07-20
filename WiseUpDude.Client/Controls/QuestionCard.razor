@@ -134,6 +134,7 @@
     private bool showContextPopover = false;
     private int? hoveredCitationIndex = null;
     private List<CitationMeta> citationMetas = new();
+    private List<string>? lastLoadedCitations = null;
 
     private class CitationMeta
     {
@@ -144,154 +145,257 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        // Pre-fill the user's saved answer if it exists
-        if (Question?.UserAnswer is not null)
+        try
         {
-            userAnswer = Question.UserAnswer;
-            submitted = true; // Mark as submitted to show feedback
-        }
-        // Fetch citation metas
-        citationMetas.Clear();
-        if (Question?.Citation != null)
-        {
-            var tasks = new List<Task<CitationMeta>>();
-            foreach (var citation in Question.Citation)
+            // Pre-fill the user's saved answer if it exists
+            if (Question?.UserAnswer is not null)
             {
-                if (!string.IsNullOrWhiteSpace(citation))
-                {
-                    tasks.Add(FetchCitationMetaAsync(citation));
-                }
-                else
-                {
-                    tasks.Add(Task.FromResult(new CitationMeta { Url = string.Empty, Title = null, Description = null }));
-                }
+                userAnswer = Question.UserAnswer;
+                submitted = true; // Mark as submitted to show feedback
             }
-            citationMetas = (await Task.WhenAll(tasks)).ToList();
-            StateHasChanged();
+            // Only reload citation metas if citations have changed
+            var currentCitations = Question?.Citation?.Where(c => !string.IsNullOrWhiteSpace(c)).ToList() ?? new List<string>();
+            if (lastLoadedCitations == null || !currentCitations.SequenceEqual(lastLoadedCitations))
+            {
+                citationMetas.Clear();
+                if (currentCitations.Count > 0)
+                {
+                    var tasks = new List<Task<CitationMeta>>();
+                    foreach (var citation in currentCitations)
+                    {
+                        tasks.Add(FetchCitationMetaAsync(citation));
+                    }
+                    citationMetas = (await Task.WhenAll(tasks)).ToList();
+                }
+                lastLoadedCitations = new List<string>(currentCitations);
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in OnParametersSetAsync for question {QuestionIndex}", QuestionIndex);
         }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Only initialize popovers after first render
-        if (firstRender && Question?.Citation != null && citationMetas.Count > 0)
+        try
         {
-            await JS.InvokeVoidAsync("initializePopovers");
+            // Only initialize popovers after first render
+            if (firstRender && Question?.Citation != null && citationMetas.Count > 0)
+            {
+                await JS.InvokeVoidAsync("initializePopovers");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in OnAfterRenderAsync for question {QuestionIndex}", QuestionIndex);
         }
     }
 
     private async Task<CitationMeta> FetchCitationMetaAsync(string citation)
     {
-        var meta = await UrlMetaClient.GetUrlMetaAsync(citation);
-        Logger.LogInformation($"Fetched meta for citation: {citation}, Title: {meta.Title}, Description: {meta.Description}");
-        return new CitationMeta { Url = citation, Title = meta.Title ?? citation, Description = meta.Description };
+        try
+        {
+            var meta = await UrlMetaClient.GetUrlMetaAsync(citation);
+            Logger.LogInformation($"Fetched meta for citation: {citation}, Title: {meta.Title}, Description: {meta.Description}");
+            return new CitationMeta { Url = citation, Title = meta.Title ?? citation, Description = meta.Description };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error fetching citation meta for {Citation}", citation);
+            return new CitationMeta { Url = citation, Title = citation, Description = null };
+        }
     }
 
     private void OnSelectAnswer(string answer)
     {
-        if (!CanEdit) return;
-        userAnswer = answer;
-        submitted = false;
-
-        Logger.LogInformation("Answer selected for question {QuestionIndex}: {Answer}", QuestionIndex, answer);
-
-        if (AutoSubmit)
+        try
         {
-            CheckAnswerAndNotify();
+            if (!CanEdit) return;
+            userAnswer = answer;
+            submitted = false;
+
+            Logger.LogInformation("Answer selected for question {QuestionIndex}: {Answer}", QuestionIndex, answer);
+
+            if (AutoSubmit)
+            {
+                CheckAnswerAndNotify();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in OnSelectAnswer for question {QuestionIndex}", QuestionIndex);
         }
     }
 
     private async void CheckAnswerAndNotify()
     {
-        if (!CanEdit) return;
-        submitted = true;
-
-        if (Question is not null)
+        try
         {
-            Question.UserAnswer = userAnswer;
+            if (!CanEdit) return;
+            submitted = true;
 
-            bool isCorrect = userAnswer == Question.Answer;
-
-            Logger.LogInformation("Answer checked for question {QuestionIndex}. UserAnswer: {UserAnswer}, CorrectAnswer: {CorrectAnswer}, IsCorrect: {IsCorrect}",
-                QuestionIndex, userAnswer, Question.Answer, isCorrect);
-
-            if (!MuteSound)
+            if (Question is not null)
             {
-                try
+                Question.UserAnswer = userAnswer;
+
+                bool isCorrect = userAnswer == Question.Answer;
+
+                Logger.LogInformation("Answer checked for question {QuestionIndex}. UserAnswer: {UserAnswer}, CorrectAnswer: {CorrectAnswer}, IsCorrect: {IsCorrect}",
+                    QuestionIndex, userAnswer, Question.Answer, isCorrect);
+
+                if (!MuteSound)
                 {
-                    var soundFile = isCorrect ? "/sounds/correct.mp3" : "/sounds/incorrect.mp3";
-                    Logger.LogDebug("Playing sound: {SoundFile}", soundFile);
-                    await JS.InvokeVoidAsync("playSound", soundFile);
+                    try
+                    {
+                        var soundFile = isCorrect ? "/sounds/correct.mp3" : "/sounds/incorrect.mp3";
+                        Logger.LogDebug("Playing sound: {SoundFile}", soundFile);
+                        await JS.InvokeVoidAsync("playSound", soundFile);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError(ex, "Error playing sound for question {QuestionIndex}", QuestionIndex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex, "Error playing sound for question {QuestionIndex}", QuestionIndex);
-                }
+
+                // Pass isCorrect, QuestionIndex, and userAnswer
+                await OnAnswerSubmitted.InvokeAsync((isCorrect, QuestionIndex, userAnswer));
             }
 
-            // Pass isCorrect, QuestionIndex, and userAnswer
-            await OnAnswerSubmitted.InvokeAsync((isCorrect, QuestionIndex, userAnswer));
+            StateHasChanged();
         }
-
-        StateHasChanged();
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in CheckAnswerAndNotify for question {QuestionIndex}", QuestionIndex);
+        }
     }
 
     private void CheckAnswer()
     {
-        CheckAnswerAndNotify();
+        try
+        {
+            CheckAnswerAndNotify();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in CheckAnswer for question {QuestionIndex}", QuestionIndex);
+        }
     }
 
     private string GetOptionClass(string option)
     {
-        if (!submitted)
+        try
         {
-            return "btn btn-outline-dark me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
-        }
+            if (!submitted)
+            {
+                return "btn btn-outline-dark me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
+            }
 
-        if (option == Question?.Answer)
+            if (option == Question?.Answer)
+            {
+                return "btn btn-correct me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled"); // ✅ Correct
+            }
+
+            if (option == userAnswer)
+            {
+                return "btn btn-incorrect me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled"); // ❌ Incorrect
+            }
+
+            return "btn btn-outline-secondary me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
+        }
+        catch (Exception ex)
         {
-            return "btn btn-correct me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled"); // ✅ Correct
+            Logger.LogError(ex, "Error in GetOptionClass for question {QuestionIndex}", QuestionIndex);
+            return "btn btn-outline-secondary me-2 mb-2 rounded-pill";
         }
-
-        if (option == userAnswer)
-        {
-            return "btn btn-incorrect me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled"); // ❌ Incorrect
-        }
-
-        return "btn btn-outline-secondary me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
     }
 
     private string GetPopoverTitle(int currentIndex)
     {
-        if (citationMetas.Count > currentIndex)
-            return citationMetas[currentIndex].Title ?? citationMetas[currentIndex].Url;
-        return "";
+        try
+        {
+            if (citationMetas.Count > currentIndex)
+                return citationMetas[currentIndex].Title ?? citationMetas[currentIndex].Url;
+            return "";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in GetPopoverTitle for question {QuestionIndex}", QuestionIndex);
+            return "";
+        }
     }
 
     private string GetPopoverContent(int currentIndex)
     {
-        if (citationMetas.Count > currentIndex)
-            return citationMetas[currentIndex].Url;
-        return "";
+        try
+        {
+            if (citationMetas.Count > currentIndex)
+                return citationMetas[currentIndex].Url;
+            return "";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in GetPopoverContent for question {QuestionIndex}", QuestionIndex);
+            return "";
+        }
     }
 
-    private void ShowContextPopover() => showContextPopover = true;
-    private void HideContextPopover() => showContextPopover = false;
-    private void ToggleContextPopover() => showContextPopover = !showContextPopover;
+    private void ShowContextPopover()
+    {
+        try
+        {
+            showContextPopover = true;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in ShowContextPopover for question {QuestionIndex}", QuestionIndex);
+        }
+    }
+    private void HideContextPopover()
+    {
+        try
+        {
+            showContextPopover = false;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in HideContextPopover for question {QuestionIndex}", QuestionIndex);
+        }
+    }
+    private void ToggleContextPopover()
+    {
+        try
+        {
+            showContextPopover = !showContextPopover;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in ToggleContextPopover for question {QuestionIndex}", QuestionIndex);
+        }
+    }
 
     private string BuildCitationPopoverHtml(CitationMeta? meta, string citation)
     {
-        var title = meta?.Title ?? citation;
-        // Show default text if no description
-        var descContent = string.IsNullOrWhiteSpace(meta?.Description)
-            ? "<span style='color:#888;'>No summary available for this source.</span>"
-            : meta.Description;
-        var desc = $"<div class='popover-card-body'>{descContent}</div>";
-        var url = $"<a href='{citation}' target='_blank' rel='noopener' class='btn btn-sm btn-outline-primary w-100'>Visit Source</a>";
-        return $@"<div class='popover-card'>
-            <div class='popover-card-header'><strong>{title}</strong></div>
-            {desc}
-            <div class='popover-card-footer'>{url}</div>
-        </div>";
+        try
+        {
+            var title = meta?.Title ?? citation;
+            // Show default text if no description
+            var descContent = string.IsNullOrWhiteSpace(meta?.Description)
+                ? "<span style='color:#888;'>No summary available for this source.</span>"
+                : meta.Description;
+            var desc = $"<div class='popover-card-body'>{descContent}</div>";
+            var url = $"<a href='{citation}' target='_blank' rel='noopener' class='btn btn-sm btn-outline-primary w-100'>Visit Source</a>";
+            return $@"<div class='popover-card'>
+                <div class='popover-card-header'><strong>{title}</strong></div>
+                {desc}
+                <div class='popover-card-footer'>{url}</div>
+            </div>";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in BuildCitationPopoverHtml for question {QuestionIndex}", QuestionIndex);
+            return "<div class='popover-card'><div class='popover-card-header'><strong>Error</strong></div><div class='popover-card-body'>Could not load citation info.</div></div>";
+        }
     }
-}
+}}

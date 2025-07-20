@@ -210,6 +210,7 @@
 }
 .perplexity-popover-content {
     font-size: 1rem;
+    padding: 0.5rem 0.2rem;
 }
 .perplexity-popover .domain {
     font-size: 0.95rem;
@@ -220,11 +221,12 @@
     font-size: 1.08rem;
     font-weight: 600;
     color: #222;
+    margin-bottom: 2px;
 }
 .perplexity-popover .popover-desc {
     font-size: 0.98rem;
     color: #444;
-    margin-top: 2px;
+    margin-bottom: 6px;
 }
 
 @keyframes fadeIn {

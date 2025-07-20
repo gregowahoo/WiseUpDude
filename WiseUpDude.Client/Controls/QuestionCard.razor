@@ -78,14 +78,16 @@
                             var citation = Question.Citation[i];
                             if (!string.IsNullOrWhiteSpace(citation))
                             {
+                                var meta = citationMetas.Count > i ? citationMetas[i] : null;
+                                var popoverHtml = BuildCitationPopoverHtml(meta, citation);
                                 <a tabindex="0" role="button"
                                    class="perplexity-pill popover-dismiss me-1"
                                    data-bs-toggle="popover"
                                    data-bs-trigger="click"
                                    data-bs-html="true"
                                    data-bs-custom-class="perplexity-popover"
-                                   data-bs-title="@GetPopoverTitle(i)"
-                                   data-bs-content="@GetPopoverContent(i)">
+                                   data-bs-title=" "
+                                   data-bs-content="@popoverHtml">
                                     <span class="perplexity-pill-number">@((i + 1).ToString())</span>
                                 </a>
                             }
@@ -271,5 +273,13 @@
 
     private void ShowContextPopover() => showContextPopover = true;
     private void HideContextPopover() => showContextPopover = false;
+
+    private string BuildCitationPopoverHtml(CitationMeta? meta, string citation)
+    {
+        var title = meta?.Title ?? citation;
+        var desc = string.IsNullOrWhiteSpace(meta?.Description) ? "" : $"<div class='popover-desc mb-2'>{meta.Description}</div>";
+        var url = $"<a href='{citation}' target='_blank' rel='noopener' class='citation-url'>{citation}</a>";
+        return $"<div class='perplexity-popover-content'><div class='popover-title mb-1'><strong>{title}</strong></div>{desc}{url}</div>";
+    }
 }
 

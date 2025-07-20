@@ -74,7 +74,12 @@ window.initializePopovers = () => {
         if (el._popoverInstance) {
             el._popoverInstance.dispose();
         }
-        el._popoverInstance = new bootstrap.Popover(el);
+        // Ensure title is never null or undefined
+        let title = el.getAttribute('data-bs-title');
+        if (title === null || title === undefined) {
+            title = "";
+        }
+        el._popoverInstance = new bootstrap.Popover(el, { title: title });
     });
     // Initialize dismiss-on-next-click popovers (interactive)
     var dismissList = [].slice.call(document.querySelectorAll('.popover-dismiss'));
@@ -82,7 +87,11 @@ window.initializePopovers = () => {
         if (el._popoverInstance) {
             el._popoverInstance.dispose();
         }
-        el._popoverInstance = new bootstrap.Popover(el, { trigger: 'focus', html: true });
+        let title = el.getAttribute('data-bs-title');
+        if (title === null || title === undefined) {
+            title = "";
+        }
+        el._popoverInstance = new bootstrap.Popover(el, { trigger: 'focus', html: true, title: title });
         // Prevent popover from closing when clicking inside
         el.addEventListener('shown.bs.popover', function () {
             var popover = document.querySelector('.popover');

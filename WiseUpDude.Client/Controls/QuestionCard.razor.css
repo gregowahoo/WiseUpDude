@@ -243,3 +243,16 @@
     max-width: 360px;
     z-index: 1050;
 }
+
+/* Mobile styles for context popover */
+@media (max-width: 600px) {
+    .modern-context-popover {
+        left: 0 !important;
+        right: 0 !important;
+        min-width: 90vw;
+        max-width: 95vw;
+        font-size: 1.1em;
+        margin-left: 5vw;
+        margin-right: 5vw;
+    }
+}

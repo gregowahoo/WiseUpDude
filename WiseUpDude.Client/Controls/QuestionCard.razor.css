@@ -224,9 +224,12 @@
     margin-bottom: 2px;
 }
 .perplexity-popover .popover-desc {
+    min-height: 28px; /* Ensures space even if empty */
     font-size: 0.98rem;
     color: #444;
     margin-bottom: 6px;
+    display: flex;
+    align-items: center;
 }
 
 @keyframes fadeIn {
@@ -279,9 +282,12 @@
     border-bottom: 1px solid #e3e3e3;
 }
 .popover-card-body {
+    min-height: 32px; /* Ensures space even if empty */
     padding: 0.75rem 1rem;
     font-size: 0.98rem;
     color: #444;
+    display: flex;
+    align-items: center;
 }
 .popover-card-footer {
     padding: 0.5rem 1rem;

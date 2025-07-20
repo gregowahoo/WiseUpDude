@@ -282,7 +282,9 @@
     private string BuildCitationPopoverHtml(CitationMeta? meta, string citation)
     {
         var title = meta?.Title ?? citation;
-        var desc = string.IsNullOrWhiteSpace(meta?.Description) ? "" : $"<div class='popover-card-body'>{meta.Description}</div>";
+        // Always render the popover-card-body, even if empty
+        var descContent = string.IsNullOrWhiteSpace(meta?.Description) ? "&nbsp;" : meta.Description;
+        var desc = $"<div class='popover-card-body'>{descContent}</div>";
         var url = $"<a href='{citation}' target='_blank' rel='noopener' class='btn btn-sm btn-outline-primary w-100'>Visit Source</a>";
         return $@"<div class='popover-card'>
             <div class='popover-card-header'><strong>{title}</strong></div>

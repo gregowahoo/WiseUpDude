@@ -15,7 +15,7 @@
         {
             @foreach (var option in Question.Options)
             {
-                <button class="@GetOptionClass(option)"
+                <button type="button" class="@GetOptionClass(option)"
                         @onclick="() => OnSelectAnswer(option)"
                         disabled="@(!CanEdit)">
                     @option
@@ -26,7 +26,7 @@
         {
             @foreach (var tf in new[] { "True", "False" })
             {
-                <button class="@GetOptionClass(tf)"
+                <button type="button" class="@GetOptionClass(tf)"
                         @onclick="() => OnSelectAnswer(tf)"
                         disabled="@(!CanEdit)">
                     @tf
@@ -38,7 +38,7 @@
         @if (!AutoSubmit)
         {
             <div class="mt-3">
-                <button class="btn btn-sm btn-primary" @onclick="CheckAnswer" disabled="@(!CanEdit)">Check Answer</button>
+                <button type="button" class="btn btn-sm btn-primary" @onclick="CheckAnswer" disabled="@(!CanEdit)">Check Answer</button>
             </div>
         }
 
@@ -80,17 +80,16 @@
                             {
                                 var meta = citationMetas.Count > i ? citationMetas[i] : null;
                                 var popoverHtml = BuildCitationPopoverHtml(meta, citation);
-                                <button type="button"
-                                        tabindex="0" role="button"
-                                        class="perplexity-pill popover-dismiss me-1"
-                                        data-bs-toggle="popover"
-                                        data-bs-trigger="click"
-                                        data-bs-html="true"
-                                        data-bs-custom-class="perplexity-popover"
-                                        data-bs-title=" "
-                                        data-bs-content="@popoverHtml">
+                                <a tabindex="0" role="button" href="javascript:void(0)"
+                                   class="perplexity-pill popover-dismiss me-1"
+                                   data-bs-toggle="popover"
+                                   data-bs-trigger="click"
+                                   data-bs-html="true"
+                                   data-bs-custom-class="perplexity-popover"
+                                   data-bs-title=" "
+                                   data-bs-content="@popoverHtml">
                                     <span class="perplexity-pill-number">@((i + 1).ToString())</span>
-                                </button>
+                                </a>
                             }
                         }
                     }
@@ -174,8 +173,8 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Only initialize popovers after rendering
-        if (Question?.Citation != null && citationMetas.Count > 0)
+        // Only initialize popovers after first render
+        if (firstRender && Question?.Citation != null && citationMetas.Count > 0)
         {
             await JS.InvokeVoidAsync("initializePopovers");
         }
@@ -296,4 +295,3 @@
         </div>";
     }
 }
-

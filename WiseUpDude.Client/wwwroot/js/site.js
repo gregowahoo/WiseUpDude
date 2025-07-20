@@ -138,3 +138,11 @@ window.togglePopover = (elementId) => {
         element._popoverInstance.toggle();
     }
 };
+
+// Debug: Log page reload/navigation events
+window.addEventListener('beforeunload', function (e) {
+    console.log('DEBUG: beforeunload event fired. Page is reloading or navigating away.', e);
+});
+window.addEventListener('popstate', function (e) {
+    console.log('DEBUG: popstate event fired. Browser navigation occurred.', e);
+});

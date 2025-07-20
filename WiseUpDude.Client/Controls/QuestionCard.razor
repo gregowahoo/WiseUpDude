@@ -7,19 +7,6 @@
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center position-relative">
             <h5 class="card-title mb-0">@($"Q{QuestionIndex + 1}: {Question?.Question}")</h5>
-            @if (!string.IsNullOrWhiteSpace(Question?.ContextSnippet))
-            {
-                <span @onmouseover="ShowContextPopover" @onmouseout="HideContextPopover" style="cursor:pointer;">
-                    <i class="bi bi-info-circle" style="font-size: 1.25rem;" title="Show context"></i>
-                    @if (showContextPopover)
-                    {
-                        <div class="popover fade show position-absolute end-0 mt-2" style="z-index:1050; min-width:250px; max-width:350px;">
-                            <div class="popover-header fw-bold">Context</div>
-                            <div class="popover-body small">@Question.ContextSnippet</div>
-                        </div>
-                    }
-                </span>
-            }
         </div>
         <div class="mb-3"></div>
 
@@ -76,27 +63,50 @@
         }
     </div>
 
-    @if (Question?.Citation != null && Question.Citation.Any(citation => !string.IsNullOrWhiteSpace(citation)))
+    @if (
+        (!string.IsNullOrWhiteSpace(Question?.ContextSnippet)) ||
+        (Question?.Citation != null && Question.Citation.Any(citation => !string.IsNullOrWhiteSpace(citation)))
+    )
     {
         <div class="card-footer text-muted" style="font-size: small;">
-            <div class="d-flex align-items-center flex-wrap">
-                @for (int i = 0; i < Question.Citation.Count; i++)
-                {
-                    var citation = Question.Citation[i];
-                    if (!string.IsNullOrWhiteSpace(citation))
+            <div class="d-flex w-100 justify-content-between align-items-center flex-wrap">
+                <div class="d-flex align-items-center flex-wrap">
+                    @if (Question?.Citation != null && Question.Citation.Any(citation => !string.IsNullOrWhiteSpace(citation)))
                     {
-                        <a tabindex="0" role="button"
-                           class="perplexity-pill popover-dismiss me-1"
-                           data-bs-toggle="popover"
-                           data-bs-trigger="click"
-                           data-bs-html="true"
-                           data-bs-custom-class="perplexity-popover"
-                           data-bs-title="@GetPopoverTitle(i)"
-                           data-bs-content="@GetPopoverContent(i)">
-                            <span class="perplexity-pill-number">@((i + 1).ToString())</span>
-                        </a>
+                        @for (int i = 0; i < Question.Citation.Count; i++)
+                        {
+                            var citation = Question.Citation[i];
+                            if (!string.IsNullOrWhiteSpace(citation))
+                            {
+                                <a tabindex="0" role="button"
+                                   class="perplexity-pill popover-dismiss me-1"
+                                   data-bs-toggle="popover"
+                                   data-bs-trigger="click"
+                                   data-bs-html="true"
+                                   data-bs-custom-class="perplexity-popover"
+                                   data-bs-title="@GetPopoverTitle(i)"
+                                   data-bs-content="@GetPopoverContent(i)">
+                                    <span class="perplexity-pill-number">@((i + 1).ToString())</span>
+                                </a>
+                            }
+                        }
                     }
-                }
+                </div>
+                <div class="d-flex justify-content-end flex-grow-1">
+                    @if (!string.IsNullOrWhiteSpace(Question?.ContextSnippet))
+                    {
+                        <span @onmouseover="ShowContextPopover" @onmouseout="HideContextPopover" style="cursor:pointer;">
+                            <i class="bi bi-info-circle" style="font-size: 1.25rem;" title="Show context"></i>
+                            @if (showContextPopover)
+                            {
+                                <div class="popover fade show position-absolute end-0 mt-2" style="z-index:1050; min-width:250px; max-width:350px;">
+                                    <div class="popover-header fw-bold">Context</div>
+                                    <div class="popover-body small">@Question.ContextSnippet</div>
+                                </div>
+                            }
+                        </span>
+                    }
+                </div>
             </div>
         </div>
     }

@@ -11,6 +11,8 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WiseUpDude.Model;
+using WiseUpDude.Shared.Model;
+using WiseUpDude.Shared.Services;
 
 namespace WiseUpDude.Services
 {
@@ -251,7 +253,7 @@ namespace WiseUpDude.Services
             }
         }
 
-        public async Task<UrlMetaService.UrlMetaResult> GetUrlMetaAsync(string url)
+        public async Task<UrlMetaResult> GetUrlMetaAsync(string url)
         {
             return await _urlMetaService.GetUrlMetaAsync(url);
         }

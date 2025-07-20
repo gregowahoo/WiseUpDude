@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using WiseUpDude.Model; // Add this to access config
+using WiseUpDude.Shared.Services;
+using WiseUpDude.Shared.Model;
 
 namespace WiseUpDude.Services
 {
@@ -305,7 +307,7 @@ namespace WiseUpDude.Services
             }
         }
 
-        public async Task<UrlMetaService.UrlMetaResult> GetUrlMetaAsync(string url)
+        public async Task<UrlMetaResult> GetUrlMetaAsync(string url)
         {
             return await _urlMetaService.GetUrlMetaAsync(url);
         }

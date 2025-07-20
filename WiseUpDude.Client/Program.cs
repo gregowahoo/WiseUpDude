@@ -2,9 +2,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection; // Add this using directive for AddHttpClient extension method
 using Microsoft.Extensions.Logging;
 using WiseUpDude.Shared.Services;
-
 using WiseUpDude.Shared.State;
-
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -32,5 +30,6 @@ builder.Services.AddScoped<LearningTrackQuizAttemptApiService>();
 builder.Services.AddScoped<QuizState>();
 
 builder.Services.AddScoped<IUserQuizAttemptApiService, UserQuizAttemptApiService>();
+builder.Services.AddScoped<WiseUpDude.Shared.Services.UrlMetaClient>();
 
 await builder.Build().RunAsync();

@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WiseUpDude.Data\WiseUpDude.Data.csproj" />
+    <ProjectReference Include="..\WiseUpDude.Shared\WiseUpDude.Shared.csproj" />
   </ItemGroup>
 
 </Project>

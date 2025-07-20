@@ -240,7 +240,8 @@ builder.Services.AddScoped<GeminiService>();
 
 builder.Services.AddScoped<LearningTrackQuizService>();
 
-builder.Services.AddScoped<UrlMetaService>();
+builder.Services.AddScoped<WiseUpDude.Services.UrlMetaService>();
+builder.Services.AddScoped<WiseUpDude.Shared.Services.UrlMetaClient>();
 
 #endregion
 

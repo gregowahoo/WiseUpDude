@@ -1,116 +1,7 @@
 ﻿@using WiseUpDude.Model
-
 @inject IJSRuntime JS
 @inject ILogger<QuestionCard> Logger
-
-@code {
-    [Parameter] public QuizQuestion? Question { get; set; }
-    [Parameter] public int QuestionIndex { get; set; }
-    [Parameter] public bool AutoSubmit { get; set; }
-    [Parameter] public EventCallback<(bool isCorrect, int questionIndex, string userAnswer)> OnAnswerSubmitted { get; set; }
-    [Parameter] public bool MuteSound { get; set; }
-    [Parameter] public bool CanEdit { get; set; } = true;
-
-    private string userAnswer = string.Empty; // Tracks the user's selected answer
-    private bool submitted = false;
-    private bool showContextPopover = false;
-    private int? hoveredCitationIndex = null;
-
-    protected override void OnParametersSet()
-    {
-        // Pre-fill the user's saved answer if it exists
-        if (Question?.UserAnswer is not null)
-        {
-            userAnswer = Question.UserAnswer;
-            submitted = true; // Mark as submitted to show feedback
-        }
-    }
-
-    private void OnSelectAnswer(string answer)
-    {
-        if (!CanEdit) return;
-        userAnswer = answer;
-        submitted = false;
-
-        Logger.LogInformation("Answer selected for question {QuestionIndex}: {Answer}", QuestionIndex, answer);
-
-        if (AutoSubmit)
-        {
-            CheckAnswerAndNotify();
-        }
-    }
-
-    private async void CheckAnswerAndNotify()
-    {
-        if (!CanEdit) return;
-        submitted = true;
-
-        if (Question is not null)
-        {
-            Question.UserAnswer = userAnswer;
-
-            bool isCorrect = userAnswer == Question.Answer;
-
-            Logger.LogInformation("Answer checked for question {QuestionIndex}. UserAnswer: {UserAnswer}, CorrectAnswer: {CorrectAnswer}, IsCorrect: {IsCorrect}",
-                QuestionIndex, userAnswer, Question.Answer, isCorrect);
-
-            if (!MuteSound)
-            {
-                try
-                {
-                    var soundFile = isCorrect ? "/sounds/correct.mp3" : "/sounds/incorrect.mp3";
-                    Logger.LogDebug("Playing sound: {SoundFile}", soundFile);
-                    await JS.InvokeVoidAsync("playSound", soundFile);
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex, "Error playing sound for question {QuestionIndex}", QuestionIndex);
-                }
-            }
-
-            // Pass isCorrect, QuestionIndex, and userAnswer
-            await OnAnswerSubmitted.InvokeAsync((isCorrect, QuestionIndex, userAnswer));
-        }
-
-        StateHasChanged();
-    }
-
-    private void CheckAnswer()
-    {
-        CheckAnswerAndNotify();
-    }
-
-    private string GetOptionClass(string option)
-    {
-        if (!submitted)
-        {
-            return "btn btn-outline-dark me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
-        }
-
-        if (option == Question?.Answer)
-        {
-            return "btn btn-correct me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled"); // ✅ Correct
-        }
-
-        if (option == userAnswer)
-        {
-            return "btn btn-incorrect me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled"); // ❌ Incorrect
-        }
-
-        return "btn btn-outline-secondary me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
-    }
-
-    private void ShowContextPopover() => showContextPopover = true;
-    private void HideContextPopover() => showContextPopover = false;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        // if (firstRender)
-        // {
-        //     await JS.InvokeVoidAsync("initBootstrapTooltipsAndPopovers");
-        // }
-    }
-}
+@inject WiseUpDude.Shared.Services.UrlMetaClient UrlMetaClient
 
 <div class="card mb-3 shadow-sm">
     <div class="card-body">
@@ -188,10 +79,167 @@
     @if (Question?.Citation != null && Question.Citation.Any(citation => !string.IsNullOrWhiteSpace(citation)))
     {
         <div class="card-footer text-muted" style="font-size: small;">
-            @foreach (var citation in Question.Citation.Where(citation => !string.IsNullOrWhiteSpace(citation)))
-            {
-                <div><a href="@citation" target="_blank" rel="noopener noreferrer">@citation</a></div>
-            }
+            <div class="d-flex align-items-center flex-wrap">
+                @for (int i = 0; i < Question.Citation.Count; i++)
+                {
+                    var citation = Question.Citation[i];
+                    if (!string.IsNullOrWhiteSpace(citation))
+                    {
+                        <a tabindex="0" role="button"
+                           class="perplexity-pill popover-dismiss me-1"
+                           data-bs-toggle="popover"
+                           data-bs-trigger="focus"
+                           data-bs-html="true"
+                           data-bs-custom-class="perplexity-popover"
+                           data-bs-title=" "
+                           data-bs-content="@GetPopoverContent(i)">
+                            <span class="perplexity-pill-number">@((i + 1).ToString())</span>
+                        </a>
+                    }
+                }
+            </div>
         </div>
     }
 </div>
+
+@code {
+    [Parameter] public QuizQuestion? Question { get; set; }
+    [Parameter] public int QuestionIndex { get; set; }
+    [Parameter] public bool AutoSubmit { get; set; }
+    [Parameter] public EventCallback<(bool isCorrect, int questionIndex, string userAnswer)> OnAnswerSubmitted { get; set; }
+    [Parameter] public bool MuteSound { get; set; }
+    [Parameter] public bool CanEdit { get; set; } = true;
+
+    private string userAnswer = string.Empty; // Tracks the user's selected answer
+    private bool submitted = false;
+    private bool showContextPopover = false;
+    private int? hoveredCitationIndex = null;
+    private List<string?> citationTitles = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Pre-fill the user's saved answer if it exists
+        if (Question?.UserAnswer is not null)
+        {
+            userAnswer = Question.UserAnswer;
+            submitted = true; // Mark as submitted to show feedback
+        }
+        // Fetch citation titles
+        citationTitles.Clear();
+        if (Question?.Citation != null)
+        {
+            foreach (var citation in Question.Citation)
+            {
+                if (!string.IsNullOrWhiteSpace(citation))
+                {
+                    var meta = await UrlMetaClient.GetUrlMetaAsync(citation);
+                    Logger.LogInformation($"Fetched meta for citation: {citation}, Title: {meta.Title}, Description: {meta.Description}");
+                    citationTitles.Add(meta.Title ?? citation);
+                }
+                else
+                {
+                    citationTitles.Add(null);
+                }
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("initializePopovers");
+        }
+    }
+
+    private void OnSelectAnswer(string answer)
+    {
+        if (!CanEdit) return;
+        userAnswer = answer;
+        submitted = false;
+
+        Logger.LogInformation("Answer selected for question {QuestionIndex}: {Answer}", QuestionIndex, answer);
+
+        if (AutoSubmit)
+        {
+            CheckAnswerAndNotify();
+        }
+    }
+
+    private async void CheckAnswerAndNotify()
+    {
+        if (!CanEdit) return;
+        submitted = true;
+
+        if (Question is not null)
+        {
+            Question.UserAnswer = userAnswer;
+
+            bool isCorrect = userAnswer == Question.Answer;
+
+            Logger.LogInformation("Answer checked for question {QuestionIndex}. UserAnswer: {UserAnswer}, CorrectAnswer: {CorrectAnswer}, IsCorrect: {IsCorrect}",
+                QuestionIndex, userAnswer, Question.Answer, isCorrect);
+
+            if (!MuteSound)
+            {
+                try
+                {
+                    var soundFile = isCorrect ? "/sounds/correct.mp3" : "/sounds/incorrect.mp3";
+                    Logger.LogDebug("Playing sound: {SoundFile}", soundFile);
+                    await JS.InvokeVoidAsync("playSound", soundFile);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Error playing sound for question {QuestionIndex}", QuestionIndex);
+                }
+            }
+
+            // Pass isCorrect, QuestionIndex, and userAnswer
+            await OnAnswerSubmitted.InvokeAsync((isCorrect, QuestionIndex, userAnswer));
+        }
+
+        StateHasChanged();
+    }
+
+    private void CheckAnswer()
+    {
+        CheckAnswerAndNotify();
+    }
+
+    private string GetOptionClass(string option)
+    {
+        if (!submitted)
+        {
+            return "btn btn-outline-dark me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
+        }
+
+        if (option == Question?.Answer)
+        {
+            return "btn btn-correct me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled"); // ✅ Correct
+        }
+
+        if (option == userAnswer)
+        {
+            return "btn btn-incorrect me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled"); // ❌ Incorrect
+        }
+
+        return "btn btn-outline-secondary me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
+    }
+
+    private string GetPopoverContent(int currentIndex)
+    {
+        if (Question?.Citation == null || currentIndex < 0 || currentIndex >= Question.Citation.Count)
+            return "";
+        var url = Question.Citation[currentIndex];
+        var title = citationTitles.Count > currentIndex ? citationTitles[currentIndex] : url;
+        var html = "<div class='perplexity-popover-content'>";
+        html += "<div class='popover-title mb-1'>";
+        html += $"<a href='{url}' target='_blank' rel='noopener' class='citation-title-link'>{title}</a>";
+        html += "</div></div>";
+        return html;
+    }
+
+    private void ShowContextPopover() => showContextPopover = true;
+    private void HideContextPopover() => showContextPopover = false;
+}
+

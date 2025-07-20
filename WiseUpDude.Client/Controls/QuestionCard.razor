@@ -88,10 +88,10 @@
                         <a tabindex="0" role="button"
                            class="perplexity-pill popover-dismiss me-1"
                            data-bs-toggle="popover"
-                           data-bs-trigger="focus"
+                           data-bs-trigger="click"
                            data-bs-html="true"
                            data-bs-custom-class="perplexity-popover"
-                           data-bs-title=" "
+                           data-bs-title="@GetPopoverTitle(i)"
                            data-bs-content="@GetPopoverContent(i)">
                             <span class="perplexity-pill-number">@((i + 1).ToString())</span>
                         </a>
@@ -114,7 +114,14 @@
     private bool submitted = false;
     private bool showContextPopover = false;
     private int? hoveredCitationIndex = null;
-    private List<string?> citationTitles = new();
+    private List<CitationMeta> citationMetas = new();
+
+    private class CitationMeta
+    {
+        public string Url { get; set; } = string.Empty;
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -124,32 +131,41 @@
             userAnswer = Question.UserAnswer;
             submitted = true; // Mark as submitted to show feedback
         }
-        // Fetch citation titles
-        citationTitles.Clear();
+        // Fetch citation metas
+        citationMetas.Clear();
         if (Question?.Citation != null)
         {
+            var tasks = new List<Task<CitationMeta>>();
             foreach (var citation in Question.Citation)
             {
                 if (!string.IsNullOrWhiteSpace(citation))
                 {
-                    var meta = await UrlMetaClient.GetUrlMetaAsync(citation);
-                    Logger.LogInformation($"Fetched meta for citation: {citation}, Title: {meta.Title}, Description: {meta.Description}");
-                    citationTitles.Add(meta.Title ?? citation);
+                    tasks.Add(FetchCitationMetaAsync(citation));
                 }
                 else
                 {
-                    citationTitles.Add(null);
+                    tasks.Add(Task.FromResult(new CitationMeta { Url = string.Empty, Title = null, Description = null }));
                 }
             }
+            citationMetas = (await Task.WhenAll(tasks)).ToList();
+            StateHasChanged();
         }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        // Only initialize popovers after rendering
+        if (Question?.Citation != null && citationMetas.Count > 0)
         {
             await JS.InvokeVoidAsync("initializePopovers");
         }
+    }
+
+    private async Task<CitationMeta> FetchCitationMetaAsync(string citation)
+    {
+        var meta = await UrlMetaClient.GetUrlMetaAsync(citation);
+        Logger.LogInformation($"Fetched meta for citation: {citation}, Title: {meta.Title}, Description: {meta.Description}");
+        return new CitationMeta { Url = citation, Title = meta.Title ?? citation, Description = meta.Description };
     }
 
     private void OnSelectAnswer(string answer)
@@ -226,17 +242,18 @@
         return "btn btn-outline-secondary me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
     }
 
+    private string GetPopoverTitle(int currentIndex)
+    {
+        if (citationMetas.Count > currentIndex)
+            return citationMetas[currentIndex].Title ?? citationMetas[currentIndex].Url;
+        return "";
+    }
+
     private string GetPopoverContent(int currentIndex)
     {
-        if (Question?.Citation == null || currentIndex < 0 || currentIndex >= Question.Citation.Count)
-            return "";
-        var url = Question.Citation[currentIndex];
-        var title = citationTitles.Count > currentIndex ? citationTitles[currentIndex] : url;
-        var html = "<div class='perplexity-popover-content'>";
-        html += "<div class='popover-title mb-1'>";
-        html += $"<a href='{url}' target='_blank' rel='noopener' class='citation-title-link'>{title}</a>";
-        html += "</div></div>";
-        return html;
+        if (citationMetas.Count > currentIndex)
+            return citationMetas[currentIndex].Url;
+        return "";
     }
 
     private void ShowContextPopover() => showContextPopover = true;

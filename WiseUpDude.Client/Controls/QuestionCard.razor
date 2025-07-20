@@ -96,12 +96,15 @@
                     @if (!string.IsNullOrWhiteSpace(Question?.ContextSnippet))
                     {
                         <span @onmouseover="ShowContextPopover" @onmouseout="HideContextPopover" style="cursor:pointer;">
-                            <i class="bi bi-info-circle" style="font-size: 1.25rem;" title="Show context"></i>
+                            <i class="bi bi-info-circle" style="font-size: 1.25rem; color: #0d6efd;" title="Show more info"></i>
                             @if (showContextPopover)
                             {
-                                <div class="popover fade show position-absolute end-0 mt-2" style="z-index:1050; min-width:250px; max-width:350px;">
-                                    <div class="popover-header fw-bold">Context</div>
-                                    <div class="popover-body small">@Question.ContextSnippet</div>
+                                <div class="modern-context-popover fade show position-absolute end-0 mt-2">
+                                    <div class="popover-body small" style="padding: 1rem;">
+                                        <span style="font-size:1.1em; color:#0d6efd; margin-right:6px;">🛈</span>
+                                        <em>Did you know?</em><br />
+                                        <span>@Question.ContextSnippet</span>
+                                    </div>
                                 </div>
                             }
                         </span>

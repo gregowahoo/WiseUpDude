@@ -80,16 +80,17 @@
                             {
                                 var meta = citationMetas.Count > i ? citationMetas[i] : null;
                                 var popoverHtml = BuildCitationPopoverHtml(meta, citation);
-                                <a tabindex="0" role="button"
-                                   class="perplexity-pill popover-dismiss me-1"
-                                   data-bs-toggle="popover"
-                                   data-bs-trigger="click"
-                                   data-bs-html="true"
-                                   data-bs-custom-class="perplexity-popover"
-                                   data-bs-title=" "
-                                   data-bs-content="@popoverHtml">
+                                <button type="button"
+                                        tabindex="0" role="button"
+                                        class="perplexity-pill popover-dismiss me-1"
+                                        data-bs-toggle="popover"
+                                        data-bs-trigger="click"
+                                        data-bs-html="true"
+                                        data-bs-custom-class="perplexity-popover"
+                                        data-bs-title=" "
+                                        data-bs-content="@popoverHtml">
                                     <span class="perplexity-pill-number">@((i + 1).ToString())</span>
-                                </a>
+                                </button>
                             }
                         }
                     }
@@ -282,8 +283,10 @@
     private string BuildCitationPopoverHtml(CitationMeta? meta, string citation)
     {
         var title = meta?.Title ?? citation;
-        // Always render the popover-card-body, even if empty
-        var descContent = string.IsNullOrWhiteSpace(meta?.Description) ? "&nbsp;" : meta.Description;
+        // Show default text if no description
+        var descContent = string.IsNullOrWhiteSpace(meta?.Description)
+            ? "<span style='color:#888;'>No summary available for this source.</span>"
+            : meta.Description;
         var desc = $"<div class='popover-card-body'>{descContent}</div>";
         var url = $"<a href='{citation}' target='_blank' rel='noopener' class='btn btn-sm btn-outline-primary w-100'>Visit Source</a>";
         return $@"<div class='popover-card'>

@@ -37,11 +37,29 @@
     [Parameter] public EventCallback<int> OnQuestionNavigate { get; set; }
 
     // Percentage of questions answered that are correct (not out of total questions)
-    private int AnsweredCount => QuestionResults?.Count(q => q != null) ?? 0;
-    private double PercentCorrect => AnsweredCount > 0 ? Math.Round((double)CorrectAnswers / AnsweredCount * 100, 1) : 0;
+    private int AnsweredCount
+    {
+        get
+        {
+            var count = QuestionResults?.Count(q => q != null) ?? 0;
+            Console.WriteLine($"ScoreTracker: AnsweredCount getter called, result={count}");
+            return count;
+        }
+    }
+
+    private double PercentCorrect
+    {
+        get
+        {
+            var percent = AnsweredCount > 0 ? Math.Round((double)CorrectAnswers / AnsweredCount * 100, 1) : 0;
+            Console.WriteLine($"ScoreTracker: PercentCorrect getter called, result={percent}");
+            return percent;
+        }
+    }
 
     private async Task HandleScoreBoxClick(int questionIndex)
     {
+        Console.WriteLine($"ScoreTracker: HandleScoreBoxClick called, questionIndex={questionIndex}");
         if (OnQuestionNavigate.HasDelegate)
         {
             await OnQuestionNavigate.InvokeAsync(questionIndex);

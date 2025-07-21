@@ -63,9 +63,10 @@ else
     </div>
     <div class="card-body">
         <!-- Score Tracker -->
-        <ScoreTracker TotalQuestions="@totalQuestions"
+        <ScoreTracker @key="UserQuiz?.Id"
+                      TotalQuestions="@totalQuestions"
                       CorrectAnswers="@correctAnswers"
-                      QuestionResults="@GetQuestionResults()"
+                      QuestionResults="@questionResults"
                       OnQuestionNavigate="@HandleQuestionNavigate" />
 
         <!-- Final Message -->
@@ -127,7 +128,8 @@ else
                     <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p>
 
                     <div class="question-options-center">
-                        <QuestionCard Question="question"
+                        <QuestionCard @key="question.Id"
+                                      Question="question"
                                       QuestionIndex="i"
                                       AutoSubmit="autoSubmit"
                                       MuteSound="muteSound"
@@ -160,10 +162,11 @@ else
     private int? CurrentAttemptId;
     private string? saveMessage;
     private string? saveMessageType;
+    private List<bool?> questionResults = new();
 
     protected override async Task OnInitializedAsync()
     {
-        Logger.LogInformation($"OnInitializedAsync START for QuizId={QuizId}");
+        Logger.LogInformation($"Method: OnInitializedAsync START for QuizId={QuizId}");
         try
         {
             UserQuiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
@@ -183,17 +186,30 @@ else
                     }
                 }
                 totalAnswered = answeredQuestions.Count;
+                questionResults = BuildQuestionResults();
             }
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Exception in OnInitializedAsync");
         }
-        Logger.LogInformation("OnInitializedAsync END");
+        Logger.LogInformation("Method: OnInitializedAsync END");
+    }
+
+    private List<bool?> BuildQuestionResults()
+    {
+        // Logger.LogInformation("Method: BuildQuestionResults");
+        if (UserQuiz?.Questions == null)
+            return Enumerable.Repeat<bool?>(null, totalQuestions).ToList();
+        return UserQuiz.Questions.Select(q =>
+            string.IsNullOrEmpty(q.UserAnswer)
+                ? (bool?)null
+                : q.UserAnswer == q.Answer).ToList();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        Logger.LogInformation($"Method: OnAfterRenderAsync (firstRender={firstRender})");
         if (firstRender)
         {
             try
@@ -207,12 +223,21 @@ else
         }
     }
 
-    private void ToggleAutoSubmit() => autoSubmit = !autoSubmit;
+    private void ToggleAutoSubmit()
+    {
+        // Logger.LogInformation("Method: ToggleAutoSubmit");
+        autoSubmit = !autoSubmit;
+    }
 
-    private void ToggleMute() => muteSound = !muteSound;
+    private void ToggleMute()
+    {
+        // Logger.LogInformation("Method: ToggleMute");
+        muteSound = !muteSound;
+    }
 
     private async Task ToggleLearnMode()
     {
+        // Logger.LogInformation($"Method: ToggleLearnMode (learnMode={learnMode})");
         if (UserQuiz?.Questions != null)
         {
             answeredQuestions.Clear();
@@ -239,6 +264,8 @@ else
 
     private async Task HandleAnswerSubmitted((bool isCorrect, int questionIndex, string userAnswer) args)
     {
+        Logger.LogInformation($"Method: HandleAnswerSubmitted (isCorrect={args.isCorrect}, questionIndex={args.questionIndex}, userAnswer={args.userAnswer})");
+
         var (isCorrect, questionIndex, userAnswer) = args;
         if (UserQuiz == null || UserQuiz.Questions == null || questionIndex < 0 || questionIndex >= UserQuiz.Questions.Count)
             return;
@@ -296,6 +323,8 @@ else
         totalAnswered++;
         if (isCorrect) correctAnswers++;
 
+        questionResults = BuildQuestionResults();
+
         if (totalAnswered == totalQuestions)
         {
             if (learnMode)
@@ -312,11 +341,13 @@ else
             await HandleQuizCompletionAsync();
         }
 
-        StateHasChanged();
+        // StateHasChanged();
     }
 
     private async Task HandleQuizCompletionAsync()
     {
+        // Logger.LogInformation("Method: HandleQuizCompletionAsync");
+
         showFinalMessage = true;
         await JS.InvokeVoidAsync("scrollToTopSmooth");
 
@@ -339,19 +370,10 @@ else
         }
     }
 
-    private List<bool?> GetQuestionResults()
-    {
-        if (UserQuiz?.Questions == null)
-            return Enumerable.Repeat<bool?>(null, totalQuestions).ToList();
-
-        return UserQuiz.Questions.Select(q =>
-            string.IsNullOrEmpty(q.UserAnswer)
-                ? (bool?)null
-                : q.UserAnswer == q.Answer).ToList();
-    }
-
     private async Task HandleQuestionNavigate(int questionIndex)
     {
+        // Logger.LogInformation("Method: ToggleAutoSubmit");
+
         var questionElementId = $"question-{questionIndex}";
         await JS.InvokeVoidAsync("scrollToElement", questionElementId);
     }

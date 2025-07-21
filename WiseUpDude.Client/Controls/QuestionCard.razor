@@ -134,10 +134,12 @@
 
     protected override void OnParametersSet()
     {
+        Logger.LogInformation($"Method: OnParametersSet for question {QuestionIndex}");
+
         try
         {
-            // Pre-fill the user's saved answer if it exists
-            if (Question?.UserAnswer is not null)
+            // Only update local state if the UserAnswer has changed
+            if (Question?.UserAnswer != null && Question.UserAnswer != userAnswer)
             {
                 userAnswer = Question.UserAnswer;
                 submitted = true; // Mark as submitted to show feedback
@@ -151,6 +153,8 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        Logger.LogInformation($"Method: OnAfterRenderAsync for question {QuestionIndex} (firstRender={firstRender})");
+
         try
         {
             // Only initialize popovers after first render
@@ -167,6 +171,8 @@
 
     private void OnSelectAnswer(string answer)
     {
+        // Logger.LogInformation($"Method: OnSelectAnswer for question {QuestionIndex} (answer={answer})");
+
         try
         {
             if (!CanEdit) return;
@@ -188,6 +194,8 @@
 
     private async void CheckAnswerAndNotify()
     {
+        // Logger.LogInformation($"Method: CheckAnswerAndNotify for question {QuestionIndex}");
+
         try
         {
             if (!CanEdit) return;
@@ -219,8 +227,6 @@
                 // Pass isCorrect, QuestionIndex, and userAnswer
                 await OnAnswerSubmitted.InvokeAsync((isCorrect, QuestionIndex, userAnswer));
             }
-
-            StateHasChanged();
         }
         catch (Exception ex)
         {
@@ -230,6 +236,8 @@
 
     private void CheckAnswer()
     {
+        // Logger.LogInformation($"Method: CheckAnswer for question {QuestionIndex}");
+
         try
         {
             CheckAnswerAndNotify();
@@ -242,6 +250,8 @@
 
     private string GetOptionClass(string option)
     {
+        // Logger.LogInformation($"Method: GetOptionClass for question {QuestionIndex} (option={option})");
+
         try
         {
             if (!submitted)
@@ -270,6 +280,8 @@
 
     private string GetPopoverTitle(int currentIndex)
     {
+        // Logger.LogInformation($"Method: GetPopoverTitle for question {QuestionIndex} (currentIndex={currentIndex})");
+
         try
         {
             if (Question?.Citation != null && Question.Citation.Count > currentIndex)
@@ -285,6 +297,8 @@
 
     private string GetPopoverContent(int currentIndex)
     {
+        Logger.LogInformation($"Method: GetPopoverContent for question {QuestionIndex} (currentIndex={currentIndex})");
+
         try
         {
             if (Question?.Citation != null && Question.Citation.Count > currentIndex)
@@ -300,6 +314,8 @@
 
     private void ShowContextPopover()
     {
+        // Logger.LogInformation($"Method: ShowContextPopover for question {QuestionIndex}");
+
         try
         {
             showContextPopover = true;
@@ -311,6 +327,7 @@
     }
     private void HideContextPopover()
     {
+        // Logger.LogInformation($"Method: HideContextPopover for question {QuestionIndex}");
         try
         {
             showContextPopover = false;
@@ -322,6 +339,7 @@
     }
     private void ToggleContextPopover()
     {
+        Logger.LogInformation($"Method: ToggleContextPopover for question {QuestionIndex}");
         try
         {
             showContextPopover = !showContextPopover;
@@ -334,6 +352,8 @@
 
     private string BuildCitationPopoverHtml(CitationMeta? meta, string url)
     {
+        Logger.LogInformation($"Method: BuildCitationPopoverHtml for question {QuestionIndex} (url={url})");
+
         try
         {
             var title = meta?.Title ?? url;

@@ -41,7 +41,7 @@ namespace WiseUpDude.Data.Repositories
                     Options = string.IsNullOrEmpty(q.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson),
                     UserAnswer = q.UserAnswer,
                     Difficulty = q.Difficulty,
-                    Citation = string.IsNullOrEmpty(q.CitationJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.CitationJson),
+                    Citation = string.IsNullOrEmpty(q.CitationJson) ? new List<WiseUpDude.Model.CitationMeta>() : System.Text.Json.JsonSerializer.Deserialize<List<WiseUpDude.Model.CitationMeta>>(q.CitationJson),
                     ContextSnippet = q.ContextSnippet 
                 }).ToList(),
                 Type = uq.Type,
@@ -81,7 +81,7 @@ namespace WiseUpDude.Data.Repositories
                     Options = string.IsNullOrEmpty(q.OptionsJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson),
                     UserAnswer = q.UserAnswer,
                     Difficulty = q.Difficulty, // Include question-level difficulty
-                    Citation = string.IsNullOrEmpty(q.CitationJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.CitationJson),
+                    Citation = string.IsNullOrEmpty(q.CitationJson) ? new List<WiseUpDude.Model.CitationMeta>() : System.Text.Json.JsonSerializer.Deserialize<List<WiseUpDude.Model.CitationMeta>>(q.CitationJson),
                     ContextSnippet = q.ContextSnippet 
                 }).ToList(),
                 Type = userQuiz.Type,
@@ -117,7 +117,7 @@ namespace WiseUpDude.Data.Repositories
                     OptionsJson = q.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(q.Options),
                     UserAnswer = q.UserAnswer,
                     Difficulty = q.Difficulty, // Save question-level difficulty
-                    Citation = q.Citation,
+                    CitationJson = q.Citation == null ? string.Empty : System.Text.Json.JsonSerializer.Serialize(q.Citation),
                     ContextSnippet = q.ContextSnippet,
                     Quiz = null // Will be set before saving
                 }).ToList()
@@ -156,7 +156,7 @@ namespace WiseUpDude.Data.Repositories
                     OptionsJson = q.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(q.Options),
                     UserAnswer = q.UserAnswer,
                     Difficulty = q.Difficulty,
-                    Citation = q.Citation, // Include Citation if needed
+                    CitationJson = q.Citation == null ? string.Empty : System.Text.Json.JsonSerializer.Serialize(q.Citation),
                     ContextSnippet = q.ContextSnippet, // Include ContextSnippet if needed
                     Quiz = null
                 }).ToList()
@@ -212,7 +212,7 @@ namespace WiseUpDude.Data.Repositories
                 OptionsJson = q.Options == null ? null : System.Text.Json.JsonSerializer.Serialize(q.Options),
                 UserAnswer = q.UserAnswer,
                 Difficulty = q.Difficulty, // Update question-level difficulty
-                Citation = q.Citation,
+                CitationJson = q.Citation == null ? string.Empty : System.Text.Json.JsonSerializer.Serialize(q.Citation),
                 ContextSnippet = q.ContextSnippet,
                 Quiz = userQuiz // Set the Quiz property
             }));
@@ -288,7 +288,9 @@ namespace WiseUpDude.Data.Repositories
                         : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.OptionsJson),
                     UserAnswer = q.UserAnswer,
                     Difficulty = q.Difficulty,
-                    Citation = string.IsNullOrEmpty(q.CitationJson) ? new List<string>() : System.Text.Json.JsonSerializer.Deserialize<List<string>>(q.CitationJson),
+                    Citation = string.IsNullOrEmpty(q.CitationJson)
+                        ? new List<Model.CitationMeta>()
+                        : TryDeserializeCitation(q.CitationJson),
                     ContextSnippet = q.ContextSnippet
                 }).ToList(),
                 Type = uq.Type,
@@ -337,5 +339,17 @@ namespace WiseUpDude.Data.Repositories
             return (double)correctAnswers / totalQuestions * 100;
         }
 
+        private List<Model.CitationMeta> TryDeserializeCitation(string json)
+        {
+            try
+            {
+                return System.Text.Json.JsonSerializer.Deserialize<List<Model.CitationMeta>>(json) ?? new List<Model.CitationMeta>();
+            }
+            catch
+            {
+                // Optionally log the bad JSON here for diagnostics
+                return new List<Model.CitationMeta>();
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using WiseUpDude.Model; // Use model's CitationMeta
 
 namespace WiseUpDude.Model
 {
@@ -22,7 +23,13 @@ namespace WiseUpDude.Model
         public string Difficulty { get; set; } = string.Empty;
 
         public string? ContextSnippet { get; set; }
-        public List<string>? Citation { get; set; }
+
+        public List<CitationMeta>? Citation { get; set; }
+        public string CitationJson
+        {
+            get => Citation == null ? string.Empty : JsonSerializer.Serialize(Citation);
+            set => Citation = string.IsNullOrEmpty(value) ? new List<CitationMeta>() : JsonSerializer.Deserialize<List<CitationMeta>>(value);
+        }
     }
 
     public enum QuizQuestionType

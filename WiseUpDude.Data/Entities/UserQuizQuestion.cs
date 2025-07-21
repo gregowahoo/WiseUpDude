@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json;
 
 namespace WiseUpDude.Data.Entities
 {
@@ -38,13 +37,7 @@ namespace WiseUpDude.Data.Entities
 
         public string? ContextSnippet { get; set; }
 
-        [NotMapped]
-        public List<string>? Citation { get; set; }
-        public string? CitationJson
-        {
-            get => Citation == null ? string.Empty : JsonSerializer.Serialize(Citation);
-            set => Citation = string.IsNullOrEmpty(value) ? new List<string>() : JsonSerializer.Deserialize<List<string>>(value);
-        }
+        public string? CitationJson { get; set; }
     }
 
     public enum UserQuizQuestionType

@@ -235,6 +235,33 @@ namespace WiseUpDude.Services
             return (json, null);
         }
 
+        private static List<CitationMeta> ConvertPerplexityCitations(object? citationField)
+        {
+            if (citationField == null)
+                return new List<CitationMeta>();
+
+            if (citationField is List<CitationMeta> metas)
+                return metas;
+
+            if (citationField is List<string> urls)
+                return urls.Select(url => new CitationMeta { Url = url }).ToList();
+
+            if (citationField is string citationJson)
+            {
+                try
+                {
+                    var citationUrls = System.Text.Json.JsonSerializer.Deserialize<List<string>>(citationJson);
+                    return citationUrls?.Select(url => new CitationMeta { Url = url }).ToList() ?? new List<CitationMeta>();
+                }
+                catch
+                {
+                    return new List<CitationMeta>();
+                }
+            }
+
+            return new List<CitationMeta>();
+        }
+
         public (Quiz? QuizModel, string? Error) ParseQuizJson(string json)
         {
             try
@@ -245,6 +272,16 @@ namespace WiseUpDude.Services
                 };
                 options.Converters.Add(new JsonStringEnumConverter());
                 var quizModel = JsonSerializer.Deserialize<Quiz>(json, options);
+
+                // Convert citations for each question
+                if (quizModel?.Questions != null)
+                {
+                    foreach (var question in quizModel.Questions)
+                    {
+                        question.Citation = ConvertPerplexityCitations(question.Citation);
+                    }
+                }
+
                 return (quizModel, null);
             }
             catch (Exception ex)
@@ -363,7 +400,10 @@ namespace WiseUpDude.Services
                 var options = new System.Text.Json.JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true,
-                    Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false) }
+                    Converters = {
+                        new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false),
+                        new CitationMetaListConverter() // <-- Register the custom converter
+                    }
                 };
                 bool truncated;
                 var cleanedJson = CleanJsonUtility.CleanJson(json, out truncated);
@@ -376,20 +416,74 @@ namespace WiseUpDude.Services
 
                 if (string.IsNullOrWhiteSpace(quizJson))
                     return (null, "No quiz content found in API response.");
-                
+
                 var cleanedQuizJson = CleanJsonUtility.CleanJson(quizJson, out truncated);
 
                 var quiz = System.Text.Json.JsonSerializer.Deserialize<Quiz>(cleanedQuizJson, options);
                 if (quiz == null)
-                    return (null, "Failed to deserialize quiz from API response."); 
+                    return (null, "Failed to deserialize quiz from API response.");
+
+                // Convert citations for each question (optional, but now should be safe)
+                if (quiz.Questions != null)
+                {
+                    foreach (var question in quiz.Questions)
+                    {
+                        question.Citation = question.Citation ?? new List<CitationMeta>();
+                    }
+                }
 
                 return (quiz, null);
             }
             catch (Exception ex)
             {
-                //return (null, $"Failed to parse quiz JSON: {ex.Message}. Raw response: {json}");
                 return (null, $"Failed to parse quiz JSON: {ex.Message}. Please try again.");
             }
+        }
+    }
+
+    public class CitationMetaListConverter : JsonConverter<List<CitationMeta>>
+    {
+        public override List<CitationMeta> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var result = new List<CitationMeta>();
+
+            if (reader.TokenType != JsonTokenType.StartArray)
+            {
+                if (reader.TokenType == JsonTokenType.Null)
+                    return result;
+                throw new JsonException("Expected StartArray token for Citation field.");
+            }
+
+            // Read each element in the array
+            while (reader.Read())
+            {
+                if (reader.TokenType == JsonTokenType.EndArray)
+                    break;
+
+                if (reader.TokenType == JsonTokenType.String)
+                {
+                    result.Add(new CitationMeta { Url = reader.GetString() });
+                }
+                else if (reader.TokenType == JsonTokenType.StartObject)
+                {
+                    // Deserialize the object directly
+                    var obj = JsonSerializer.Deserialize<CitationMeta>(ref reader, options);
+                    if (obj != null)
+                        result.Add(obj);
+                }
+                else
+                {
+                    throw new JsonException($"Unexpected token type in Citation array: {reader.TokenType}");
+                }
+            }
+
+            // Do NOT call reader.Read() here; the reader is already at the correct position
+            return result;
+        }
+
+        public override void Write(Utf8JsonWriter writer, List<CitationMeta> value, JsonSerializerOptions options)
+        {
+            JsonSerializer.Serialize(writer, value, options);
         }
     }
 }

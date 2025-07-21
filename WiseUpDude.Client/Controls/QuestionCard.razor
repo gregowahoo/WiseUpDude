@@ -65,21 +65,21 @@
 
     @if (
         (!string.IsNullOrWhiteSpace(Question?.ContextSnippet)) ||
-        (Question?.Citation != null && Question.Citation.Any(citation => !string.IsNullOrWhiteSpace(citation)))
+        (Question?.Citation != null && Question.Citation.Any(citation => !string.IsNullOrWhiteSpace(citation.Url)))
     )
     {
         <div class="card-footer text-muted" style="font-size: small;">
             <div class="d-flex w-100 justify-content-between align-items-center flex-wrap">
                 <div class="d-flex align-items-center flex-wrap">
-                    @if (Question?.Citation != null && Question.Citation.Any(citation => !string.IsNullOrWhiteSpace(citation)))
+                    @if (Question?.Citation != null && Question.Citation.Any(citation => !string.IsNullOrWhiteSpace(citation.Url)))
                     {
                         @for (int i = 0; i < Question.Citation.Count; i++)
                         {
                             var citation = Question.Citation[i];
-                            if (!string.IsNullOrWhiteSpace(citation))
+                            if (!string.IsNullOrWhiteSpace(citation.Url))
                             {
                                 var meta = citationMetas.Count > i ? citationMetas[i] : null;
-                                var popoverHtml = BuildCitationPopoverHtml(meta, citation);
+                                var popoverHtml = BuildCitationPopoverHtml(meta, citation.Url);
                                 <a tabindex="0" role="button" href="javascript:void(0)"
                                    class="perplexity-pill popover-dismiss me-1"
                                    data-bs-toggle="popover"
@@ -136,13 +136,6 @@
     private List<CitationMeta> citationMetas = new();
     private List<string>? lastLoadedCitations = null;
 
-    private class CitationMeta
-    {
-        public string Url { get; set; } = string.Empty;
-        public string? Title { get; set; }
-        public string? Description { get; set; }
-    }
-
     protected override async Task OnParametersSetAsync()
     {
         try
@@ -154,16 +147,16 @@
                 submitted = true; // Mark as submitted to show feedback
             }
             // Only reload citation metas if citations have changed
-            var currentCitations = Question?.Citation?.Where(c => !string.IsNullOrWhiteSpace(c)).ToList() ?? new List<string>();
+            var currentCitations = Question?.Citation?.Where(c => !string.IsNullOrWhiteSpace(c.Url)).Select(c => c.Url).ToList() ?? new List<string>();
             if (lastLoadedCitations == null || !currentCitations.SequenceEqual(lastLoadedCitations))
             {
                 citationMetas.Clear();
                 if (currentCitations.Count > 0)
                 {
                     var tasks = new List<Task<CitationMeta>>();
-                    foreach (var citation in currentCitations)
+                    foreach (var citationUrl in currentCitations)
                     {
-                        tasks.Add(FetchCitationMetaAsync(citation));
+                        tasks.Add(FetchCitationMetaAsync(citationUrl));
                     }
                     citationMetas = (await Task.WhenAll(tasks)).ToList();
                 }
@@ -193,18 +186,18 @@
         }
     }
 
-    private async Task<CitationMeta> FetchCitationMetaAsync(string citation)
+    private async Task<CitationMeta> FetchCitationMetaAsync(string citationUrl)
     {
         try
         {
-            var meta = await UrlMetaClient.GetUrlMetaAsync(citation);
-            Logger.LogInformation($"Fetched meta for citation: {citation}, Title: {meta.Title}, Description: {meta.Description}");
-            return new CitationMeta { Url = citation, Title = meta.Title ?? citation, Description = meta.Description };
+            var meta = await UrlMetaClient.GetUrlMetaAsync(citationUrl);
+            Logger.LogInformation($"Fetched meta for citation: {citationUrl}, Title: {meta.Title}, Description: {meta.Description}");
+            return new CitationMeta { Url = citationUrl, Title = meta.Title ?? citationUrl, Description = meta.Description };
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error fetching citation meta for {Citation}", citation);
-            return new CitationMeta { Url = citation, Title = citation, Description = null };
+            Logger.LogError(ex, "Error fetching citation meta for {Citation}", citationUrl);
+            return new CitationMeta { Url = citationUrl, Title = citationUrl, Description = null };
         }
     }
 
@@ -375,21 +368,21 @@
         }
     }
 
-    private string BuildCitationPopoverHtml(CitationMeta? meta, string citation)
+    private string BuildCitationPopoverHtml(CitationMeta? meta, string url)
     {
         try
         {
-            var title = meta?.Title ?? citation;
+            var title = meta?.Title ?? url;
             // Show default text if no description
             var descContent = string.IsNullOrWhiteSpace(meta?.Description)
                 ? "<span style='color:#888;'>No summary available for this source.</span>"
                 : meta.Description;
             var desc = $"<div class='popover-card-body'>{descContent}</div>";
-            var url = $"<a href='{citation}' target='_blank' rel='noopener' class='btn btn-sm btn-outline-primary w-100'>Visit Source</a>";
+            var urlHtml = $"<a href='{url}' target='_blank' rel='noopener' class='btn btn-sm btn-outline-primary w-100'>Visit Source</a>";
             return $@"<div class='popover-card'>
                 <div class='popover-card-header'><strong>{title}</strong></div>
                 {desc}
-                <div class='popover-card-footer'>{url}</div>
+                <div class='popover-card-footer'>{urlHtml}</div>
             </div>";
         }
         catch (Exception ex)
@@ -398,4 +391,4 @@
             return "<div class='popover-card'><div class='popover-card-header'><strong>Error</strong></div><div class='popover-card-body'>Could not load citation info.</div></div>";
         }
     }
-}}
+}

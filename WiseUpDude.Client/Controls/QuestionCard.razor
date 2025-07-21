@@ -99,18 +99,16 @@
                             @onmouseover="ShowContextPopover" 
                             @onmouseout="HideContextPopover" 
                             @onclick="ToggleContextPopover" 
-                            style="cursor:pointer;">
+                            style="cursor:pointer; position:relative; display:inline-block; min-width:24px; min-height:24px;">
                             <i class="bi bi-info-circle" style="font-size: 1.25rem; color: #0d6efd;" title="Show more info"></i>
-                            @if (showContextPopover)
-                            {
-                                <div class="modern-context-popover fade show position-absolute end-0 mt-2">
-                                    <div class="popover-body small" style="padding: 1rem;">
-                                        <span style="font-size:1.1em; color:#0d6efd; margin-right:6px;">🛈</span>
-                                        <em>Did you know?</em><br />
-                                        <span>@Question.ContextSnippet</span>
-                                    </div>
+                            <div class="modern-context-popover fade position-absolute"
+                                 style="left:50%; bottom:100%; transform:translateX(-50%); z-index:1050; min-width:220px; opacity:@(showContextPopover ? 1 : 0); pointer-events:@(showContextPopover ? "auto" : "none"); transition:opacity 0.15s;">
+                                <div class="popover-body small" style="padding: 1rem;">
+                                    <span style="font-size:1.1em; color:#0d6efd; margin-right:6px;">🛈</span>
+                                    <em>Did you know?</em><br />
+                                    <span>@Question.ContextSnippet</span>
                                 </div>
-                            }
+                            </div>
                         </span>
                     }
                 </div>
@@ -375,4 +373,4 @@
             return "<div class='popover-card'><div class='popover-card-header'><strong>Error</strong></div><div class='popover-card-body'>Could not load citation info.</div></div>";
         }
     }
-}
+}}}}

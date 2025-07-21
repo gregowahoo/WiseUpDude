@@ -326,7 +326,6 @@ namespace WiseUpDude.Services
             var content = await response.Content.ReadAsStringAsync();
             var (quiz, parseError) = ParseContextualQuizJson(content);
 
-
             if (quiz != null)
             {
                 if (quiz.Questions == null || !quiz.Questions.Any())
@@ -338,6 +337,25 @@ namespace WiseUpDude.Services
                 quiz.Name = prompt;
                 quiz.Description = prompt;
                 quiz.CreationDate = DateTime.UtcNow;
+
+                // Fetch meta data for each citation in each question
+                foreach (var question in quiz.Questions)
+                {
+                    if (question.Citation != null)
+                    {
+                        for (int i = 0; i < question.Citation.Count; i++)
+                        {
+                            var citation = question.Citation[i];
+                            if (!string.IsNullOrWhiteSpace(citation.Url))
+                            {
+                                var meta = await GetUrlMetaAsync(citation.Url);
+                                citation.Title = meta.Title;
+                                citation.Description = meta.Description;
+                                question.Citation[i] = citation;
+                            }
+                        }
+                    }
+                }
             }
 
             return (quiz, parseError);
@@ -379,16 +397,33 @@ namespace WiseUpDude.Services
                 if (quiz.Questions == null || !quiz.Questions.Any())
                     return (null, "No quiz questions found in Perplexity response.");
 
-                // Set additional properties for the quiz
-                var meta = await GetUrlMetaAsync(url);                                      // Fetch meta data for the URL
-
+                // Do NOT fetch meta data for the original URL
                 quiz.UserId = userId;
                 quiz.Prompt = string.Empty;
                 quiz.Type = "Url";
-                quiz.Name = meta.Title ?? url;
-                quiz.Description = meta.Description ?? meta.Title;
+                quiz.Name = url;
+                quiz.Description = url;
                 quiz.Url = url;
                 quiz.CreationDate = DateTime.UtcNow;
+
+                // Fetch meta data for each citation in each question
+                foreach (var question in quiz.Questions)
+                {
+                    if (question.Citation != null)
+                    {
+                        for (int i = 0; i < question.Citation.Count; i++)
+                        {
+                            var citation = question.Citation[i];
+                            if (!string.IsNullOrWhiteSpace(citation.Url))
+                            {
+                                var meta = await GetUrlMetaAsync(citation.Url);
+                                citation.Title = meta.Title;
+                                citation.Description = meta.Description;
+                                question.Citation[i] = citation;
+                            }
+                        }
+                    }
+                }
             }
 
             return (quiz, parseError);

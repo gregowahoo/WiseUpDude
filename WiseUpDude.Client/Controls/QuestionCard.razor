@@ -95,20 +95,21 @@
                 <div class="d-flex justify-content-end flex-grow-1">
                     @if (!string.IsNullOrWhiteSpace(Question?.ContextSnippet))
                     {
-                        <span 
-                            @onmouseover="ShowContextPopover" 
-                            @onmouseout="HideContextPopover" 
-                            @onclick="ToggleContextPopover" 
-                            style="cursor:pointer; position:relative; display:inline-block; min-width:24px; min-height:24px;">
+                        <span @onmouseover="ShowContextPopover"
+                              @onmouseout="HideContextPopover"
+                              @onclick="ToggleContextPopover"
+                              style="cursor:pointer;">
                             <i class="bi bi-info-circle" style="font-size: 1.25rem; color: #0d6efd;" title="Show more info"></i>
-                            <div class="modern-context-popover fade position-absolute"
-                                 style="left:50%; bottom:100%; transform:translateX(-50%); z-index:1050; min-width:220px; opacity:@(showContextPopover ? 1 : 0); pointer-events:@(showContextPopover ? "auto" : "none"); transition:opacity 0.15s;">
-                                <div class="popover-body small" style="padding: 1rem;">
-                                    <span style="font-size:1.1em; color:#0d6efd; margin-right:6px;">🛈</span>
-                                    <em>Did you know?</em><br />
-                                    <span>@Question.ContextSnippet</span>
+                            @if (showContextPopover)
+                            {
+                                <div class="modern-context-popover fade show position-absolute end-0 mt-2">
+                                    <div class="popover-body small" style="padding: 1rem;">
+                                        <span style="font-size:1.1em; color:#0d6efd; margin-right:6px;">🛈</span>
+                                        <em>Did you know?</em><br />
+                                        <span>@Question.ContextSnippet</span>
+                                    </div>
                                 </div>
-                            </div>
+                            }
                         </span>
                     }
                 </div>

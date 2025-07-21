@@ -1,7 +1,6 @@
 ﻿@using WiseUpDude.Model
 @inject IJSRuntime JS
 @inject ILogger<QuestionCard> Logger
-@inject WiseUpDude.Shared.Services.UrlMetaClient UrlMetaClient
 
 <div class="card mb-3 shadow-sm">
     <div class="card-body">
@@ -78,8 +77,7 @@
                             var citation = Question.Citation[i];
                             if (!string.IsNullOrWhiteSpace(citation.Url))
                             {
-                                var meta = citationMetas.Count > i ? citationMetas[i] : null;
-                                var popoverHtml = BuildCitationPopoverHtml(meta, citation.Url);
+                                var popoverHtml = BuildCitationPopoverHtml(citation, citation.Url);
                                 <a tabindex="0" role="button" href="javascript:void(0)"
                                    class="perplexity-pill popover-dismiss me-1"
                                    data-bs-toggle="popover"
@@ -133,10 +131,8 @@
     private bool submitted = false;
     private bool showContextPopover = false;
     private int? hoveredCitationIndex = null;
-    private List<CitationMeta> citationMetas = new();
-    private List<string>? lastLoadedCitations = null;
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
         try
         {
@@ -146,27 +142,10 @@
                 userAnswer = Question.UserAnswer;
                 submitted = true; // Mark as submitted to show feedback
             }
-            // Only reload citation metas if citations have changed
-            var currentCitations = Question?.Citation?.Where(c => !string.IsNullOrWhiteSpace(c.Url)).Select(c => c.Url).ToList() ?? new List<string>();
-            if (lastLoadedCitations == null || !currentCitations.SequenceEqual(lastLoadedCitations))
-            {
-                citationMetas.Clear();
-                if (currentCitations.Count > 0)
-                {
-                    var tasks = new List<Task<CitationMeta>>();
-                    foreach (var citationUrl in currentCitations)
-                    {
-                        tasks.Add(FetchCitationMetaAsync(citationUrl));
-                    }
-                    citationMetas = (await Task.WhenAll(tasks)).ToList();
-                }
-                lastLoadedCitations = new List<string>(currentCitations);
-                StateHasChanged();
-            }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error in OnParametersSetAsync for question {QuestionIndex}", QuestionIndex);
+            Logger.LogError(ex, "Error in OnParametersSet for question {QuestionIndex}", QuestionIndex);
         }
     }
 
@@ -175,7 +154,7 @@
         try
         {
             // Only initialize popovers after first render
-            if (firstRender && Question?.Citation != null && citationMetas.Count > 0)
+            if (firstRender && Question?.Citation != null && Question.Citation.Count > 0)
             {
                 await JS.InvokeVoidAsync("initializePopovers");
             }
@@ -183,21 +162,6 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error in OnAfterRenderAsync for question {QuestionIndex}", QuestionIndex);
-        }
-    }
-
-    private async Task<CitationMeta> FetchCitationMetaAsync(string citationUrl)
-    {
-        try
-        {
-            var meta = await UrlMetaClient.GetUrlMetaAsync(citationUrl);
-            Logger.LogInformation($"Fetched meta for citation: {citationUrl}, Title: {meta.Title}, Description: {meta.Description}");
-            return new CitationMeta { Url = citationUrl, Title = meta.Title ?? citationUrl, Description = meta.Description };
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error fetching citation meta for {Citation}", citationUrl);
-            return new CitationMeta { Url = citationUrl, Title = citationUrl, Description = null };
         }
     }
 
@@ -308,8 +272,8 @@
     {
         try
         {
-            if (citationMetas.Count > currentIndex)
-                return citationMetas[currentIndex].Title ?? citationMetas[currentIndex].Url;
+            if (Question?.Citation != null && Question.Citation.Count > currentIndex)
+                return Question.Citation[currentIndex].Title ?? Question.Citation[currentIndex].Url;
             return "";
         }
         catch (Exception ex)
@@ -323,8 +287,8 @@
     {
         try
         {
-            if (citationMetas.Count > currentIndex)
-                return citationMetas[currentIndex].Url;
+            if (Question?.Citation != null && Question.Citation.Count > currentIndex)
+                return Question.Citation[currentIndex].Url;
             return "";
         }
         catch (Exception ex)

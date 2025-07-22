@@ -1,0 +1,75 @@
+﻿<div class="popover-container d-inline-block position-relative"
+     @onmouseover="OnPopoverMouseOver"
+     @onmouseout="OnPopoverMouseOut">
+
+    @ChildContent
+
+    @if (Show)
+    {
+        <div class="popover bs-popover-@Placement show fade position-absolute"
+             style="@GetPopoverStyle()"
+             @onmouseover="OnPopoverMouseOver"
+             @onmouseout="OnPopoverMouseOut">
+            <div class="popover-arrow"></div>
+            <div class="popover-body">
+                @if (PopoverContent != null)
+                {
+                    @PopoverContent
+                }
+                else
+                {
+                    @Content
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Content { get; set; } = string.Empty;
+    [Parameter] public RenderFragment? PopoverContent { get; set; }
+    [Parameter] public string Placement { get; set; } = "top"; // top, right, bottom, left, left-align, context-align, top-align
+
+    private bool Show = false;
+    private System.Threading.Timer? _closeTimer;
+    private readonly int _closeDelayMs = 180;
+
+    private void OnPopoverMouseOver()
+    {
+        _closeTimer?.Dispose();
+        _closeTimer = null;
+        Show = true;
+        StateHasChanged();
+    }
+
+    private void OnPopoverMouseOut()
+    {
+        _closeTimer?.Dispose();
+        _closeTimer = new System.Threading.Timer(_ =>
+        {
+            Show = false;
+            InvokeAsync(StateHasChanged);
+        }, null, _closeDelayMs, System.Threading.Timeout.Infinite);
+    }
+
+    private string GetPopoverStyle()
+    {
+        return Placement switch
+        {
+            "top" => "bottom: 100%; left: 50%; transform: translateX(-50%) translateY(-0.5rem);",
+            "bottom" => "top: 100%; left: 50%; transform: translateX(-50%) translateY(0.5rem);",
+            "left" => "top: 50%; right: 100%; transform: translateY(-50%) translateX(-0.5rem);",
+            "right" => "top: 50%; left: 100%; transform: translateY(-50%) translateX(0.5rem);",
+            "left-align" => "top: 100%; left: 0; transform: translateY(0.5rem);", // aligns left edge
+            "context-align" => "top: calc(100% + 1.25rem); left: 0; transform: none;", // aligns like ContextPopover
+            "top-align" => "bottom: 100%; left: 0; transform: translateY(-0.5rem);", // aligns left edge above
+            _ => "bottom: 100%; left: 50%; transform: translateX(-50%) translateY(-0.5rem);"
+        };
+    }
+
+    public void Dispose()
+    {
+        _closeTimer?.Dispose();
+    }
+}

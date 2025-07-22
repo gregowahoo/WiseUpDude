@@ -72,23 +72,36 @@
                 <div class="d-flex align-items-center flex-wrap">
                     @if (Question?.Citation != null && Question.Citation.Any(citation => !string.IsNullOrWhiteSpace(citation.Url)))
                     {
-                        @for (int i = 0; i < Question.Citation.Count; i++)
+                        var validCitations = Question.Citation
+                            .Where(c => !string.IsNullOrWhiteSpace(c.Url))
+                            .ToList();
+                        foreach (var tuple in validCitations.Select((citation, idx) => (citation, idx)))
                         {
-                            var citation = Question.Citation[i];
-                            if (!string.IsNullOrWhiteSpace(citation.Url))
-                            {
-                                var popoverHtml = BuildCitationPopoverHtml(citation, citation.Url);
-                                <a tabindex="0" role="button" href="javascript:void(0)"
-                                   class="perplexity-pill popover-dismiss me-1"
-                                   data-bs-toggle="popover"
-                                   data-bs-trigger="click"
-                                   data-bs-html="true"
-                                   data-bs-custom-class="perplexity-popover"
-                                   data-bs-title=" "
-                                   data-bs-content="@popoverHtml">
-                                    <span class="perplexity-pill-number">@((i + 1).ToString())</span>
-                                </a>
-                            }
+                            <BootstrapPopover Placement="top-align">
+                                <PopoverContent>
+                                    <div class="popover-card">
+                                        <div class="popover-card-header"><strong>@(tuple.citation.Title ?? tuple.citation.Url)</strong></div>
+                                        <div class="popover-card-body">
+                                            @if (string.IsNullOrWhiteSpace(tuple.citation.Description))
+                                            {
+                                                <span style="color:#888;">No summary available for this source.</span>
+                                            }
+                                            else
+                                            {
+                                                @tuple.citation.Description
+                                            }
+                                        </div>
+                                        <div class="popover-card-footer">
+                                            <a href="@tuple.citation.Url" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary w-100">Visit Source</a>
+                                        </div>
+                                    </div>
+                                </PopoverContent>
+                                <ChildContent>
+                                    <span class="perplexity-pill popover-dismiss me-1" tabindex="0" role="button">
+                                        <span class="perplexity-pill-number">@(tuple.idx + 1)</span>
+                                    </span>
+                                </ChildContent>
+                            </BootstrapPopover>
                         }
                     }
                 </div>

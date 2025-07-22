@@ -1,0 +1,8 @@
+﻿.popover-container .popover {
+    z-index: 9999;
+    max-width: 300px;
+}
+
+.popover-arrow::before {
+    border-color: transparent !important;
+}

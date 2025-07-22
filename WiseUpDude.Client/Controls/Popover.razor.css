@@ -1,76 +1,67 @@
-﻿.px-popover-root {
-    position: absolute; /* or fixed, as needed */
-    z-index: 2001;
-    left: 50%;
-    top: 200px; /* Adjust as needed */
-    transform: translateX(-50%);
+﻿/* Full invisible click-catcher to close on outside click */
+.px-click-catcher {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
 }
 
-.px-popover-card {
-    min-width: 320px;
-    max-width: 360px;
-    background: #fff;
+/* Floating, centered card-style popover */
+.px-popover-panel {
+    position: absolute;
+    top: 50px; /* your desired position relative to parent container */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    background: #ffffff;
     border-radius: 14px;
-    box-shadow: 0 4px 32px rgba(60, 64, 67, 0.14);
-    padding: 20px 22px 18px 22px;
+    box-shadow: 0 8px 44px rgba(60, 60, 67, 0.18);
+    padding: 22px 25px;
+    min-width: 320px;
+    max-width: 370px;
+    font-family: 'Inter', Segoe UI, sans-serif;
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    font-family: 'Inter', Segoe UI, Arial, sans-serif;
+    gap: 8px;
 }
 
+
+/* Popover header row: icon + source label */
 .px-popover-row {
     display: flex;
     align-items: center;
-    gap: 7px;
-    margin-bottom: 7px;
+    gap: 10px;
 }
 
+/* Site icon (favicon-style) */
 .px-popover-favicon {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    box-shadow: 0 1px 2px rgba(30,34,40,0.07);
+    background: #f5f7fa;
+    border: 1px solid #e0e3e8;
     object-fit: cover;
-    background: #f7f8fa;
-    border: 1px solid #f1f3f7;
 }
 
+/* Label bubble (source tag) */
 .px-popover-source {
-    color: #566076;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
-    background: #F5F7FA;
+    background-color: #f5f7fa;
+    color: #566076;
+    padding: 4px 10px;
     border-radius: 8px;
-    padding: 2px 9px;
-    line-height: 20px;
 }
 
+/* Title */
 .px-popover-title {
     font-size: 17px;
     font-weight: 700;
-    color: #24292f;
-    margin-bottom: 5px;
+    color: #1a1d22;
 }
 
+/* Supporting description */
 .px-popover-description {
     font-size: 15px;
-    color: #292e36;
-    line-height: 1.52;
+    color: #2e3340;
+    line-height: 1.5;
 }
-
-.px-popover-backdrop {
-    position: fixed;
-    inset: 0;
-    background: transparent; /* or rgba(0,0,0,0.01); */
-    z-index: 1999;
-}
-
-.px-popover-root {
-    position: absolute;
-    left: 50%;
-    top: 210px; /* adjust if needed */
-    transform: translateX(-50%);
-    z-index: 2000;
-}
-/* ...the other popover styles as before... */

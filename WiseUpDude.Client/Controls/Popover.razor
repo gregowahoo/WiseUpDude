@@ -1,54 +1,56 @@
-﻿@if (IsOpen)
+﻿@implements IDisposable
+
+@if (IsOpen)
 {
-    <div class="px-popover-backdrop" @onclick="CloseOnBackgroundClick">
-        <div class="px-popover-root" @onclick:stopPropagation>
-            <div class="px-popover-card">
-                <div class="px-popover-row">
-                    <img src="@IconUrl" alt="Source Icon" class="px-popover-favicon" />
-                    <span class="px-popover-source">@Source</span>
-                </div>
-                <div class="px-popover-title">@Title</div>
-                <div class="px-popover-description">@Content</div>
-            </div>
+    <div class="px-popover-panel" @onclick:stopPropagation>
+        <div class="px-popover-row">
+            <img src="@IconUrl" alt="Favicon" class="px-popover-favicon" />
+            <span class="px-popover-source">@Source</span>
         </div>
+        <div class="px-popover-title">@Title</div>
+        <div class="px-popover-description">@Content</div>
     </div>
 }
 
 @code {
     [Parameter] public bool IsOpen { get; set; }
+
     [Parameter] public string IconUrl { get; set; } = "https://cdn.syncfusion.com/common/images/favicon/favicon-32x32.png";
-    [Parameter] public string Source { get; set; }
-    [Parameter] public string Title { get; set; }
-    [Parameter] public string Content { get; set; }
+
+    [Parameter] public string Source { get; set; } = "Default Source";
+
+    [Parameter] public string Title { get; set; } = "Default Title";
+
+    [Parameter] public string Content { get; set; } = "Default content.";
+
     [Parameter] public int AutoCloseMs { get; set; } = 0;
+
     [Parameter] public EventCallback OnClose { get; set; }
 
-    private CancellationTokenSource cts;
+    private CancellationTokenSource? autoCloseToken;
 
     protected override async Task OnParametersSetAsync()
     {
-        cts?.Cancel();
+        autoCloseToken?.Cancel();
+
         if (IsOpen && AutoCloseMs > 0)
         {
-            cts = new();
+            autoCloseToken = new CancellationTokenSource();
             try
             {
-                await Task.Delay(AutoCloseMs, cts.Token);
-                if (!cts.Token.IsCancellationRequested)
-                    await DoClose();
+                await Task.Delay(AutoCloseMs, autoCloseToken.Token);
+                if (!autoCloseToken.Token.IsCancellationRequested)
+                    await ClosePopover();
             }
-            catch (TaskCanceledException) { }
+            catch (TaskCanceledException)
+            {
+                // Ignored
+            }
         }
     }
 
-    private async Task CloseOnBackgroundClick()
+    private async Task ClosePopover()
     {
-        await DoClose();
-    }
-
-    private async Task DoClose()
-    {
-        cts?.Cancel();
         if (IsOpen)
         {
             IsOpen = false;
@@ -58,6 +60,6 @@
 
     public void Dispose()
     {
-        cts?.Cancel();
+        autoCloseToken?.Cancel();
     }
 }

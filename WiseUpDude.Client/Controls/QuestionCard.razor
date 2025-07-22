@@ -3,16 +3,28 @@
 @inject ILogger<QuestionCard> Logger
 
 
-<button @onclick="() => IsPopoverOpen = true">Show Popover</button>
-<Popover IsOpen="@IsPopoverOpen"
-         Source="Syncfusion Blogs"
-         Title="Top 8 JavaScript Notification Libraries | Syncfusion Blogs"
-         Content="This article discusses 8 JavaScript notification libraries and their unique features that make web application development easier."
-         AutoCloseMs="3500"
-         OnClose="()=>IsPopoverOpen = false" />
+<button class="btn btn-primary" @onclick="Show">
+    Show Popover
+</button>
+
+<div class="popover-container" style="position: relative; margin-bottom: 500px;">
+
+    <Popover IsOpen="@IsPopoverOpen"
+             Title="Top 8 Notification Libraries"
+             Source="Syncfusion Blogs"
+             Content="This article explores 8 modern JavaScript libraries for handling toast, alerts, snackbars, and other notifications."
+             AutoCloseMs="5000"
+             OnClose="Hide" />
+</div>
+
 @code {
-    bool IsPopoverOpen { get; set; }
+    private bool IsPopoverOpen = false;
+
+    void Show() => IsPopoverOpen = true;
+
+    void Hide() => IsPopoverOpen = false;
 }
+
 
 <div class="card mb-3 shadow-sm">
     <div class="card-body">

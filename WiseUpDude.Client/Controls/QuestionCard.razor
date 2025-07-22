@@ -81,25 +81,11 @@
 
                         foreach (var tuple in validCitations.Select((citation, idx) => (citation, idx)))
                         {
-                            <SmartPopover>
-                                <ChildContent>
-                                    <span class="perplexity-pill popover-dismiss me-1"
-                                          role="button"
-                                          tabindex="0">
-                                        <span class="perplexity-pill-number">@(tuple.idx + 1)</span>
-                                    </span>
-                                </ChildContent>
-                                <PopoverContent>
-                                    <div class="popover-card citation-popover">
-                                        <div class="px-popover-row">
-                                            <img src="https://cdn.syncfusion.com/common/images/favicon/favicon-32x32.png" alt="Favicon" class="px-popover-favicon" />
-                                            <span class="px-popover-source">Citation</span>
-                                        </div>
-                                        <div class="px-popover-title">@(tuple.citation.Title ?? tuple.citation.Url)</div>
-                                        <div class="px-popover-description">@((string.IsNullOrWhiteSpace(tuple.citation.Description) ? "No summary available for this source." : tuple.citation.Description))</div>
-                                    </div>
-                                </PopoverContent>
-                            </SmartPopover>
+                            <CitationPopover @key="tuple.idx" 
+                                           Citation="tuple.citation" 
+                                           Index="tuple.idx" 
+                                           IsActive="activeCitationIndex == tuple.idx"
+                                           OnToggle="(idx) => ToggleCitationPopover(idx)" />
                         }
                     }
                 </div>
@@ -144,6 +130,7 @@
     private string userAnswer = string.Empty;
     private bool submitted = false;
     private bool showContextPopover = false;
+    private int? activeCitationIndex = null;
 
     protected override void OnParametersSet()
     {
@@ -209,4 +196,10 @@
     private void ShowContextPopover() => showContextPopover = true;
     private void HideContextPopover() => showContextPopover = false;
     private void ToggleContextPopover() => showContextPopover = !showContextPopover;
+
+    private void ToggleCitationPopover(int idx)
+    {
+        activeCitationIndex = activeCitationIndex == idx ? null : idx;
+        StateHasChanged();
+    }
 }

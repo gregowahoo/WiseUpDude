@@ -16,12 +16,14 @@
     [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
     [Parameter] public RenderFragment ChildContent { get; set; } = default!;
     [Parameter] public RenderFragment PopoverContent { get; set; } = default!;
+    [Parameter] public int AutoCloseMs { get; set; } = 0; // 0 means no auto-close
 
     private bool _isVisible = false;
     private ElementReference _triggerRef;
     private ElementReference _popoverRef;
     private IJSObjectReference? _module;
     private DotNetObjectReference<SmartPopover>? _dotNetObjectReference;
+    private CancellationTokenSource? _autoCloseTokenSource;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -38,13 +40,49 @@
         }
     }
 
-    private void TogglePopover() => _isVisible = !_isVisible;
+    private async Task TogglePopover() 
+    { 
+        if (_isVisible)
+        {
+            await ClosePopover();
+        }
+        else
+        {
+            _isVisible = true;
+            await StartAutoCloseTimer();
+        }
+    }
+
+    private async Task StartAutoCloseTimer()
+    {
+        _autoCloseTokenSource?.Cancel();
+        
+        if (AutoCloseMs > 0)
+        {
+            _autoCloseTokenSource = new CancellationTokenSource();
+            try
+            {
+                await Task.Delay(AutoCloseMs, _autoCloseTokenSource.Token);
+                if (!_autoCloseTokenSource.Token.IsCancellationRequested)
+                {
+                    await ClosePopover();
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // Expected when cancelled
+            }
+        }
+    }
 
     [JSInvokable]
     public async Task ClosePopover()
     {
         if (!_isVisible) return;
+        
+        _autoCloseTokenSource?.Cancel();
         _isVisible = false;
+        
         if (_module != null)
         {
             await _module.InvokeVoidAsync("removeOutsideClickListener");
@@ -54,6 +92,9 @@
 
     public async ValueTask DisposeAsync()
     {
+        _autoCloseTokenSource?.Cancel();
+        _autoCloseTokenSource?.Dispose();
+        
         if (_module != null)
         {
             await _module.InvokeVoidAsync("removeOutsideClickListener");

@@ -86,7 +86,7 @@
                                   tabindex="0"
                                   data-bs-toggle="popover"
                                   data-bs-trigger="focus"
-                                  data-bs-placement="top"
+                                  data-bs-placement="right"
                                   data-bs-html="true"
                                   data-bs-title="Citation @(tuple.idx + 1)"
                                   data-bs-content="@GetCitationPopoverContent(tuple.citation)">
@@ -141,6 +141,14 @@
                 <div class='px-popover-title'>{title}</div>
                 <div class='px-popover-description'>{description}</div>
             </div>";
+    }
+
+    private string GetCitationPopoverHtml(CitationMeta? meta, string citation)
+    {
+        var title = meta?.Title ?? citation;
+        var desc = string.IsNullOrWhiteSpace(meta?.Description) ? "" : $"<div class='popover-desc mb-2'>{meta.Description}</div>";
+        var url = $"<a href='{citation}' target='_blank' rel='noopener' class='citation-url'>{citation}</a>";
+        return $"<div class='perplexity-popover-content'><div class='popover-title mb-1'><strong>{title}</strong></div>{desc}{url}</div>";
     }
 
     private string GetContextPopoverContent(string contextSnippet)

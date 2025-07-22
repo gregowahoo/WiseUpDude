@@ -95,23 +95,20 @@
                 <div class="d-flex justify-content-end flex-grow-1">
                     @if (!string.IsNullOrWhiteSpace(Question?.ContextSnippet))
                     {
-                        <span @onmouseover="ShowContextPopover"
-                              @onmouseout="HideContextPopover"
-                              @onclick="ToggleContextPopover"
-                              style="cursor:pointer;">
-                            <i class="bi bi-info-circle" style="font-size: 1.25rem; color: #0d6efd;" title="Show more info"></i>
-
-                            @if (showContextPopover)
-                            {
-                                <div class="modern-context-popover fade show position-absolute end-0 mt-2">
-                                    <div class="popover-body small" style="padding: 1rem;">
+                        <SmartPopover>
+                            <ChildContent>
+                                <i class="bi bi-info-circle" style="font-size: 1.25rem; color: #0d6efd; cursor: pointer;" title="Show more info"></i>
+                            </ChildContent>
+                            <PopoverContent>
+                                <div class="popover-card">
+                                    <div class="popover-card-body">
                                         <span style="font-size:1.1em; color:#0d6efd; margin-right:6px;">🛈</span>
                                         <em>Did you know?</em><br />
                                         <span>@Question.ContextSnippet</span>
                                     </div>
                                 </div>
-                            }
-                        </span>
+                            </PopoverContent>
+                        </SmartPopover>
                     }
                 </div>
             </div>
@@ -147,7 +144,6 @@
 
     private string userAnswer = string.Empty;
     private bool submitted = false;
-    private bool showContextPopover = false;
     private int? openCitationPopoverIndex = null;
 
     protected override void OnParametersSet()
@@ -210,10 +206,6 @@
             return "btn btn-incorrect me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
         return "btn btn-outline-secondary me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
     }
-
-    private void ShowContextPopover() => showContextPopover = true;
-    private void HideContextPopover() => showContextPopover = false;
-    private void ToggleContextPopover() => showContextPopover = !showContextPopover;
 
     private void ToggleCitationPopover(int idx)
     {

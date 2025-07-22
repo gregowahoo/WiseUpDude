@@ -11,16 +11,19 @@
              @onmouseover="OnPopoverMouseOver"
              @onmouseout="OnPopoverMouseOut">
             <div class="popover-arrow"></div>
-            <div class="popover-body">
-                @if (PopoverContent != null)
-                {
+            @if (PopoverContent != null)
+            {
+                <div class="popover-body">
                     @PopoverContent
-                }
-                else
-                {
-                    @Content
-                }
-            </div>
+                </div>
+            }
+            else
+            {
+                <div class="popover-card">
+                    <div class="popover-card-header">Info</div>
+                    <div class="popover-card-body">@Content</div>
+                </div>
+            }
         </div>
     }
 </div>

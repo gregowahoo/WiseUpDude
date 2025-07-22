@@ -80,7 +80,7 @@
                             <BootstrapPopover Placement="top-align">
                                 <PopoverContent>
                                     <div class="popover-card">
-                                        <div class="popover-header"><strong>@(tuple.citation.Title ?? tuple.citation.Url)</strong></div>
+                                        <div class="popover-header">@(tuple.citation.Title ?? tuple.citation.Url)</div>
                                         <div class="popover-card-body">
                                             @if (string.IsNullOrWhiteSpace(tuple.citation.Description))
                                             {

@@ -152,74 +152,79 @@ h1:focus {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Popover Card Styles - Even smaller text, header not bold (force normal weight) */
-.popover {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
+/* Popover Card Styles - Maximum specificity and !important for all properties */
+/* Remove any backdrop/frosted-glass/extra background effect from popover */
+/* Only keep the popover-card itself with border, border-radius, and box-shadow */
+.popover-card,
+body .popover-card {
+    background: #fff !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+    border: 1px solid #e3e3e3 !important;
+    min-width: 220px !important;
+    max-width: 300px !important;
+    font-family: 'Segoe UI', 'Arial', sans-serif !important;
+    color: #222 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    font-size: 0.80rem !important;
 }
-.popover-card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    border: 1px solid #e3e3e3;
-    min-width: 220px;
-    max-width: 300px;
-    font-family: 'Segoe UI', 'Arial', sans-serif;
-    color: #222;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    font-size: 0.80rem;
-}
-.popover-card-header {
-    background: #e9ecef;
-    color: #222;
-    padding: 0.5rem 0.8rem;
-    font-size: 0.82rem;
+.popover-card-header,
+body .popover-card-header {
+    background: #e9ecef !important;
+    color: #222 !important;
+    padding: 0.5rem 0.8rem !important;
+    font-size: 0.82rem !important;
     font-weight: 400 !important;
-    border-bottom: 1px solid #e3e3e3;
-    letter-spacing: 0.01em;
+    border-bottom: 1px solid #e3e3e3 !important;
+    letter-spacing: 0.01em !important;
 }
-.popover-card-header strong {
+.popover-card-header strong,
+body .popover-card-header strong {
     font-weight: 400 !important;
 }
-.popover-card-body {
-    padding: 0.5rem 0.8rem;
-    font-size: 0.78rem;
-    color: #444;
+.popover-card-body,
+body .popover-card-body {
+    padding: 0.5rem 0.8rem !important;
+    font-size: 0.78rem !important;
+    color: #444 !important;
 }
-.popover-card-footer {
-    padding: 0.35rem 0.8rem;
-    background: #f9f9f9;
-    border-top: 1px solid #e3e3e3;
-    text-align: center;
-    margin-top: 0.4rem;
+.popover-card-footer,
+body .popover-card-footer {
+    padding: 0.35rem 0.8rem !important;
+    background: #f9f9f9 !important;
+    border-top: 1px solid #e3e3e3 !important;
+    text-align: center !important;
+    margin-top: 0.4rem !important;
 }
-.popover-card-footer .btn {
-    font-size: 0.68rem;
-    padding: 0.10rem 0.4rem;
-    width: auto;
-    min-width: 0;
-    max-width: 90px;
-    margin: 0 auto;
-    display: inline-block;
-    background: #f5f7fa;
-    color: #222;
-    border: 1px solid #bfc8d7;
+.popover-card-footer .btn,
+body .popover-card-footer .btn {
+    font-size: 0.68rem !important;
+    padding: 0.10rem 0.4rem !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 90px !important;
+    margin: 0 auto !important;
+    display: inline-block !important;
+    background: #f5f7fa !important;
+    color: #222 !important;
+    border: 1px solid #bfc8d7 !important;
 }
-.popover-card-footer .btn:hover {
-    background: #e3eaf3;
-    color: #007bff;
-    border-color: #007bff;
+.popover-card-footer .btn:hover,
+body .popover-card-footer .btn:hover {
+    background: #e3eaf3 !important;
+    color: #007bff !important;
+    border-color: #007bff !important;
 }
 @media (max-width: 600px) {
-    .popover-card {
-        min-width: 90vw;
-        max-width: 95vw;
-        font-size: 0.90em;
-        margin-left: 5vw;
-        margin-right: 5vw;
+    .popover-card,
+    body .popover-card {
+        min-width: 90vw !important;
+        max-width: 95vw !important;
+        font-size: 0.90em !important;
+        margin-left: 5vw !important;
+        margin-right: 5vw !important;
     }
 }
 

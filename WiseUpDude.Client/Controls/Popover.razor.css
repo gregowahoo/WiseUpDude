@@ -6,10 +6,10 @@
 }
 
 /* Floating, centered card-style popover */
-.px-popover-panel {
+/*.px-popover-panel {
     position: absolute;
-    top: 50px; /* your desired position relative to parent container */
-    left: 50%;
+    top: 50px;*/ /* your desired position relative to parent container */
+    /*left: 50%;
     transform: translateX(-50%);
     z-index: 10000;
     background: #ffffff;
@@ -22,8 +22,19 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-}
+}*/
 
+.px-popover-panel {
+    position: absolute;
+    top: 45px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: white;
+    padding: 22px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
 
 /* Popover header row: icon + source label */
 .px-popover-row {
@@ -64,4 +75,16 @@
     font-size: 15px;
     color: #2e3340;
     line-height: 1.5;
+}
+
+.popover-citation-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+/* Fullscreen click-catcher (transparent) for click-away */
+.popover-click-catcher {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
 }

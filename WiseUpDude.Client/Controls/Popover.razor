@@ -2,13 +2,15 @@
 
 @if (IsOpen)
 {
-    <div class="px-popover-panel" @onclick:stopPropagation>
-        <div class="px-popover-row">
-            <img src="@IconUrl" alt="Favicon" class="px-popover-favicon" />
-            <span class="px-popover-source">@Source</span>
+    <div class="px-popover-wrapper" @onclick="HandleClickAway">
+        <div class="px-popover-panel" @onclick:stopPropagation>
+            <div class="px-popover-row">
+                <img src="@IconUrl" alt="Favicon" class="px-popover-favicon" />
+                <span class="px-popover-source">@Source</span>
+            </div>
+            <div class="px-popover-title">@Title</div>
+            <div class="px-popover-description">@Content</div>
         </div>
-        <div class="px-popover-title">@Title</div>
-        <div class="px-popover-description">@Content</div>
     </div>
 }
 
@@ -36,21 +38,32 @@
         if (IsOpen && AutoCloseMs > 0)
         {
             autoCloseToken = new CancellationTokenSource();
+
             try
             {
                 await Task.Delay(AutoCloseMs, autoCloseToken.Token);
+
                 if (!autoCloseToken.Token.IsCancellationRequested)
+                {
                     await ClosePopover();
+                }
             }
             catch (TaskCanceledException)
             {
-                // Ignored
+                // Expected on cancel
             }
         }
     }
 
+    private async Task HandleClickAway()
+    {
+        await ClosePopover();
+    }
+
     private async Task ClosePopover()
     {
+        autoCloseToken?.Cancel();
+
         if (IsOpen)
         {
             IsOpen = false;

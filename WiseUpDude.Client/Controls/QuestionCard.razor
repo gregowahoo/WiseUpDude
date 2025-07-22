@@ -2,52 +2,49 @@
 @inject IJSRuntime JS
 @inject ILogger<QuestionCard> Logger
 
-
-@code {
-    private bool IsPopoverOpen = false;
-
-    void Show() => IsPopoverOpen = true;
-
-    void Hide() => IsPopoverOpen = false;
-}
-
-
 <div class="card mb-3 shadow-sm">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center position-relative">
             <h5 class="card-title mb-0">@($"Q{QuestionIndex + 1}: {Question?.Question}")</h5>
         </div>
+
         <div class="mb-3"></div>
 
         <div class="options-center">
-        @if (Question?.Options != null && Question.Options.Count > 0)
-        {
-            @foreach (var option in Question.Options)
+            @if (Question?.Options?.Count > 0)
             {
-                <button type="button" class="@GetOptionClass(option)"
-                        @onclick="() => OnSelectAnswer(option)"
-                        disabled="@(!CanEdit)">
-                    @option
-                </button>
+                @foreach (var option in Question.Options)
+                {
+                    <button type="button"
+                            class="@GetOptionClass(option)"
+                            @onclick="() => OnSelectAnswer(option)"
+                            disabled="@(!CanEdit)">
+                        @option
+                    </button>
+                }
             }
-        }
-        else
-        {
-            @foreach (var tf in new[] { "True", "False" })
+            else
             {
-                <button type="button" class="@GetOptionClass(tf)"
-                        @onclick="() => OnSelectAnswer(tf)"
-                        disabled="@(!CanEdit)">
-                    @tf
-                </button>
+                @foreach (var tf in new[] { "True", "False" })
+                {
+                    <button type="button"
+                            class="@GetOptionClass(tf)"
+                            @onclick="() => OnSelectAnswer(tf)"
+                            disabled="@(!CanEdit)">
+                        @tf
+                    </button>
+                }
             }
-        }
         </div>
 
         @if (!AutoSubmit)
         {
             <div class="mt-3">
-                <button type="button" class="btn btn-sm btn-primary" @onclick="CheckAnswer" disabled="@(!CanEdit)">Check Answer</button>
+                <button class="btn btn-sm btn-primary"
+                        @onclick="CheckAnswer"
+                        disabled="@(!CanEdit)">
+                    Check Answer
+                </button>
             </div>
         }
 
@@ -56,15 +53,11 @@
             <div class="mt-3">
                 @if (userAnswer == Question?.Answer)
                 {
-                    <div class="feedback-correct">
-                        ✅ Correct!
-                    </div>
+                    <div class="feedback-correct">✅ Correct!</div>
                 }
                 else
                 {
-                    <div class="feedback-incorrect">
-                        ❌ Incorrect!
-                    </div>
+                    <div class="feedback-incorrect">❌ Incorrect!</div>
                 }
 
                 <div class="mt-1"><em>Explanation:</em> @Question?.Explanation</div>
@@ -72,39 +65,33 @@
         }
     </div>
 
-    @if (
-        (!string.IsNullOrWhiteSpace(Question?.ContextSnippet)) ||
-        (Question?.Citation != null && Question.Citation.Any(citation => !string.IsNullOrWhiteSpace(citation.Url)))
-    )
+    @if ((!string.IsNullOrWhiteSpace(Question?.ContextSnippet)) ||
+        (Question?.Citation?.Any(c => !string.IsNullOrWhiteSpace(c.Url)) == true))
     {
         <div class="card-footer text-muted" style="font-size: small;">
             <div class="d-flex w-100 justify-content-between align-items-center flex-wrap">
+
+                <!-- Citation popover triggers -->
                 <div class="d-flex align-items-center flex-wrap">
-                    @if (Question?.Citation != null && Question.Citation.Any(citation => !string.IsNullOrWhiteSpace(citation.Url)))
+                    @if (Question?.Citation != null)
                     {
                         var validCitations = Question.Citation
-                            .Where(c => !string.IsNullOrWhiteSpace(c.Url))
-                            .ToList();
+                        .Where(c => !string.IsNullOrWhiteSpace(c.Url))
+                        .ToList();
+
                         foreach (var tuple in validCitations.Select((citation, idx) => (citation, idx)))
                         {
-                            <span class="perplexity-pill popover-dismiss me-1" tabindex="0" role="button"
-                                  @onclick="() => ToggleCitationPopover(tuple.idx)"
-                                  style="position:relative;">
+                            <span class="perplexity-pill popover-dismiss me-1"
+                                  role="button"
+                                  tabindex="0"
+                                  @onclick="() => ToggleCitationPopover(tuple.idx)">
                                 <span class="perplexity-pill-number">@(tuple.idx + 1)</span>
-                                @if (openCitationPopoverIndex == tuple.idx)
-                                {
-                                    <Popover IsOpen="true"
-                                             Title="@(tuple.citation.Title ?? tuple.citation.Url)"
-                                             Source="Citation"
-                                             Content="@((string.IsNullOrWhiteSpace(tuple.citation.Description) ? "No summary available for this source." : tuple.citation.Description))"
-                                             IconUrl="https://cdn.syncfusion.com/common/images/favicon/favicon-32x32.png"
-                                             AutoCloseMs="5000"
-                                             OnClose="CloseCitationPopover" />
-                                }
                             </span>
                         }
                     }
                 </div>
+
+                <!-- Context snippet popover -->
                 <div class="d-flex justify-content-end flex-grow-1">
                     @if (!string.IsNullOrWhiteSpace(Question?.ContextSnippet))
                     {
@@ -113,6 +100,7 @@
                               @onclick="ToggleContextPopover"
                               style="cursor:pointer;">
                             <i class="bi bi-info-circle" style="font-size: 1.25rem; color: #0d6efd;" title="Show more info"></i>
+
                             @if (showContextPopover)
                             {
                                 <div class="modern-context-popover fade show position-absolute end-0 mt-2">
@@ -131,6 +119,24 @@
     }
 </div>
 
+<!-- Citation Popover and Global Click Catcher -->
+@if (openCitationPopoverIndex is int idx
+    && idx >= 0
+    && Question?.Citation?.Count > idx)
+{
+    <div class="popover-click-catcher" @onclick="HandleCitationClickAway">
+        <div class="popover-citation-panel" @onclick:stopPropagation>
+            <Popover IsOpen="true"
+                     Title="@(Question.Citation[idx].Title ?? Question.Citation[idx].Url)"
+                     Source="Citation"
+                     Content="@((string.IsNullOrWhiteSpace(Question.Citation[idx].Description) ? "No summary available for this source." : Question.Citation[idx].Description))"
+                     IconUrl="https://cdn.syncfusion.com/common/images/favicon/favicon-32x32.png"
+                     AutoCloseMs="5000"
+                     OnClose="CloseCitationPopover" />
+        </div>
+    </div>
+}
+
 @code {
     [Parameter] public QuizQuestion? Question { get; set; }
     [Parameter] public int QuestionIndex { get; set; }
@@ -139,23 +145,20 @@
     [Parameter] public bool MuteSound { get; set; }
     [Parameter] public bool CanEdit { get; set; } = true;
 
-    private string userAnswer = string.Empty; // Tracks the user's selected answer
+    private string userAnswer = string.Empty;
     private bool submitted = false;
     private bool showContextPopover = false;
-    private int? hoveredCitationIndex = null;
     private int? openCitationPopoverIndex = null;
 
     protected override void OnParametersSet()
     {
         Logger.LogInformation($"Method: OnParametersSet for question {QuestionIndex}");
-
         try
         {
-            // Only update local state if the UserAnswer has changed
-            if (Question?.UserAnswer != null && Question.UserAnswer != userAnswer)
+            if (!string.IsNullOrEmpty(Question?.UserAnswer) && Question.UserAnswer != userAnswer)
             {
                 userAnswer = Question.UserAnswer;
-                submitted = true; // Mark as submitted to show feedback
+                submitted = true;
             }
         }
         catch (Exception ex)
@@ -164,241 +167,68 @@
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        Logger.LogInformation($"Method: OnAfterRenderAsync for question {QuestionIndex} (firstRender={firstRender})");
-
-        try
-        {
-            // Only initialize popovers after first render
-            if (firstRender && Question?.Citation != null && Question.Citation.Count > 0)
-            {
-                // await JS.InvokeVoidAsync("initializePopovers");
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error in OnAfterRenderAsync for question {QuestionIndex}", QuestionIndex);
-        }
-    }
-
     private void OnSelectAnswer(string answer)
     {
-        // Logger.LogInformation($"Method: OnSelectAnswer for question {QuestionIndex} (answer={answer})");
-
-        try
-        {
-            if (!CanEdit) return;
-            userAnswer = answer;
-            submitted = false;
-
-            Logger.LogInformation("Answer selected for question {QuestionIndex}: {Answer}", QuestionIndex, answer);
-
-            if (AutoSubmit)
-            {
-                CheckAnswerAndNotify();
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error in OnSelectAnswer for question {QuestionIndex}", QuestionIndex);
-        }
+        if (!CanEdit) return;
+        userAnswer = answer;
+        submitted = false;
+        if (AutoSubmit) CheckAnswerAndNotify();
     }
 
     private async void CheckAnswerAndNotify()
     {
-        // Logger.LogInformation($"Method: CheckAnswerAndNotify for question {QuestionIndex}");
+        if (!CanEdit || Question == null) return;
+        submitted = true;
+        Question.UserAnswer = userAnswer;
+        bool isCorrect = userAnswer == Question.Answer;
 
-        try
+        if (!MuteSound)
         {
-            if (!CanEdit) return;
-            submitted = true;
-
-            if (Question is not null)
+            try
             {
-                Question.UserAnswer = userAnswer;
-
-                bool isCorrect = userAnswer == Question.Answer;
-
-                Logger.LogInformation("Answer checked for question {QuestionIndex}. UserAnswer: {UserAnswer}, CorrectAnswer: {CorrectAnswer}, IsCorrect: {IsCorrect}",
-                    QuestionIndex, userAnswer, Question.Answer, isCorrect);
-
-                if (!MuteSound)
-                {
-                    try
-                    {
-                        var soundFile = isCorrect ? "/sounds/correct.mp3" : "/sounds/incorrect.mp3";
-                        Logger.LogDebug("Playing sound: {SoundFile}", soundFile);
-                        await JS.InvokeVoidAsync("playSound", soundFile);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogError(ex, "Error playing sound for question {QuestionIndex}", QuestionIndex);
-                    }
-                }
-
-                // Pass isCorrect, QuestionIndex, and userAnswer
-                await OnAnswerSubmitted.InvokeAsync((isCorrect, QuestionIndex, userAnswer));
+                var soundFile = isCorrect ? "/sounds/correct.mp3" : "/sounds/incorrect.mp3";
+                await JS.InvokeVoidAsync("playSound", soundFile);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Sound playback failed.");
             }
         }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error in CheckAnswerAndNotify for question {QuestionIndex}", QuestionIndex);
-        }
+
+        await OnAnswerSubmitted.InvokeAsync((isCorrect, QuestionIndex, userAnswer));
     }
 
-    private void CheckAnswer()
-    {
-        // Logger.LogInformation($"Method: CheckAnswer for question {QuestionIndex}");
-
-        try
-        {
-            CheckAnswerAndNotify();
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error in CheckAnswer for question {QuestionIndex}", QuestionIndex);
-        }
-    }
+    private void CheckAnswer() => CheckAnswerAndNotify();
 
     private string GetOptionClass(string option)
     {
-        // Logger.LogInformation($"Method: GetOptionClass for question {QuestionIndex} (option={option})");
-
-        try
-        {
-            if (!submitted)
-            {
-                return "btn btn-outline-dark me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
-            }
-
-            if (option == Question?.Answer)
-            {
-                return "btn btn-correct me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled"); // ✅ Correct
-            }
-
-            if (option == userAnswer)
-            {
-                return "btn btn-incorrect me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled"); // ❌ Incorrect
-            }
-
-            return "btn btn-outline-secondary me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error in GetOptionClass for question {QuestionIndex}", QuestionIndex);
-            return "btn btn-outline-secondary me-2 mb-2 rounded-pill";
-        }
+        if (!submitted)
+            return "btn btn-outline-dark me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
+        if (option == Question?.Answer)
+            return "btn btn-correct me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
+        if (option == userAnswer)
+            return "btn btn-incorrect me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
+        return "btn btn-outline-secondary me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
     }
 
-    private string GetPopoverTitle(int currentIndex)
-    {
-        // Logger.LogInformation($"Method: GetPopoverTitle for question {QuestionIndex} (currentIndex={currentIndex})");
-
-        try
-        {
-            if (Question?.Citation != null && Question.Citation.Count > currentIndex)
-                return Question.Citation[currentIndex].Title ?? Question.Citation[currentIndex].Url;
-            return "";
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error in GetPopoverTitle for question {QuestionIndex}", QuestionIndex);
-            return "";
-        }
-    }
-
-    private string GetPopoverContent(int currentIndex)
-    {
-        Logger.LogInformation($"Method: GetPopoverContent for question {QuestionIndex} (currentIndex={currentIndex})");
-
-        try
-        {
-            if (Question?.Citation != null && Question.Citation.Count > currentIndex)
-                return Question.Citation[currentIndex].Url;
-            return "";
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error in GetPopoverContent for question {QuestionIndex}", QuestionIndex);
-            return "";
-        }
-    }
-
-    private void ShowContextPopover()
-    {
-        // Logger.LogInformation($"Method: ShowContextPopover for question {QuestionIndex}");
-
-        try
-        {
-            showContextPopover = true;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error in ShowContextPopover for question {QuestionIndex}", QuestionIndex);
-        }
-    }
-    private void HideContextPopover()
-    {
-        // Logger.LogInformation($"Method: HideContextPopover for question {QuestionIndex}");
-        try
-        {
-            showContextPopover = false;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error in HideContextPopover for question {QuestionIndex}", QuestionIndex);
-        }
-    }
-    private void ToggleContextPopover()
-    {
-        Logger.LogInformation($"Method: ToggleContextPopover for question {QuestionIndex}");
-        try
-        {
-            showContextPopover = !showContextPopover;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error in ToggleContextPopover for question {QuestionIndex}", QuestionIndex);
-        }
-    }
+    private void ShowContextPopover() => showContextPopover = true;
+    private void HideContextPopover() => showContextPopover = false;
+    private void ToggleContextPopover() => showContextPopover = !showContextPopover;
 
     private void ToggleCitationPopover(int idx)
     {
-        if (openCitationPopoverIndex == idx)
-            openCitationPopoverIndex = null;
-        else
-            openCitationPopoverIndex = idx;
+        openCitationPopoverIndex = openCitationPopoverIndex == idx ? (int?)null : idx;
     }
 
     private void CloseCitationPopover()
     {
         openCitationPopoverIndex = null;
+        StateHasChanged();
     }
 
-    private string BuildCitationPopoverHtml(CitationMeta? meta, string url)
+    private void HandleCitationClickAway()
     {
-        Logger.LogInformation($"Method: BuildCitationPopoverHtml for question {QuestionIndex} (url={url})");
-
-        try
-        {
-            var title = meta?.Title ?? url;
-            // Show default text if no description
-            var descContent = string.IsNullOrWhiteSpace(meta?.Description)
-                ? "<span style='color:#888;'>No summary available for this source.</span>"
-                : meta.Description;
-            var desc = $"<div class='popover-card-body'>{descContent}</div>";
-            var urlHtml = $"<a href='{url}' target='_blank' rel='noopener' class='btn btn-sm btn-outline-primary w-100'>Visit Source</a>";
-            return $@"<div class='popover-card'>
-                <div class='popover-card-header'><strong>{title}</strong></div>
-                {desc}
-                <div class='popover-card-footer'>{urlHtml}</div>
-            </div>";
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error in BuildCitationPopoverHtml for question {QuestionIndex}", QuestionIndex);
-            return "<div class='popover-card'><div class='popover-card-header'><strong>Error</strong></div><div class='popover-card-body'>Could not load citation info.</div></div>";
-        }
+        openCitationPopoverIndex = null;
+        StateHasChanged();
     }
 }

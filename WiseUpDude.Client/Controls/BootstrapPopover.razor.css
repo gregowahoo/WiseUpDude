@@ -4,14 +4,10 @@
 /* Desktop popover styles - High z-index with absolute positioning */
 .popover-container .popover {
     z-index: 2147483647 !important;  /* Maximum possible z-index value */
-    max-width: 340px !important;
-    min-width: 260px !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
+    position: absolute !important;
     background: none !important;
-    padding: 0 !important;
     border: none !important;
-    position: absolute !important;  /* Absolute for desktop */
+    padding: 0 !important;
 }
 
 .popover-container .popover-arrow::before {
@@ -24,41 +20,27 @@
     position: relative !important;
 }
 
-/* Mobile-responsive popover - use fixed positioning and center */
+/* Mobile-responsive popover - simple approach that always works */
 @media (max-width: 768px) {
-    .popover-mobile-responsive {
-        position: fixed !important;
-        top: 20% !important;  /* Position from top instead of center */
-        left: 5vw !important;  /* 5% margin from left */
-        right: 5vw !important;  /* 5% margin from right */
-        transform: none !important;  /* Remove transform to prevent overflow */
-        max-width: none !important;  /* Remove max-width constraint */
-        min-width: 0 !important;
-        width: 90vw !important;  /* Force 90% viewport width */
-        z-index: 2147483647 !important;
-        box-sizing: border-box !important;
+    .popover-container .popover {
+        position: absolute !important;
+        top: calc(100% + 5px) !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 280px !important;
+        max-width: 90vw !important;
+        min-width: 280px !important;
+    }
+    
+    /* If it overflows, just move it left */
+    .popover-container:last-child .popover,
+    .d-flex .popover-container:last-child .popover {
+        left: auto !important;
+        right: 0 !important;
+        transform: none !important;
     }
     
     .popover-mobile-responsive .popover-arrow {
         display: none !important;
-    }
-    
-    /* Override desktop positioning on mobile */
-    .popover-container .popover {
-        position: fixed !important;
-        top: 20% !important;
-        left: 5vw !important;
-        right: 5vw !important;
-        width: 90vw !important;
-        max-width: none !important;
-        transform: none !important;
-    }
-}
-
-/* Tablet adjustments */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .popover-container .popover {
-        max-width: 400px !important;
-        min-width: 300px !important;
     }
 }

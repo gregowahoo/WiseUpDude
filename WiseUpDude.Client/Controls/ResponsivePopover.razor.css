@@ -1,0 +1,55 @@
+/* ResponsivePopover.razor.css */
+
+.responsive-popover-container {
+    position: relative;
+    display: inline-block;
+}
+
+.popover-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.2);
+    z-index: 1040;
+    display: none; /* Hidden by default, shown on mobile */
+}
+
+.popover-content {
+    position: absolute;
+    z-index: 1050;
+    display: block;
+    /* Make the container transparent and unstyled */
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    
+    /* Default desktop position (below and centered) */
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 8px;
+}
+
+.popover-arrow {
+    display: none; /* Hide the default arrow, as the popover-card has its own */
+}
+
+/* Mobile-first responsive design */
+@media (max-width: 768px) {
+    .popover-backdrop {
+        display: block; /* Show backdrop on mobile */
+    }
+
+    .popover-content {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: auto; /* Let content determine width */
+        max-width: 90vw;
+        margin-top: 0;
+    }
+}

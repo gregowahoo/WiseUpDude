@@ -2,6 +2,18 @@
 @inject IJSRuntime JS
 @inject ILogger<QuestionCard> Logger
 
+
+<button @onclick="() => IsPopoverOpen = true">Show Popover</button>
+<Popover IsOpen="@IsPopoverOpen"
+         Source="Syncfusion Blogs"
+         Title="Top 8 JavaScript Notification Libraries | Syncfusion Blogs"
+         Content="This article discusses 8 JavaScript notification libraries and their unique features that make web application development easier."
+         AutoCloseMs="3500"
+         OnClose="()=>IsPopoverOpen = false" />
+@code {
+    bool IsPopoverOpen { get; set; }
+}
+
 <div class="card mb-3 shadow-sm">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center position-relative">
@@ -77,10 +89,10 @@
                             .ToList();
                         foreach (var tuple in validCitations.Select((citation, idx) => (citation, idx)))
                         {
-                            <BootstrapPopover Placement="top-align">
+                            <SmartPopover>
                                 <PopoverContent>
                                     <div class="popover-card">
-                                        <div class="popover-header">@(tuple.citation.Title ?? tuple.citation.Url)</div>
+                                        <div class="popover-card-header">@(tuple.citation.Title ?? tuple.citation.Url)</div>
                                         <div class="popover-card-body">
                                             @if (string.IsNullOrWhiteSpace(tuple.citation.Description))
                                             {
@@ -101,7 +113,7 @@
                                         <span class="perplexity-pill-number">@(tuple.idx + 1)</span>
                                     </span>
                                 </ChildContent>
-                            </BootstrapPopover>
+                            </SmartPopover>
                         }
                     }
                 </div>
@@ -172,7 +184,7 @@
             // Only initialize popovers after first render
             if (firstRender && Question?.Citation != null && Question.Citation.Count > 0)
             {
-                await JS.InvokeVoidAsync("initializePopovers");
+                // await JS.InvokeVoidAsync("initializePopovers");
             }
         }
         catch (Exception ex)

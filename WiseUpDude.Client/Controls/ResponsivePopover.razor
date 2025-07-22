@@ -1,0 +1,69 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+
+<div class="responsive-popover-container" @ref="_containerRef">
+    <div @onclick="TogglePopover">
+        @ChildContent
+    </div>
+
+    @if (_isVisible)
+    {
+        <div class="popover-backdrop" @onclick="ClosePopover"></div>
+        <div class="popover-content" @ref="_popoverRef">
+            <div class="popover-arrow"></div>
+            @PopoverContent
+        </div>
+    }
+</div>
+
+@code {
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public RenderFragment PopoverContent { get; set; } = default!;
+
+    private bool _isVisible = false;
+    private ElementReference _containerRef;
+    private ElementReference _popoverRef;
+    private IJSObjectReference? _module;
+    private DotNetObjectReference<ResponsivePopover>? _dotNetObjectReference;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetObjectReference = DotNetObjectReference.Create(this);
+            _module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Controls/ResponsivePopover.razor.js");
+        }
+
+        if (_isVisible && _module != null)
+        {
+            await _module.InvokeVoidAsync("addOutsideClickListener", _containerRef, _dotNetObjectReference);
+        }
+    }
+
+    private void TogglePopover()
+    {
+        _isVisible = !_isVisible;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void ClosePopover()
+    {
+        if (_isVisible)
+        {
+            _isVisible = false;
+            StateHasChanged();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module != null)
+        {
+            await _module.InvokeVoidAsync("removeOutsideClickListener");
+            await _module.DisposeAsync();
+        }
+        _dotNetObjectReference?.Dispose();
+    }
+}

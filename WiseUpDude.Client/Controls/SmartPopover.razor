@@ -1,0 +1,64 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+
+<span class="smart-popover-trigger" @ref="_triggerRef" @onclick="TogglePopover">
+    @ChildContent
+</span>
+
+@if (_isVisible)
+{
+    <div class="smart-popover" @ref="_popoverRef">
+        @PopoverContent
+    </div>
+}
+
+@code {
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public RenderFragment PopoverContent { get; set; } = default!;
+
+    private bool _isVisible = false;
+    private ElementReference _triggerRef;
+    private ElementReference _popoverRef;
+    private IJSObjectReference? _module;
+    private DotNetObjectReference<SmartPopover>? _dotNetObjectReference;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetObjectReference = DotNetObjectReference.Create(this);
+            _module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Controls/SmartPopover.razor.js");
+        }
+
+        if (_isVisible && _module != null)
+        {
+            await _module.InvokeVoidAsync("setPosition", _popoverRef, _triggerRef);
+            await _module.InvokeVoidAsync("addOutsideClickListener", _triggerRef, _popoverRef, _dotNetObjectReference);
+        }
+    }
+
+    private void TogglePopover() => _isVisible = !_isVisible;
+
+    [JSInvokable]
+    public async Task ClosePopover()
+    {
+        if (!_isVisible) return;
+        _isVisible = false;
+        if (_module != null)
+        {
+            await _module.InvokeVoidAsync("removeOutsideClickListener");
+        }
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module != null)
+        {
+            await _module.InvokeVoidAsync("removeOutsideClickListener");
+            await _module.DisposeAsync();
+        }
+        _dotNetObjectReference?.Dispose();
+    }
+}

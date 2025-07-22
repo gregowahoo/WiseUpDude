@@ -1,0 +1,16 @@
+/* SmartPopover.razor.css */
+.smart-popover-trigger {
+    display: inline-block;
+    cursor: pointer;
+}
+
+.smart-popover {
+    position: absolute;
+    z-index: 1060;
+    display: block;
+    background: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    /* Let the content inside (.popover-card) define the appearance */
+}

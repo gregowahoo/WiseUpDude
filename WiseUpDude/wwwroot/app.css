@@ -152,13 +152,13 @@ h1:focus {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Popover Card Styles - Maximum z-index to appear above everything */
+/* Popover Card Styles - Enhanced drop shadow for better visual separation */
 .popover-card,
 body .popover-card {
     background: #fff !important;
     border-radius: 12px !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
-    border: 1px solid #e3e3e3 !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1) !important;  /* Enhanced drop shadow */
+    border: 1px solid #d1d5db !important;  /* Slightly darker border */
     min-width: 220px !important;
     max-width: 300px !important;
     font-family: 'Segoe UI', 'Arial', sans-serif !important;
@@ -167,7 +167,8 @@ body .popover-card {
     flex-direction: column !important;
     overflow: hidden !important;
     font-size: 0.80rem !important;
-    z-index: 2147483647 !important;  /* Maximum possible z-index */
+    z-index: 2147483647 !important;
+    position: relative !important;
 }
 .popover-card-header,
 body .popover-card-header {
@@ -217,19 +218,20 @@ body .popover-card-footer .btn:hover {
     border-color: #007bff !important;
 }
 
-/* Mobile popover card improvements - prevent cutoff */
+/* Mobile popover card improvements with enhanced shadow */
 @media (max-width: 768px) {
     .popover-card,
     body .popover-card {
-        width: 100% !important;  /* Full width within container */
+        width: 100% !important;
         max-width: 100% !important;
         min-width: 0 !important;
         margin: 0 !important;
         font-size: 0.95rem !important;
         box-sizing: border-box !important;
         z-index: 2147483647 !important;
-        overflow: hidden !important;  /* Prevent content overflow */
-        word-wrap: break-word !important;  /* Break long words */
+        overflow: hidden !important;
+        word-wrap: break-word !important;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2), 0 6px 15px rgba(0, 0, 0, 0.15) !important;  /* Stronger shadow on mobile */
     }
     
     .popover-card-header,
@@ -259,7 +261,7 @@ body .popover-card-footer .btn:hover {
         padding: 0.5rem 1rem !important;
         min-width: 80px !important;
         max-width: none !important;
-        width: 100% !important;  /* Full width button on mobile */
+        width: 100% !important;
     }
 }
 
@@ -269,6 +271,7 @@ body .popover-card-footer .btn:hover {
     body .popover-card {
         max-width: 350px !important;
         min-width: 280px !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18), 0 5px 12px rgba(0, 0, 0, 0.12) !important;  /* Medium shadow for tablet */
     }
 }
 

@@ -3,20 +3,6 @@
 @inject ILogger<QuestionCard> Logger
 
 
-<button class="btn btn-primary" @onclick="Show">
-    Show Popover
-</button>
-
-<div class="popover-container" style="position: relative; margin-bottom: 500px;">
-
-    <Popover IsOpen="@IsPopoverOpen"
-             Title="Top 8 Notification Libraries"
-             Source="Syncfusion Blogs"
-             Content="This article explores 8 modern JavaScript libraries for handling toast, alerts, snackbars, and other notifications."
-             AutoCloseMs="5000"
-             OnClose="Hide" />
-</div>
-
 @code {
     private bool IsPopoverOpen = false;
 
@@ -101,31 +87,21 @@
                             .ToList();
                         foreach (var tuple in validCitations.Select((citation, idx) => (citation, idx)))
                         {
-                            <SmartPopover>
-                                <PopoverContent>
-                                    <div class="popover-card">
-                                        <div class="popover-card-header">@(tuple.citation.Title ?? tuple.citation.Url)</div>
-                                        <div class="popover-card-body">
-                                            @if (string.IsNullOrWhiteSpace(tuple.citation.Description))
-                                            {
-                                                <span style="color:#888;">No summary available for this source.</span>
-                                            }
-                                            else
-                                            {
-                                                @tuple.citation.Description
-                                            }
-                                        </div>
-                                        <div class="popover-card-footer">
-                                            <a href="@tuple.citation.Url" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary w-100">Visit Source</a>
-                                        </div>
-                                    </div>
-                                </PopoverContent>
-                                <ChildContent>
-                                    <span class="perplexity-pill popover-dismiss me-1" tabindex="0" role="button">
-                                        <span class="perplexity-pill-number">@(tuple.idx + 1)</span>
-                                    </span>
-                                </ChildContent>
-                            </SmartPopover>
+                            <span class="perplexity-pill popover-dismiss me-1" tabindex="0" role="button"
+                                  @onclick="() => ToggleCitationPopover(tuple.idx)"
+                                  style="position:relative;">
+                                <span class="perplexity-pill-number">@(tuple.idx + 1)</span>
+                                @if (openCitationPopoverIndex == tuple.idx)
+                                {
+                                    <Popover IsOpen="true"
+                                             Title="@(tuple.citation.Title ?? tuple.citation.Url)"
+                                             Source="Citation"
+                                             Content="@((string.IsNullOrWhiteSpace(tuple.citation.Description) ? "No summary available for this source." : tuple.citation.Description))"
+                                             IconUrl="https://cdn.syncfusion.com/common/images/favicon/favicon-32x32.png"
+                                             AutoCloseMs="5000"
+                                             OnClose="CloseCitationPopover" />
+                                }
+                            </span>
                         }
                     }
                 </div>
@@ -167,6 +143,7 @@
     private bool submitted = false;
     private bool showContextPopover = false;
     private int? hoveredCitationIndex = null;
+    private int? openCitationPopoverIndex = null;
 
     protected override void OnParametersSet()
     {
@@ -384,6 +361,19 @@
         {
             Logger.LogError(ex, "Error in ToggleContextPopover for question {QuestionIndex}", QuestionIndex);
         }
+    }
+
+    private void ToggleCitationPopover(int idx)
+    {
+        if (openCitationPopoverIndex == idx)
+            openCitationPopoverIndex = null;
+        else
+            openCitationPopoverIndex = idx;
+    }
+
+    private void CloseCitationPopover()
+    {
+        openCitationPopoverIndex = null;
     }
 
     private string BuildCitationPopoverHtml(CitationMeta? meta, string url)

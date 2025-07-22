@@ -273,6 +273,19 @@
     flex-direction: column;
     overflow: hidden;
 }
+
+.citation-popover {
+    padding: 22px 25px;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 8px 44px rgba(60, 60, 67, 0.18);
+    min-width: 320px;
+    max-width: 370px;
+    font-family: 'Inter', Segoe UI, sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 .popover-card-header {
     background: #212529; /* Even darker shade */
     color: #fff;

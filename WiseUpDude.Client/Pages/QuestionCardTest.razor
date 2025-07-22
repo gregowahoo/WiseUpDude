@@ -1,0 +1,81 @@
+@page "/question-card-test"
+
+@using WiseUpDude.Model
+@using WiseUpDude.Client.Controls
+
+<PageTitle>Question Card Test</PageTitle>
+
+<div class="container-fluid p-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Question Card Popover Test</h1>
+            <p class="lead">This page tests the QuestionCard component with citation popovers.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <QuestionCard Question="@testQuestion" 
+                         QuestionIndex="0" 
+                         AutoSubmit="false" 
+                         CanEdit="true" 
+                         MuteSound="true" 
+                         OnAnswerSubmitted="HandleAnswerSubmitted" />
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h5><i class="bi bi-info-circle"></i> Test Instructions</h5>
+                <ul class="mb-0">
+                    <li>Click on the citation badges (numbered pills) to show popovers</li>
+                    <li>Popovers should appear near the citation that was clicked</li>
+                    <li>Click away from a popover to close it</li>
+                    <li>Content within popovers should be clickable</li>
+                    <li>Only one popover should be visible at a time</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private QuizQuestion testQuestion = new QuizQuestion
+    {
+        Id = 1,
+        Question = "What is the primary programming language used for building web applications with Blazor?",
+        QuestionType = QuizQuestionType.MultipleChoice,
+        Options = new List<string> { "C#", "JavaScript", "TypeScript", "Python" },
+        Answer = "C#",
+        Explanation = "Blazor uses C# as the primary programming language, allowing developers to build interactive web applications using .NET instead of JavaScript.",
+        ContextSnippet = "Blazor is a free and open-source web framework that enables developers to create web apps using C# and HTML. It eliminates the need to write JavaScript for client-side functionality.",
+        Citation = new List<CitationMeta>
+        {
+            new CitationMeta
+            {
+                Url = "https://docs.microsoft.com/en-us/aspnet/core/blazor/",
+                Title = "Introduction to ASP.NET Core Blazor",
+                Description = "Blazor is a framework for building interactive client-side web UI with .NET. Create rich interactive UIs using C# instead of JavaScript."
+            },
+            new CitationMeta
+            {
+                Url = "https://blazor.net/",
+                Title = "Blazor - Build client web apps with C#",
+                Description = "Blazor lets you build interactive web UIs using C# instead of JavaScript. Blazor apps are composed of reusable web UI components implemented using C#, HTML, and CSS."
+            },
+            new CitationMeta
+            {
+                Url = "https://learn.microsoft.com/en-us/aspnet/core/blazor/components/",
+                Title = "ASP.NET Core Blazor components",
+                Description = "Blazor apps are built using Razor components, informally known as Blazor components. A component is a self-contained chunk of user interface (UI), such as a page, dialog, or form."
+            }
+        }
+    };
+
+    private void HandleAnswerSubmitted((bool isCorrect, int questionIndex, string userAnswer) result)
+    {
+        // Handle the answer submission
+        Console.WriteLine($"Answer submitted: {result.userAnswer}, Correct: {result.isCorrect}");
+    }
+}

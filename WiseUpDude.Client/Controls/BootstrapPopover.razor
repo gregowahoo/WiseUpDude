@@ -1,16 +1,20 @@
 ﻿<div class="popover-container d-inline-block position-relative"
      @onmouseover="OnPopoverMouseOver"
-     @onmouseout="OnPopoverMouseOut">
+     @onmouseout="OnPopoverMouseOut"
+     @ontouchstart="OnTouchStart"
+     @onclick="OnMobileClick">
 
     @ChildContent
 
     @if (Show)
     {
-        <div class="popover bs-popover-@Placement show fade position-absolute"
+        <div class="popover bs-popover-@Placement show fade @GetMobileClass()"
              style="@GetPopoverStyle()"
              @onmouseover="OnPopoverMouseOver"
-             @onmouseout="OnPopoverMouseOut">
-            <div class="popover-arrow"></div>
+             @onmouseout="OnPopoverMouseOut"
+             @ontouchstart:stopPropagation="true"
+             @onclick:stopPropagation="true">
+            <div class="popover-arrow @GetArrowVisibilityClass()"></div>
             @if (PopoverContent != null)
             {
                 <div class="popover-body">
@@ -54,6 +58,35 @@
             Show = false;
             InvokeAsync(StateHasChanged);
         }, null, _closeDelayMs, System.Threading.Timeout.Infinite);
+    }
+
+    private void OnTouchStart()
+    {
+        // For mobile touch devices
+        _closeTimer?.Dispose();
+        _closeTimer = null;
+        Show = !Show; // Toggle on touch
+        StateHasChanged();
+    }
+
+    private void OnMobileClick()
+    {
+        // Fallback for mobile click
+        if (!Show)
+        {
+            Show = true;
+            StateHasChanged();
+        }
+    }
+
+    private string GetMobileClass()
+    {
+        return "popover-mobile-responsive";
+    }
+
+    private string GetArrowVisibilityClass()
+    {
+        return "d-none d-md-block"; // Hide arrow on mobile, show on desktop
     }
 
     private string GetPopoverStyle()

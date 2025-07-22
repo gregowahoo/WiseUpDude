@@ -81,12 +81,25 @@
 
                         foreach (var tuple in validCitations.Select((citation, idx) => (citation, idx)))
                         {
-                            <span class="perplexity-pill popover-dismiss me-1"
-                                  role="button"
-                                  tabindex="0"
-                                  @onclick="() => ToggleCitationPopover(tuple.idx)">
-                                <span class="perplexity-pill-number">@(tuple.idx + 1)</span>
-                            </span>
+                            <SmartPopover>
+                                <ChildContent>
+                                    <span class="perplexity-pill popover-dismiss me-1"
+                                          role="button"
+                                          tabindex="0">
+                                        <span class="perplexity-pill-number">@(tuple.idx + 1)</span>
+                                    </span>
+                                </ChildContent>
+                                <PopoverContent>
+                                    <div class="px-popover-panel">
+                                        <div class="px-popover-row">
+                                            <img src="https://cdn.syncfusion.com/common/images/favicon/favicon-32x32.png" alt="Favicon" class="px-popover-favicon" />
+                                            <span class="px-popover-source">Citation</span>
+                                        </div>
+                                        <div class="px-popover-title">@(tuple.citation.Title ?? tuple.citation.Url)</div>
+                                        <div class="px-popover-description">@((string.IsNullOrWhiteSpace(tuple.citation.Description) ? "No summary available for this source." : tuple.citation.Description))</div>
+                                    </div>
+                                </PopoverContent>
+                            </SmartPopover>
                         }
                     }
                 </div>
@@ -95,44 +108,29 @@
                 <div class="d-flex justify-content-end flex-grow-1">
                     @if (!string.IsNullOrWhiteSpace(Question?.ContextSnippet))
                     {
-                        <SmartPopover>
-                            <ChildContent>
-                                <i class="bi bi-info-circle" style="font-size: 1.25rem; color: #0d6efd; cursor: pointer;" title="Show more info"></i>
-                            </ChildContent>
-                            <PopoverContent>
-                                <div class="popover-card">
-                                    <div class="popover-card-body">
+                        <span @onmouseover="ShowContextPopover"
+                              @onmouseout="HideContextPopover"
+                              @onclick="ToggleContextPopover"
+                              style="cursor:pointer;">
+                            <i class="bi bi-info-circle" style="font-size: 1.25rem; color: #0d6efd;" title="Show more info"></i>
+
+                            @if (showContextPopover)
+                            {
+                                <div class="modern-context-popover fade show position-absolute end-0 mt-2">
+                                    <div class="popover-body small" style="padding: 1rem;">
                                         <span style="font-size:1.1em; color:#0d6efd; margin-right:6px;">🛈</span>
                                         <em>Did you know?</em><br />
                                         <span>@Question.ContextSnippet</span>
                                     </div>
                                 </div>
-                            </PopoverContent>
-                        </SmartPopover>
+                            }
+                        </span>
                     }
                 </div>
             </div>
         </div>
     }
 </div>
-
-<!-- Citation Popover and Global Click Catcher -->
-@if (openCitationPopoverIndex is int idx
-    && idx >= 0
-    && Question?.Citation?.Count > idx)
-{
-    <div class="popover-click-catcher" @onclick="HandleCitationClickAway">
-        <div class="popover-citation-panel" @onclick:stopPropagation>
-            <Popover IsOpen="true"
-                     Title="@(Question.Citation[idx].Title ?? Question.Citation[idx].Url)"
-                     Source="Citation"
-                     Content="@((string.IsNullOrWhiteSpace(Question.Citation[idx].Description) ? "No summary available for this source." : Question.Citation[idx].Description))"
-                     IconUrl="https://cdn.syncfusion.com/common/images/favicon/favicon-32x32.png"
-                     AutoCloseMs="5000"
-                     OnClose="CloseCitationPopover" />
-        </div>
-    </div>
-}
 
 @code {
     [Parameter] public QuizQuestion? Question { get; set; }
@@ -144,7 +142,7 @@
 
     private string userAnswer = string.Empty;
     private bool submitted = false;
-    private int? openCitationPopoverIndex = null;
+    private bool showContextPopover = false;
 
     protected override void OnParametersSet()
     {
@@ -207,20 +205,7 @@
         return "btn btn-outline-secondary me-2 mb-2 rounded-pill" + (CanEdit ? "" : " disabled");
     }
 
-    private void ToggleCitationPopover(int idx)
-    {
-        openCitationPopoverIndex = openCitationPopoverIndex == idx ? (int?)null : idx;
-    }
-
-    private void CloseCitationPopover()
-    {
-        openCitationPopoverIndex = null;
-        StateHasChanged();
-    }
-
-    private void HandleCitationClickAway()
-    {
-        openCitationPopoverIndex = null;
-        StateHasChanged();
-    }
+    private void ShowContextPopover() => showContextPopover = true;
+    private void HideContextPopover() => showContextPopover = false;
+    private void ToggleContextPopover() => showContextPopover = !showContextPopover;
 }

@@ -1,8 +1,104 @@
-﻿.popover-container .popover {
+﻿/*
+ * Enhanced BootstrapPopover styling to match the previous version (see screenshot):
+ * - Rounded corners, subtle box-shadow, light background
+ * - Header with bold, slightly darker background
+ * - Footer with light background and border
+ * - Button styled as in screenshot
+ */
+
+.popover-container .popover {
     z-index: 9999;
-    max-width: 300px;
+    max-width: 380px;
+    min-width: 320px;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10), 0 1.5px 4px rgba(0, 0, 0, 0.08);
+    background: #fff;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    color: #222;
+    padding: 0;
+    border: 1px solid #e3e3e3;
 }
 
-.popover-arrow::before {
+.popover-container .popover-arrow::before {
     border-color: transparent !important;
+}
+
+.popover-container .popover-body {
+    padding: 1rem 1.25rem 0.75rem 1.25rem;
+    font-size: 1rem;
+    color: #444;
+}
+
+/* Popover card style for header/body/footer (used in QuestionCard) */
+.popover-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    border: 1px solid #e3e3e3;
+    min-width: 260px;
+    max-width: 360px;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    color: #222;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.popover-card-header {
+    background: #fff; /* White background */
+    color: #222;     /* Dark text */
+    padding: 0.75rem 1rem;
+    font-size: 0.98rem;
+    font-weight: 600;
+    border-bottom: 1px solid #e3e3e3; /* Subtle bottom border */
+}
+.popover-card-body {
+    min-height: 32px;
+    padding: 0.75rem 1rem;
+    font-size: 0.98rem;
+    color: #444;
+    display: flex;
+    align-items: center;
+}
+.popover-card-footer {
+    padding: 0.5rem 1rem;
+    background: #f9f9f9;
+    border-top: 1px solid #e3e3e3;
+    text-align: center;
+    margin-top: 0.75rem;
+}
+.popover-card-footer .btn {
+    font-size: 0.80rem;
+    padding: 0.18rem 0.75rem;
+    width: auto;
+    min-width: 0;
+    max-width: 120px;
+    margin: 0 auto;
+    display: inline-block;
+}
+
+/* Override Bootstrap header styles */
+.popover-header {
+    background: #fff !important; /* Force white background */
+    color: #222 !important;      /* Force dark text */
+    padding: 0.75rem 1rem;
+    font-size: 0.98rem;
+    font-weight: 600;
+    border-bottom: 1px solid #e3e3e3;
+}
+
+@media (max-width: 600px) {
+    .popover-container .popover {
+        min-width: 90vw;
+        max-width: 95vw;
+        font-size: 1.1em;
+        margin-left: 5vw;
+        margin-right: 5vw;
+    }
+    .popover-card {
+        min-width: 90vw;
+        max-width: 95vw;
+        font-size: 1.1em;
+        margin-left: 5vw;
+        margin-right: 5vw;
+    }
 }

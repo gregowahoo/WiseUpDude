@@ -7,6 +7,7 @@
 @using WiseUpDude.Services
 @using WiseUpDude.Data.Repositories
 @using WiseUpDude.Data.Repositories.Interfaces
+@using WiseUpDude.Components.Controls
 
 @inject DashboardDataService DashboardData
 @inject AuthenticationStateProvider AuthStateProvider
@@ -17,6 +18,9 @@
 @rendermode InteractiveServer
 @attribute [Authorize(Roles = "FreeSubscriber,PaidSubscriber,Admin,EnterpriseSubscriber")]
 @inject WiseUpDude.Shared.Services.ToastService ToastService
+
+<QuizLoadingDialog IsVisible="IsNavigatingToQuiz" 
+                   LoadingMessage="@LoadingMessage" />
 
 <h1 class="text-center mb-4">Welcome to Wise Up Dude!</h1>
 
@@ -176,6 +180,8 @@
     private bool IsGenerating = false;
     private int? quizToDeleteId = null;
     private HashSet<int> quizzesWithAnswers = new HashSet<int>();
+    private bool IsNavigatingToQuiz = false;
+    private string LoadingMessage = "Preparing your quiz...";
 
     private void EditQuizName(int quizId) => editingQuizId = quizId;
     private void CancelEdit() => editingQuizId = null;
@@ -226,18 +232,25 @@
     private async Task ResumeQuiz(int quizId)
     {
         IsGenerating = true;
+        IsNavigatingToQuiz = true;
+        LoadingMessage = "Resuming your quiz...";
+        StateHasChanged();
+        
         try
         {
             var selectedQuiz = await UserQuizRepository.GetByIdAsync(quizId);
             if (selectedQuiz != null)
             {
                 QuizState.CurrentQuiz = selectedQuiz;
+                // Small delay to show loading dialog
+                await Task.Delay(500);
                 NavManager.NavigateTo($"/TakeAQuiz/{quizId}");
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error resuming quiz: {ex.Message}");
+            IsNavigatingToQuiz = false;
         }
         finally
         {
@@ -279,14 +292,21 @@
     private async Task StartOver(int quizId)
     {
         IsGenerating = true;
+        IsNavigatingToQuiz = true;
+        LoadingMessage = "Starting quiz from the beginning...";
+        StateHasChanged();
+        
         try
         {
             await UserQuizQuestionRepository.ClearUserAnswersByQuizIdAsync(quizId);
+            // Small delay to show loading dialog
+            await Task.Delay(500);
             NavManager.NavigateTo($"/TakeAQuiz/{quizId}");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error starting fresh: {ex.Message}");
+            IsNavigatingToQuiz = false;
         }
         finally
         {

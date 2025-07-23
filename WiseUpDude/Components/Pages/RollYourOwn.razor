@@ -5,6 +5,7 @@
 @using WiseUpDude.Services.Interfaces
 @using WiseUpDude.Model
 @using WiseUpDude.Data.Repositories
+@using WiseUpDude.Components.Controls
 
 @inject QuizRepository QuizRepository
 @inject UserQuizRepository UserQuizRepository
@@ -25,9 +26,12 @@
 
 @if (IsGenerating || IsSaving)
 {
-    <PleaseWaitDialog IsVisible="IsGenerating || IsSaving"
+    <PleaseWaitDialog IsVisible="(IsGenerating || IsSaving) && !IsNavigatingToQuiz"
                       LoadingTextMessage="@($"Preparing your \"{UserPrompt}\" quiz...")" />
 }
+
+<QuizLoadingDialog IsVisible="IsNavigatingToQuiz" 
+                   LoadingMessage="Your quiz is ready! Loading interactive features..." />
 @if (IsUrlGenerating)
 {
     <PleaseWaitDialog IsVisible="IsUrlGenerating"
@@ -165,6 +169,7 @@
     private bool urlSelected = false;
     private string? PromptTheme { get; set; }
     private string? UrlTheme { get; set; }
+    private bool IsNavigatingToQuiz = false;
 
     protected override void OnInitialized()
     {
@@ -313,6 +318,15 @@
             var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
             Logger.LogInformation("Quiz successfully saved to the UserQuiz table. QuizId: {QuizId}", userQuizId);
             await ToastService.ShowToast("Quiz generated successfully!", ToastLevel.Success);
+            
+            // Switch to navigation loading dialog
+            IsGenerating = false;
+            IsSaving = false;
+            IsNavigatingToQuiz = true;
+            StateHasChanged();
+            
+            // Small delay to show loading dialog
+            await Task.Delay(800);
             NavigationManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
         }
         catch (Exception ex)
@@ -323,8 +337,11 @@
         }
         finally
         {
-            IsGenerating = false;
-            IsSaving = false;
+            if (!IsNavigatingToQuiz)
+            {
+                IsGenerating = false;
+                IsSaving = false;
+            }
             if (!promptSelected)
             {
                 await InvokeAsync(StateHasChanged);
@@ -361,6 +378,14 @@
             quiz.Url = QuizUrl;
             var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
             await ToastService.ShowToast("Quiz generated successfully!", ToastLevel.Success);
+            
+            // Switch to navigation loading dialog
+            IsUrlGenerating = false;
+            IsNavigatingToQuiz = true;
+            StateHasChanged();
+            
+            // Small delay to show loading dialog
+            await Task.Delay(800);
             NavigationManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
         }
         catch (Exception ex)
@@ -371,7 +396,10 @@
         }
         finally
         {
-            IsUrlGenerating = false;
+            if (!IsNavigatingToQuiz)
+            {
+                IsUrlGenerating = false;
+            }
             await InvokeAsync(StateHasChanged);
         }
     }

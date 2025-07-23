@@ -24,21 +24,25 @@
 
 @inject NavigationManager Nav
 
-@if (OperatingSystem.IsBrowser())
+@* Show a subtle transition indicator instead of jarring mode alerts *@
+@if (!_isWasmReady && !OperatingSystem.IsBrowser())
 {
-    <div class="alert alert-success">
-        <strong>WASM Mode:</strong> This page is running in WebAssembly mode.
+    <div class="wasm-loading-indicator">
+        <div class="d-flex align-items-center text-muted">
+            <div class="spinner-border spinner-border-sm me-2" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <small>Loading interactive features...</small>
+        </div>
     </div>
 }
-else
+else if (_isWasmReady || OperatingSystem.IsBrowser())
 {
-    <div class="alert alert-warning">
-        <strong>Server Mode:</strong> This page is running in Blazor Server mode.
-    </div>
+    @* Optional: Remove this section entirely for cleaner UI *@
+    @* <div class="alert alert-success fade-in-smooth">
+        <small><i class="bi bi-check-circle-fill me-1"></i>Interactive quiz ready!</small>
+    </div> *@
 }
-
-
-<p>Running on: @(OperatingSystem.IsBrowser() ? "WASM" : "Server")</p>
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -163,6 +167,7 @@ else
     private string? saveMessage;
     private string? saveMessageType;
     private List<bool?> questionResults = new();
+    private bool _isWasmReady = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -215,6 +220,13 @@ else
             try
             {
                 await JS.InvokeVoidAsync("initBootstrapTooltips");
+                
+                // Mark WASM as ready for smoother UI transitions
+                if (OperatingSystem.IsBrowser())
+                {
+                    _isWasmReady = true;
+                    StateHasChanged();
+                }
             }
             catch (Exception ex)
             {
@@ -378,3 +390,31 @@ else
         await JS.InvokeVoidAsync("scrollToElement", questionElementId);
     }
 }
+
+<style>
+    .wasm-loading-indicator {
+        position: fixed;
+        top: 10px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 8px 16px;
+        border-radius: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+
+    .fade-in-smooth {
+        animation: fadeInSmooth 0.5s ease-in;
+    }
+
+    @@keyframes fadeInSmooth {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>

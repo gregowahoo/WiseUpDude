@@ -6,6 +6,7 @@
 @using WiseUpDude.Model
 @using WiseUpDude.Services
 @using WiseUpDude.Services.Interfaces
+@using WiseUpDude.Components.Controls
 
 @inject QuizStateService QuizState
 @inject NavigationManager NavigationManager
@@ -27,10 +28,13 @@
 @rendermode InteractiveServer
 @attribute [Authorize(Roles = "FreeSubscriber,PaidSubscriber,Admin,EnterpriseSubscriber")]
 
-@if (IsGenerating)
+@if (IsGenerating && !IsNavigatingToQuiz)
 {
     <p class="text-center mt-3 text-muted">🧠 Generating your quiz...</p>
 }
+
+<QuizLoadingDialog IsVisible="IsNavigatingToQuiz" 
+                   LoadingMessage="Your quiz is ready! Loading interactive features..." />
 
 <div class="container py-5">
 
@@ -84,6 +88,7 @@
     private List<Topic> FilteredTopics = new();
 
     private bool IsGenerating = false;
+    private bool IsNavigatingToQuiz = false;
 
     async Task FilterByCategory(Category? category)
     {
@@ -145,6 +150,13 @@
                 // Save the user quiz and get the new Id
                 var userQuizId = await UserQuizRepository.AddAsyncGetId(userQuiz);
 
+                // Switch to navigation loading dialog
+                IsGenerating = false;
+                IsNavigatingToQuiz = true;
+                StateHasChanged();
+                
+                // Small delay to show loading dialog
+                await Task.Delay(800);
                 NavigationManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
             }
             else
@@ -158,7 +170,10 @@
         }
         finally
         {
-            IsGenerating = false;
+            if (!IsNavigatingToQuiz)
+            {
+                IsGenerating = false;
+            }
         }
     }
 

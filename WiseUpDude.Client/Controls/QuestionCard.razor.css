@@ -231,28 +231,40 @@
 }
 
 /* Specific override for titles - no underline in any state */
-.popover-title-link.no-underline,
-.perplexity-popover-content .popover-title-link.no-underline {
+/* Use highest specificity to override Bootstrap defaults */
+.popover.perplexity-popover .popover-body .perplexity-popover-content .popover-title-link.no-underline,
+.perplexity-popover-content .popover-title-link.no-underline,
+.popover-title-link.no-underline {
     text-decoration: none !important;
 }
 
-.popover-title-link.no-underline:hover,
-.perplexity-popover-content .popover-title-link.no-underline:hover {
+.popover.perplexity-popover .popover-body .perplexity-popover-content .popover-title-link.no-underline:hover,
+.perplexity-popover-content .popover-title-link.no-underline:hover,
+.popover-title-link.no-underline:hover {
     text-decoration: none !important;
 }
 
-.popover-title-link.no-underline:focus,
-.perplexity-popover-content .popover-title-link.no-underline:focus {
+.popover.perplexity-popover .popover-body .perplexity-popover-content .popover-title-link.no-underline:focus,
+.perplexity-popover-content .popover-title-link.no-underline:focus,
+.popover-title-link.no-underline:focus {
     text-decoration: none !important;
 }
 
-.popover-title-link.no-underline:visited,
-.perplexity-popover-content .popover-title-link.no-underline:visited {
+.popover.perplexity-popover .popover-body .perplexity-popover-content .popover-title-link.no-underline:visited,
+.perplexity-popover-content .popover-title-link.no-underline:visited,
+.popover-title-link.no-underline:visited {
     text-decoration: none !important;
 }
 
-.popover-title-link.no-underline:visited:hover,
-.perplexity-popover-content .popover-title-link.no-underline:visited:hover {
+.popover.perplexity-popover .popover-body .perplexity-popover-content .popover-title-link.no-underline:visited:hover,
+.perplexity-popover-content .popover-title-link.no-underline:visited:hover,
+.popover-title-link.no-underline:visited:hover {
+    text-decoration: none !important;
+}
+
+.popover.perplexity-popover .popover-body .perplexity-popover-content .popover-title-link.no-underline:active,
+.perplexity-popover-content .popover-title-link.no-underline:active,
+.popover-title-link.no-underline:active {
     text-decoration: none !important;
 }
 
@@ -274,6 +286,15 @@
     padding: 0 !important; /* Remove Bootstrap's default padding */
     background: transparent !important;
     border: none !important;
+}
+
+/* Ensure no underlines in the entire popover content */
+.popover.perplexity-popover .popover-body a,
+.popover.perplexity-popover .popover-body a:hover,
+.popover.perplexity-popover .popover-body a:focus,
+.popover.perplexity-popover .popover-body a:active,
+.popover.perplexity-popover .popover-body a:visited {
+    text-decoration: none !important;
 }
 
 /* Hide Bootstrap popover arrow to prevent border conflicts */

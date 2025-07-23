@@ -81,33 +81,17 @@
 
                         foreach (var tuple in validCitations.Select((citation, idx) => (citation, idx)))
                         {
-                            <span class="perplexity-pill popover-dismiss me-1"
-                                  role="button"
-                                  tabindex="0"
-                                  data-bs-toggle="popover"
-                                  data-bs-trigger="focus"
-                                  data-bs-placement="right"
-                                  data-bs-html="true"
-                                  data-bs-title="Citation @(tuple.idx + 1)"
-                                  data-bs-content="@GetCitationPopoverContent(tuple.citation)">
+                            <a tabindex="0" role="button" href="javascript:void(0)"
+                               class="perplexity-pill popover-dismiss me-1"
+                               data-bs-toggle="popover"
+                               data-bs-trigger="click"
+                               data-bs-placement="right"
+                               data-bs-html="true"
+                               data-bs-custom-class="perplexity-popover"
+                               data-bs-title=" "
+                               data-bs-content="@GetCitationPopoverContent(tuple.citation)">
                                 <span class="perplexity-pill-number">@(tuple.idx + 1)</span>
-                            </span>
-
-                            if (!string.IsNullOrWhiteSpace(tuple.citation.Url))
-                            {
-                                var popoverHtml = GetCitationPopoverHtml(tuple.citation);
-                                <a tabindex="0" role="button" href="javascript:void(0)"
-                                   class="perplexity-pill popover-dismiss me-1"
-                                   data-bs-toggle="popover"
-                                   data-bs-trigger="click"
-                                   data-bs-placement="right"
-                                   data-bs-html="true"
-                                   data-bs-custom-class="perplexity-popover"
-                                   data-bs-title=" "
-                                   data-bs-content="@popoverHtml">
-                                    <span class="perplexity-pill-number">@((tuple.idx + 1).ToString())</span>
-                                </a>
-                            }
+                            </a>
                         }
                     }
                 </div>
@@ -147,25 +131,10 @@
     {
         var title = citation.Title ?? citation.Url;
         var description = string.IsNullOrWhiteSpace(citation.Description) ? "No summary available for this source." : citation.Description;
+        var url = citation.Url;
         
         return $@"
-            <div class='px-popover-panel'>
-                <div class='px-popover-row'>
-                    <span class='px-popover-source'>Citation</span>
-                </div>
-                <div class='px-popover-title'>{title}</div>
-                <div class='px-popover-description'>{description}</div>
-            </div>";
-    }
-
-    // private string GetCitationPopoverHtml(CitationMeta? meta, string citation)
-    private string GetCitationPopoverHtml(CitationMeta citation)
-    {
-        var title = citation.Title ?? citation.Url;
-        var description = string.IsNullOrWhiteSpace(citation.Description) ? "No summary available for this source." : citation.Description;
-        var url = citation.Url;
-        return $@"
-            <div class='card' style='min-width: 250px; max-width: 320px;'>
+            <div class='card' style='min-width: 250px; max-width: 320px; border: none;'>
                 <div class='card-header' style='font-weight: 500; font-size: 1.1em;'>
                     {title}
                 </div>
@@ -177,6 +146,7 @@
                 </div>
             </div>";
     }
+
 
     private string GetContextPopoverContent(string contextSnippet)
     {

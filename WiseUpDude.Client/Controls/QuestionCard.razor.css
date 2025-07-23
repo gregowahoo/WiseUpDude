@@ -201,8 +201,9 @@
 .perplexity-popover {
     border-radius: 16px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10), 0 1.5px 4px rgba(0, 0, 0, 0.08);
-    padding: 18px 22px 18px 22px;
-    background: #fff;
+    padding: 0; /* Remove padding to prevent double spacing with card */
+    background: transparent; /* Make transparent so card background shows */
+    border: none; /* Remove border to prevent double border */
     min-width: 320px;
     max-width: 380px;
     font-family: 'Segoe UI', 'Arial', sans-serif;

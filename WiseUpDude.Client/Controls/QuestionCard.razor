@@ -135,20 +135,21 @@
 
     private string GetCitationPopoverContent(CitationMeta citation)
     {
-        var title = citation.Title ?? citation.Url;
+        var hasTitle = !string.IsNullOrWhiteSpace(citation.Title);
+        var titleOrUrl = hasTitle ? citation.Title : citation.Url;
         var description = string.IsNullOrWhiteSpace(citation.Description) ? "No summary available for this source." : citation.Description;
         var url = citation.Url;
         
-        // Perplexity-style layout with clickable title, no separate "Visit Source" button
+        var linkClass = hasTitle ? "popover-title-link no-underline" : "popover-title-link";
+        var linkHtml = $"<a href='{url}' target='_blank' rel='noopener' class='{linkClass}'><strong>{titleOrUrl}</strong></a>";
+
         return $@"
             <div class='perplexity-popover-content'>
                 <div class='d-flex align-items-center mb-2'>
                     <span class='domain'>{new Uri(url).Host}</span>
                 </div>
                 <div class='mb-1'>
-                    <a href='{url}' target='_blank' rel='noopener' class='popover-title-link'>
-                        <strong>{title}</strong>
-                    </a>
+                    {linkHtml}
                 </div>
                 <div class='popover-desc'>
                     {description}

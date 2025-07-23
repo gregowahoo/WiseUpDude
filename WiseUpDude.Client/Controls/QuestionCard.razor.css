@@ -202,25 +202,58 @@
 /* Clickable title link in popover - Perplexity style */
 .popover-title-link {
     color: #1a73e8; /* Google blue similar to Perplexity */
-    text-decoration: none;
+    text-decoration: none !important;
     font-size: 1.08rem;
     font-weight: 600;
     line-height: 1.4;
     transition: color 0.2s ease;
 }
+
 .popover-title-link:hover {
     color: #1557b0; /* Darker blue on hover */
-    text-decoration: underline;
+    text-decoration: underline !important;
 }
 
-.popover-title-link.no-underline:hover {
+.popover-title-link:visited {
+    color: #1a73e8;
     text-decoration: none !important;
+}
+
+.popover-title-link:visited:hover {
+    color: #1557b0;
+    text-decoration: underline !important;
 }
 
 .popover-title-link:focus {
     color: #1557b0;
     outline: none;
-    text-decoration: underline;
+    text-decoration: underline !important;
+}
+
+/* Specific override for titles - no underline in any state */
+.popover-title-link.no-underline,
+.perplexity-popover-content .popover-title-link.no-underline {
+    text-decoration: none !important;
+}
+
+.popover-title-link.no-underline:hover,
+.perplexity-popover-content .popover-title-link.no-underline:hover {
+    text-decoration: none !important;
+}
+
+.popover-title-link.no-underline:focus,
+.perplexity-popover-content .popover-title-link.no-underline:focus {
+    text-decoration: none !important;
+}
+
+.popover-title-link.no-underline:visited,
+.perplexity-popover-content .popover-title-link.no-underline:visited {
+    text-decoration: none !important;
+}
+
+.popover-title-link.no-underline:visited:hover,
+.perplexity-popover-content .popover-title-link.no-underline:visited:hover {
+    text-decoration: none !important;
 }
 
 /* Override Bootstrap popover styling completely to prevent double borders */

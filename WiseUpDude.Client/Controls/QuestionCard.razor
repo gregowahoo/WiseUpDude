@@ -92,6 +92,22 @@
                                   data-bs-content="@GetCitationPopoverContent(tuple.citation)">
                                 <span class="perplexity-pill-number">@(tuple.idx + 1)</span>
                             </span>
+
+                            if (!string.IsNullOrWhiteSpace(tuple.citation.Url))
+                            {
+                                var popoverHtml = GetCitationPopoverHtml(tuple.citation);
+                                <a tabindex="0" role="button" href="javascript:void(0)"
+                                   class="perplexity-pill popover-dismiss me-1"
+                                   data-bs-toggle="popover"
+                                   data-bs-trigger="click"
+                                   data-bs-placement="right"
+                                   data-bs-html="true"
+                                   data-bs-custom-class="perplexity-popover"
+                                   data-bs-title=" "
+                                   data-bs-content="@popoverHtml">
+                                    <span class="perplexity-pill-number">@((tuple.idx + 1).ToString())</span>
+                                </a>
+                            }
                         }
                     }
                 </div>
@@ -135,7 +151,6 @@
         return $@"
             <div class='px-popover-panel'>
                 <div class='px-popover-row'>
-                    <img src='https://cdn.syncfusion.com/common/images/favicon/favicon-32x32.png' alt='Favicon' class='px-popover-favicon' />
                     <span class='px-popover-source'>Citation</span>
                 </div>
                 <div class='px-popover-title'>{title}</div>
@@ -143,12 +158,24 @@
             </div>";
     }
 
-    private string GetCitationPopoverHtml(CitationMeta? meta, string citation)
+    // private string GetCitationPopoverHtml(CitationMeta? meta, string citation)
+    private string GetCitationPopoverHtml(CitationMeta citation)
     {
-        var title = meta?.Title ?? citation;
-        var desc = string.IsNullOrWhiteSpace(meta?.Description) ? "" : $"<div class='popover-desc mb-2'>{meta.Description}</div>";
-        var url = $"<a href='{citation}' target='_blank' rel='noopener' class='citation-url'>{citation}</a>";
-        return $"<div class='perplexity-popover-content'><div class='popover-title mb-1'><strong>{title}</strong></div>{desc}{url}</div>";
+        var title = citation.Title ?? citation.Url;
+        var description = string.IsNullOrWhiteSpace(citation.Description) ? "No summary available for this source." : citation.Description;
+        var url = citation.Url;
+        return $@"
+            <div class='card' style='min-width: 250px; max-width: 320px;'>
+                <div class='card-header' style='font-weight: 500; font-size: 1.1em;'>
+                    {title}
+                </div>
+                <div class='card-body' style='font-size: 1em;'>
+                    {description}
+                </div>
+                <div class='card-footer text-center bg-white border-top-0'>
+                    <a href='{url}' target='_blank' rel='noopener' class='btn btn-outline-secondary btn-sm'>Visit Source</a>
+                </div>
+            </div>";
     }
 
     private string GetContextPopoverContent(string contextSnippet)

@@ -84,7 +84,7 @@
                             <a tabindex="0" role="button" href="javascript:void(0)"
                                class="perplexity-pill popover-dismiss me-1"
                                data-bs-toggle="popover"
-                               data-bs-trigger="click"
+                               data-bs-trigger="@GetPopoverTrigger()"
                                data-bs-placement="right"
                                data-bs-html="true"
                                data-bs-custom-class="perplexity-popover"
@@ -124,8 +124,14 @@
     [Parameter] public bool MuteSound { get; set; }
     [Parameter] public bool CanEdit { get; set; } = true;
 
+    // Add this debug parameter - set to true temporarily when you need to debug popovers
+    [Parameter] public bool DebugPopover { get; set; } = false;
+
     private string userAnswer = string.Empty;
     private bool submitted = false;
+
+    // Add a method to get the trigger type for debugging
+    private string GetPopoverTrigger() => DebugPopover ? "manual" : "click";
 
     private string GetCitationPopoverContent(CitationMeta citation)
     {
@@ -133,15 +139,20 @@
         var description = string.IsNullOrWhiteSpace(citation.Description) ? "No summary available for this source." : citation.Description;
         var url = citation.Url;
         
+        // Remove the nested card structure to prevent double borders
+        // Use the existing CSS classes designed for Bootstrap popovers
         return $@"
-            <div class='card' style='min-width: 250px; max-width: 320px; border: none; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10), 0 1.5px 4px rgba(0, 0, 0, 0.08);'>
-                <div class='card-header' style='font-weight: 500; font-size: 1.1em; border: none;'>
-                    {title}
+            <div class='perplexity-popover-content'>
+                <div class='d-flex align-items-center mb-2'>
+                    <span class='domain'>{new Uri(url).Host}</span>
                 </div>
-                <div class='card-body' style='font-size: 1em; border: none;'>
+                <div class='popover-title mb-1'>
+                    <strong>{title}</strong>
+                </div>
+                <div class='popover-desc mb-2'>
                     {description}
                 </div>
-                <div class='card-footer text-center bg-white' style='border: none;'>
+                <div class='text-center'>
                     <a href='{url}' target='_blank' rel='noopener' class='btn btn-outline-secondary btn-sm'>Visit Source</a>
                 </div>
             </div>";

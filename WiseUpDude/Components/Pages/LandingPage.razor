@@ -4,11 +4,17 @@
 
 @rendermode InteractiveServer
 
+@inject WiseUpDude.Services.ITokenValidationService TokenValidationService
+
 @code {
     [Inject] NavigationManager NavManager { get; set; } = default!;
     [Inject] AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
 
     private bool _isAuthenticated;
+    private bool _isTokenValidated;
+    private string _tokenInput = string.Empty;
+    private string _tokenErrorMessage = string.Empty;
+    private bool _isValidatingToken;
 
     protected override async Task OnInitializedAsync()
     {
@@ -20,6 +26,47 @@
             _isAuthenticated = true;
             await Task.Delay(1); // Ensure rendering completes
             NavManager.NavigateTo("/home");
+        }
+        else
+        {
+            // Check if token is already validated in this session
+            _isTokenValidated = await TokenValidationService.IsTokenValidatedAsync();
+        }
+    }
+
+    private async Task ValidateTokenAsync()
+    {
+        _isValidatingToken = true;
+        _tokenErrorMessage = string.Empty;
+        StateHasChanged();
+
+        if (string.IsNullOrWhiteSpace(_tokenInput))
+        {
+            _tokenErrorMessage = "Please enter the access token.";
+            _isValidatingToken = false;
+            return;
+        }
+
+        if (await TokenValidationService.ValidateTokenAsync(_tokenInput))
+        {
+            await TokenValidationService.SetTokenValidatedAsync();
+            _isTokenValidated = true;
+            _tokenErrorMessage = string.Empty;
+        }
+        else
+        {
+            _tokenErrorMessage = "Invalid access token. Please contact the administrator for the correct token.";
+        }
+
+        _isValidatingToken = false;
+        StateHasChanged();
+    }
+
+    private async Task OnTokenInputKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await ValidateTokenAsync();
         }
     }
 }
@@ -87,10 +134,45 @@
         </section>
 
         <!-- Call-to-action Section -->
-        <section class="cta-section py-5 bg-primary text-white text-center">
-            <h2>Ready to Learn, Anything?</h2>
-            <p>Register and use Wise Up Dude for free and start mastering any subject! Click Below!</p>
-            <a class="btn btn-light btn-lg mt-3" href="/Account/Login">I Want To Be A Wise Guy!</a>
-        </section>
+        @if (!_isTokenValidated)
+        {
+            <section class="cta-section py-5 bg-warning text-dark text-center">
+                <h2>Access Required</h2>
+                <p>This site is currently in testing phase. Please enter the access token to continue.</p>
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" placeholder="Enter access token" 
+                                   @bind="_tokenInput" @onkeypress="OnTokenInputKeyPress" disabled="@_isValidatingToken" />
+                            <button class="btn btn-dark" type="button" @onclick="ValidateTokenAsync" disabled="@_isValidatingToken">
+                                @if (_isValidatingToken)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    <span>Validating...</span>
+                                }
+                                else
+                                {
+                                    <span>Validate</span>
+                                }
+                            </button>
+                        </div>
+                        @if (!string.IsNullOrEmpty(_tokenErrorMessage))
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                @_tokenErrorMessage
+                            </div>
+                        }
+                    </div>
+                </div>
+            </section>
+        }
+        else
+        {
+            <section class="cta-section py-5 bg-primary text-white text-center">
+                <h2>Ready to Learn, Anything?</h2>
+                <p>Register and use Wise Up Dude for free and start mastering any subject! Click Below!</p>
+                <a class="btn btn-light btn-lg mt-3" href="/Account/Login">I Want To Be A Wise Guy!</a>
+            </section>
+        }
     </div>
 }

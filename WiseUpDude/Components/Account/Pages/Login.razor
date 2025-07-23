@@ -11,6 +11,7 @@
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject WiseUpDude.Services.ITokenValidationService TokenValidationService
 
 <PageTitle>Log in</PageTitle>
 
@@ -96,6 +97,13 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Check if token is validated before allowing login
+        if (!await TokenValidationService.IsTokenValidatedAsync())
+        {
+            NavigationManager.NavigateTo("/", true);
+            return;
+        }
+
         // Clear the existing external cookie to ensure a clean login process
         if (HttpMethods.IsGet(HttpContext.Request.Method))
         {

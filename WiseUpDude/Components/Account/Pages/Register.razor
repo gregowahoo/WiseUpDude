@@ -16,6 +16,7 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject WiseUpDude.Services.ITokenValidationService TokenValidationService
 
 <PageTitle>Register</PageTitle>
 
@@ -81,6 +82,16 @@
 
 
     private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if token is validated before allowing registration
+        if (!await TokenValidationService.IsTokenValidatedAsync())
+        {
+            NavigationManager.NavigateTo("/", true);
+            return;
+        }
+    }
 
     public async Task RegisterUser(EditContext editContext)
     {

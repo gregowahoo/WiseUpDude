@@ -43,7 +43,7 @@ namespace WiseUpDude.Data
                 throw new InvalidOperationException("DefaultConnection string not found in configuration.");
             }
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseSqlite(connectionString);
+            optionsBuilder.UseSqlServer(connectionString);
 
             return new ApplicationDbContext(optionsBuilder.Options);
         }

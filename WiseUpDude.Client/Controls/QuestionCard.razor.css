@@ -198,16 +198,31 @@
     padding: 0 2px;
     line-height: 1;
 }
-.perplexity-popover {
-    border-radius: 16px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10), 0 1.5px 4px rgba(0, 0, 0, 0.08);
-    padding: 0; /* Remove padding to prevent double spacing with card */
-    background: transparent; /* Make transparent so card background shows */
-    border: none; /* Remove border to prevent double border */
+/* Override Bootstrap popover styling completely to prevent double borders */
+.popover.perplexity-popover {
+    border-radius: 16px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10), 0 1.5px 4px rgba(0, 0, 0, 0.08) !important;
+    padding: 0 !important; /* Remove padding to prevent double spacing with card */
+    background: transparent !important; /* Make transparent so card background shows */
+    border: none !important; /* Remove border to prevent double border */
     min-width: 320px;
     max-width: 380px;
     font-family: 'Segoe UI', 'Arial', sans-serif;
     color: #222;
+}
+
+/* Override Bootstrap popover body styling */
+.popover.perplexity-popover .popover-body {
+    padding: 0 !important; /* Remove Bootstrap's default padding */
+    background: transparent !important;
+    border: none !important;
+}
+
+/* Hide Bootstrap popover arrow to prevent border conflicts */
+.popover.perplexity-popover .popover-arrow,
+.popover.perplexity-popover::before,
+.popover.perplexity-popover::after {
+    display: none !important;
 }
 .perplexity-popover-content {
     font-size: 1rem;

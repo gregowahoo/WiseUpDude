@@ -35,6 +35,12 @@ namespace WiseUpDude.Services
                 var result = await _sessionStorage.GetAsync<bool>(SESSION_KEY);
                 return result.Success && result.Value;
             }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("JavaScript interop calls cannot be issued at this time"))
+            {
+                // During prerendering, JavaScript interop is not available
+                // Return false to indicate token is not validated yet
+                return false;
+            }
             catch
             {
                 return false;

@@ -363,3 +363,8 @@ MigrationBackup/
 FodyWeavers.xsd
 /WiseUpDude/appsettings.Development.json
 /WiseUpDude/wwwroot/js/site.js
+
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal

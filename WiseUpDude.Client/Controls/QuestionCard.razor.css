@@ -407,3 +407,6 @@
         margin-right: 5vw;
     }
 }
+.popover .popover-arrow {
+    display: none !important;
+}

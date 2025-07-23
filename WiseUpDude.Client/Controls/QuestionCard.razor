@@ -84,12 +84,12 @@
                             <a tabindex="0" role="button" href="javascript:void(0)"
                                class="perplexity-pill popover-dismiss me-1"
                                data-bs-toggle="popover"
-                               data-bs-trigger="@GetPopoverTrigger()"
+                               data-bs-trigger="hover focus"
                                data-bs-placement="right"
                                data-bs-html="true"
                                data-bs-custom-class="perplexity-popover"
                                data-bs-container="body"
-                               data-bs-title=" "
+                               data-bs-title="@tuple.citation.Title"
                                data-bs-content="@GetCitationPopoverContent(tuple.citation)">
                                 <span class="perplexity-pill-number">@(tuple.idx + 1)</span>
                             </a>
@@ -146,10 +146,7 @@
 
         return $@"
             <div class='perplexity-popover-content'>
-                <div class='d-flex align-items-center mb-2'>
-                    <span class='domain'>{new Uri(url).Host}</span>
-                </div>
-                <div class='mb-1'>
+                <div class='mb-1 popover-title-link no-underline'>
                     {linkHtml}
                 </div>
                 <div class='popover-desc'>

@@ -69,6 +69,7 @@
 
 @code {
     private string? errorMessage;
+    private bool _tokenValidationChecked = false;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -97,13 +98,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Check if token is validated before allowing login
-        if (!await TokenValidationService.IsTokenValidatedAsync())
-        {
-            NavigationManager.NavigateTo("/", true);
-            return;
-        }
-
         // Clear the existing external cookie to ensure a clean login process
         if (HttpMethods.IsGet(HttpContext.Request.Method))
         {
@@ -112,6 +106,21 @@
 
         // Load available external authentication schemes
         externalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToArray();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_tokenValidationChecked)
+        {
+            _tokenValidationChecked = true;
+            
+            // Check if token is validated before allowing login
+            if (!await TokenValidationService.IsTokenValidatedAsync())
+            {
+                NavigationManager.NavigateTo("/", true);
+                return;
+            }
+        }
     }
 
     public async Task LoginUser()

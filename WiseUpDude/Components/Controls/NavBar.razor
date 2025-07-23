@@ -1,3 +1,5 @@
+@inject WiseUpDude.Services.ITokenValidationService TokenValidationService
+
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container">
         <!-- Add the logo aligned to the left -->
@@ -10,10 +12,30 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="/Account/login" active="active">Login</NavLink>
-                </li>
+                @if (_isTokenValidated)
+                {
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/Account/login" active="active">Login</NavLink>
+                    </li>
+                }
             </ul>
         </div>
     </div>
 </nav>
+
+@code {
+    private bool _isTokenValidated = false;
+    private bool _hasCheckedToken = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_hasCheckedToken)
+        {
+            _hasCheckedToken = true;
+            
+            // Check if token is already validated in this session
+            _isTokenValidated = await TokenValidationService.IsTokenValidatedAsync();
+            StateHasChanged(); // Trigger re-render to show correct UI state
+        }
+    }
+}

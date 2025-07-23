@@ -139,21 +139,19 @@
         var description = string.IsNullOrWhiteSpace(citation.Description) ? "No summary available for this source." : citation.Description;
         var url = citation.Url;
         
-        // Remove the nested card structure to prevent double borders
-        // Use the existing CSS classes designed for Bootstrap popovers
+        // Perplexity-style layout with clickable title, no separate "Visit Source" button
         return $@"
             <div class='perplexity-popover-content'>
                 <div class='d-flex align-items-center mb-2'>
                     <span class='domain'>{new Uri(url).Host}</span>
                 </div>
-                <div class='popover-title mb-1'>
-                    <strong>{title}</strong>
+                <div class='mb-1'>
+                    <a href='{url}' target='_blank' rel='noopener' class='popover-title-link'>
+                        <strong>{title}</strong>
+                    </a>
                 </div>
-                <div class='popover-desc mb-2'>
+                <div class='popover-desc'>
                     {description}
-                </div>
-                <div class='text-center'>
-                    <a href='{url}' target='_blank' rel='noopener' class='btn btn-outline-secondary btn-sm'>Visit Source</a>
                 </div>
             </div>";
     }

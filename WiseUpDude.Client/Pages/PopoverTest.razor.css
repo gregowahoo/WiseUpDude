@@ -31,30 +31,29 @@
     padding: 0 2px;
     line-height: 1;
 }
-.perplexity-popover {
+/* Updated popover styling - using standard Bootstrap popovers without custom class */
+.popover-card {
+    font-size: 1rem;
+    padding: 18px 22px;
     border-radius: 16px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10), 0 1.5px 4px rgba(0, 0, 0, 0.08);
-    padding: 18px 22px 18px 22px;
     background: #fff;
     min-width: 320px;
     max-width: 380px;
     font-family: 'Segoe UI', 'Arial', sans-serif;
     color: #222;
 }
-.perplexity-popover-content {
-    font-size: 1rem;
-}
-.perplexity-popover .domain {
+.popover-card .domain {
     font-size: 0.95rem;
     color: #888;
     font-weight: 500;
 }
-.perplexity-popover .popover-title {
+.popover-card .popover-title {
     font-size: 1.08rem;
     font-weight: 600;
     color: #222;
 }
-.perplexity-popover .popover-desc {
+.popover-card .popover-desc {
     font-size: 0.98rem;
     color: #444;
     margin-top: 2px;

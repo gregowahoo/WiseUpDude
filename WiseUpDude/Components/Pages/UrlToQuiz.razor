@@ -21,8 +21,11 @@
 
 @attribute [Authorize]
 
-<PleaseWaitDialog IsVisible="showOverlay"
+<PleaseWaitDialog IsVisible="showOverlay && !isNavigatingToQuiz"
                   LoadingTextMessage="@($"Preparing your quiz from the URL: \"{url}\".")" />
+
+<QuizLoadingDialog IsVisible="isNavigatingToQuiz" 
+                   LoadingMessage="Your quiz is ready! Loading interactive features..." />
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
@@ -80,6 +83,7 @@
 @code {
     private string errorMessage = string.Empty;
     private bool showOverlay = false;
+    private bool isNavigatingToQuiz = false;
 
     private async Task GenerateQuiz()
     {
@@ -125,13 +129,19 @@
         var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
         if (userQuizId > 0)
         {
+            // Switch to navigation loading dialog
+            showOverlay = false;
+            isNavigatingToQuiz = true;
+            StateHasChanged();
+            
+            // Small delay to show loading dialog
+            await Task.Delay(800);
             NavManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
         }
         else
         {
             errorMessage = "Failed to save the quiz. Please try again.";
+            showOverlay = false;
         }
-
-        showOverlay = false;
     }
 }

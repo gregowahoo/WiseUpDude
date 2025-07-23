@@ -79,108 +79,139 @@
     }
 }
 
+<style>
+    .feature-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+</style>
+
 @if (!_isAuthenticated)
 {
-    <div class="container py-5">
-        <!-- Hero Section -->
-        <section class="text-center mb-5">
-            <h1 class="display-4 fw-bold">Wise Up Dude</h1>
-            <p class="lead text-muted">Learn, quiz, repeat. Master any topic effortlessly through quizzes.</p>
-        </section>
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-9">
+                <!-- Hero Section -->
+                <section class="text-center mb-5">
+                    <h1 class="display-4 fw-bold">Wise Up Dude</h1>
+                    <p class="lead text-muted">Learn, quiz, repeat. Master any topic effortlessly through quizzes.</p>
+                </section>
 
-        <!-- Features Section -->
-        <section class="features-section py-5 bg-light">
-            <div class="container">
-                <h2 class="text-center mb-4">What is Wise Up Dude?</h2>
-                <div class="row g-4">
-                    <div class="col-md-3">
-                        <div class="card border-0 shadow-sm text-center p-4">
-                            <i class="bi bi-person-check fs-1 text-primary mb-3"></i>
-                            <h5>Personalized Learning</h5>
-                            <p>Quizzes tailored specifically to your learning needs and interests.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card border-0 shadow-sm text-center p-4">
-                            <i class="bi bi-lightbulb fs-1 text-warning mb-3"></i>
-                            <h5>Adaptive Quizzes</h5>
-                            <p>Practice and reinforce knowledge with quizzes that adapt as you learn.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card border-0 shadow-sm text-center p-4">
-                            <i class="bi bi-cpu fs-1 text-success mb-3"></i>
-                            <h5>AI Quiz Prompt</h5>
-                            <p>Instantly generate quizzes by simply entering any topic or idea using AI.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card border-0 shadow-sm text-center p-4">
-                            <i class="bi bi-bar-chart-line fs-1 text-danger mb-3"></i>
-                            <h5>Progress Tracking</h5>
-                            <p>Easily track your quiz results and measure your improvement.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card border-0 shadow-sm text-center p-4">
-                            <i class="bi bi-mortarboard fs-1 text-primary mb-3"></i>
-                            <h5>Learn Mode</h5>
-                            <p>Master topics with adaptive repetition and progress tracking.</p>
-                        </div>
-                    </div>
-
-                    <!-- Save and Repeat Quizzes Card -->
-                    <div class="col-md-12 mt-4">
-                        <div class="card border-0 shadow-sm text-center p-4">
-                            <i class="bi bi-arrow-repeat fs-1 text-info mb-3"></i>
-                            <h5>Save and Repeat Quizzes</h5>
-                            <p>Your progress is optionally tracked! Wise Up Dude can make sure you know the material.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Call-to-action Section -->
-        @if (!_isTokenValidated)
-        {
-            <section class="cta-section py-5 bg-warning text-dark text-center">
-                <h2>Access Required</h2>
-                <p>This site is currently in testing phase. Please enter the access token to continue.</p>
-                <div class="row justify-content-center">
-                    <div class="col-md-6 col-lg-4">
-                        <div class="input-group mb-3">
-                            <input type="text" class="form-control" placeholder="Enter access token" 
-                                   @bind="_tokenInput" @onkeypress="OnTokenInputKeyPress" disabled="@_isValidatingToken" />
-                            <button class="btn btn-dark" type="button" @onclick="ValidateTokenAsync" disabled="@_isValidatingToken">
-                                @if (_isValidatingToken)
-                                {
-                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                    <span>Validating...</span>
-                                }
-                                else
-                                {
-                                    <span>Validate</span>
-                                }
-                            </button>
-                        </div>
-                        @if (!string.IsNullOrEmpty(_tokenErrorMessage))
-                        {
-                            <div class="alert alert-danger" role="alert">
-                                @_tokenErrorMessage
+                <!-- Call-to-action / Token Section -->
+                @if (!_isTokenValidated)
+                {
+                    <section class="text-center mb-5">
+                        <div class="card shadow-sm bg-light border-0">
+                            <div class="card-body p-4">
+                                <h2 class="h4 fw-bold">Early Access</h2>
+                                <p class="text-muted">This site is currently in a private testing phase. Please enter the access token to continue.</p>
+                                <div class="row justify-content-center">
+                                    <div class="col-md-8 col-lg-7">
+                                        <div class="input-group mb-2">
+                                            <input type="text" class="form-control form-control-lg" placeholder="Enter access token"
+                                                   @bind="_tokenInput" @onkeypress="OnTokenInputKeyPress" disabled="@_isValidatingToken" />
+                                            <button class="btn btn-dark" type="button" @onclick="ValidateTokenAsync" disabled="@_isValidatingToken">
+                                                @if (_isValidatingToken)
+                                                {
+                                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                    <span>Validating...</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>Validate</span>
+                                                }
+                                            </button>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(_tokenErrorMessage))
+                                        {
+                                            <div class="alert alert-danger py-2" role="alert">
+                                                @_tokenErrorMessage
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
                             </div>
-                        }
+                        </div>
+                    </section>
+                }
+                else
+                {
+                    <section class="text-center mb-5">
+                        <div class="card shadow border-0 bg-primary text-white">
+                            <div class="card-body p-5">
+                                <h2 class="h3 fw-bold">Ready to Learn, Anything?</h2>
+                                <p class="lead">Register and use Wise Up Dude for free and start mastering any subject!</p>
+                                <a class="btn btn-light btn-lg mt-3" href="/Account/Login">I Want To Be A Wise Guy!</a>
+                            </div>
+                        </div>
+                    </section>
+                }
+
+                <!-- Features Section -->
+                <section class="features-section py-5">
+                    <h2 class="text-center mb-5 fw-bold">What is Wise Up Dude?</h2>
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm text-center p-4 feature-card">
+                                <div class="card-body">
+                                    <i class="bi bi-person-check fs-1 text-primary mb-3"></i>
+                                    <h5 class="card-title fw-bold">Personalized Learning</h5>
+                                    <p class="card-text">Quizzes tailored specifically to your learning needs and interests.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm text-center p-4 feature-card">
+                                <div class="card-body">
+                                    <i class="bi bi-lightbulb fs-1 text-warning mb-3"></i>
+                                    <h5 class="card-title fw-bold">Adaptive Quizzes</h5>
+                                    <p class="card-text">Practice and reinforce knowledge with quizzes that adapt as you learn.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm text-center p-4 feature-card">
+                                <div class="card-body">
+                                    <i class="bi bi-cpu fs-1 text-success mb-3"></i>
+                                    <h5 class="card-title fw-bold">AI Quiz Prompt</h5>
+                                    <p class="card-text">Instantly generate quizzes by simply entering any topic or idea using AI.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm text-center p-4 feature-card">
+                                <div class="card-body">
+                                    <i class="bi bi-bar-chart-line fs-1 text-danger mb-3"></i>
+                                    <h5 class="card-title fw-bold">Progress Tracking</h5>
+                                    <p class="card-text">Easily track your quiz results and measure your improvement.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm text-center p-4 feature-card">
+                                <div class="card-body">
+                                    <i class="bi bi-mortarboard fs-1 text-info mb-3"></i>
+                                    <h5 class="card-title fw-bold">Learn Mode</h5>
+                                    <p class="card-text">Master topics with adaptive repetition and progress tracking.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm text-center p-4 feature-card">
+                                <div class="card-body">
+                                    <i class="bi bi-arrow-repeat fs-1 text-secondary mb-3"></i>
+                                    <h5 class="card-title fw-bold">Save and Repeat Quizzes</h5>
+                                    <p class="card-text">Your progress is optionally tracked! Wise Up Dude can make sure you know the material.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </section>
-        }
-        else
-        {
-            <section class="cta-section py-5 bg-primary text-white text-center">
-                <h2>Ready to Learn, Anything?</h2>
-                <p>Register and use Wise Up Dude for free and start mastering any subject! Click Below!</p>
-                <a class="btn btn-light btn-lg mt-3" href="/Account/Login">I Want To Be A Wise Guy!</a>
-            </section>
-        }
+                </section>
+            </div>
+        </div>
     </div>
 }

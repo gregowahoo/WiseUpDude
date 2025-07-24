@@ -52,7 +52,8 @@ namespace WiseUpDude.Services
                     Prompt = q.Prompt,
                     Description = q.Description,
                     LearnMode = q.LearnMode,
-                    Url = q.Url // Map Url property
+                    Url = q.Url, // Map Url property
+                    CreationDate = q.CreationDate // Map CreationDate for filtering
                 })
                 .ToList();
 

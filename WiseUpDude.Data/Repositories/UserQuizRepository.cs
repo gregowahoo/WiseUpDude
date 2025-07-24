@@ -299,6 +299,7 @@ namespace WiseUpDude.Data.Repositories
                 Description = uq.Description,
                 Difficulty = uq.Difficulty,
                 LearnMode = uq.LearnMode, // Include LearnMode
+                CreationDate = uq.CreationDate, // Include CreationDate for filtering
                                           //TopicId = uq.TopicId // Assuming TopicId exists in the entity
                 UserId = uq.User?.Id ?? "Unknown User Id",
             }).ToList();

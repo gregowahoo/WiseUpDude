@@ -47,9 +47,40 @@
         </div>
     </div>
 
+    <!-- Quiz Filter -->
+    <div class="mb-4">
+        <h5>Filter Quizzes</h5>
+        <div class="btn-group" role="group" aria-label="Quiz filter options">
+            <input type="radio" class="btn-check" name="quizFilter" id="filterToday" autocomplete="off" 
+                   checked="@(selectedFilter == QuizFilterPeriod.Today)" 
+                   @onchange="() => OnFilterChanged(QuizFilterPeriod.Today)">
+            <label class="btn btn-outline-primary" for="filterToday">Today</label>
+
+            <input type="radio" class="btn-check" name="quizFilter" id="filterThisWeek" autocomplete="off"
+                   checked="@(selectedFilter == QuizFilterPeriod.ThisWeek)"
+                   @onchange="() => OnFilterChanged(QuizFilterPeriod.ThisWeek)">
+            <label class="btn btn-outline-primary" for="filterThisWeek">This Week</label>
+
+            <input type="radio" class="btn-check" name="quizFilter" id="filterThisMonth" autocomplete="off"
+                   checked="@(selectedFilter == QuizFilterPeriod.ThisMonth)"
+                   @onchange="() => OnFilterChanged(QuizFilterPeriod.ThisMonth)">
+            <label class="btn btn-outline-primary" for="filterThisMonth">This Month</label>
+
+            <input type="radio" class="btn-check" name="quizFilter" id="filterLast3Months" autocomplete="off"
+                   checked="@(selectedFilter == QuizFilterPeriod.Last3Months)"
+                   @onchange="() => OnFilterChanged(QuizFilterPeriod.Last3Months)">
+            <label class="btn btn-outline-primary" for="filterLast3Months">Last 3 Months</label>
+
+            <input type="radio" class="btn-check" name="quizFilter" id="filterAllQuizzes" autocomplete="off"
+                   checked="@(selectedFilter == QuizFilterPeriod.AllQuizzes)"
+                   @onchange="() => OnFilterChanged(QuizFilterPeriod.AllQuizzes)">
+            <label class="btn btn-outline-primary" for="filterAllQuizzes">All Quizzes</label>
+        </div>
+    </div>
+
     <!-- Saved Quizzes -->
     <div>
-        <h3>Your Saved Quizzes</h3>
+        <h3>@GetFilteredQuizzesTitle()</h3>
         @if (IsGenerating)
         {
             <p class="text-center text-muted">🦖 Generating your quiz...</p>
@@ -60,8 +91,11 @@
         }
         else if (Summary.RecentQuizzes?.Any() == true)
         {
-            <div class="row">
-                @foreach (var quiz in Summary.RecentQuizzes)
+            var filteredQuizzes = GetFilteredQuizzes();
+            if (filteredQuizzes.Any())
+            {
+                <div class="row">
+                    @foreach (var quiz in filteredQuizzes)
                 {
                     var scoreClass = quiz.Score switch
                     {
@@ -145,6 +179,11 @@
                     </div>
                 }
             </div>
+            }
+            else
+            {
+                <p>No quizzes found for the selected time period.</p>
+            }
         }
         else
         {
@@ -174,11 +213,21 @@
 </div>
 
 @code {
+    public enum QuizFilterPeriod
+    {
+        Today,
+        ThisWeek,
+        ThisMonth,
+        Last3Months,
+        AllQuizzes
+    }
+
     private int? editingQuizId = null;
     private DashboardSummaryDto? Summary;
     private bool IsGenerating = false;
     private int? quizToDeleteId = null;
     private HashSet<int> quizzesWithAnswers = new HashSet<int>();
+    private QuizFilterPeriod selectedFilter = QuizFilterPeriod.AllQuizzes;
 
     private void EditQuizName(int quizId) => editingQuizId = quizId;
     private void CancelEdit() => editingQuizId = null;
@@ -322,5 +371,49 @@
         if (quizzesWithAnswers.Contains(quizId))
             return "Learn Mode cannot be enabled or disabled after you have started answering questions.";
         return isActive ? "Learn Mode is ON" : "Enable Learn Mode";
+    }
+
+    private void OnFilterChanged(QuizFilterPeriod filter)
+    {
+        selectedFilter = filter;
+        StateHasChanged();
+    }
+
+    private string GetFilteredQuizzesTitle()
+    {
+        return selectedFilter switch
+        {
+            QuizFilterPeriod.Today => "Your Saved Quizzes for Today",
+            QuizFilterPeriod.ThisWeek => "Your Saved Quizzes for This Week",
+            QuizFilterPeriod.ThisMonth => "Your Saved Quizzes for This Month",
+            QuizFilterPeriod.Last3Months => "Your Saved Quizzes for the Last 3 Months",
+            QuizFilterPeriod.AllQuizzes => "Your Saved Quizzes",
+            _ => "Your Saved Quizzes"
+        };
+    }
+
+    private List<WiseUpDude.Model.RecentQuizDto> GetFilteredQuizzes()
+    {
+        if (Summary?.RecentQuizzes == null)
+            return new List<WiseUpDude.Model.RecentQuizDto>();
+
+        if (selectedFilter == QuizFilterPeriod.AllQuizzes)
+        {
+            return Summary.RecentQuizzes.ToList();
+        }
+
+        var now = DateTime.Now;
+        var startDate = selectedFilter switch
+        {
+            QuizFilterPeriod.Today => now.Date,
+            QuizFilterPeriod.ThisWeek => now.Date.AddDays(-(int)now.DayOfWeek),
+            QuizFilterPeriod.ThisMonth => new DateTime(now.Year, now.Month, 1),
+            QuizFilterPeriod.Last3Months => now.AddMonths(-3).Date,
+            _ => DateTime.MinValue
+        };
+
+        return Summary.RecentQuizzes
+            .Where(q => q.CreationDate >= startDate)
+            .ToList();
     }
 }

@@ -24,25 +24,7 @@
 
 @inject NavigationManager Nav
 
-@* Show a subtle transition indicator instead of jarring mode alerts *@
-@if (!_isWasmReady && !OperatingSystem.IsBrowser())
-{
-    <div class="wasm-loading-indicator">
-        <div class="d-flex align-items-center text-muted">
-            <div class="spinner-border spinner-border-sm me-2" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <small>Loading interactive features...</small>
-        </div>
-    </div>
-}
-else if (_isWasmReady || OperatingSystem.IsBrowser())
-{
-    @* Optional: Remove this section entirely for cleaner UI *@
-    @* <div class="alert alert-success fade-in-smooth">
-        <small><i class="bi bi-check-circle-fill me-1"></i>Interactive quiz ready!</small>
-    </div> *@
-}
+
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -167,7 +149,6 @@ else if (_isWasmReady || OperatingSystem.IsBrowser())
     private string? saveMessage;
     private string? saveMessageType;
     private List<bool?> questionResults = new();
-    private bool _isWasmReady = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -220,13 +201,6 @@ else if (_isWasmReady || OperatingSystem.IsBrowser())
             try
             {
                 await JS.InvokeVoidAsync("initBootstrapTooltips");
-                
-                // Mark WASM as ready for smoother UI transitions
-                if (OperatingSystem.IsBrowser())
-                {
-                    _isWasmReady = true;
-                    StateHasChanged();
-                }
             }
             catch (Exception ex)
             {

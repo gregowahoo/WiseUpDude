@@ -21,11 +21,8 @@
 
 @attribute [Authorize]
 
-<PleaseWaitDialog IsVisible="showOverlay && !isNavigatingToQuiz"
+<PleaseWaitDialog IsVisible="showOverlay"
                   LoadingTextMessage="@($"Preparing your quiz from the URL: \"{url}\".")" />
-
-<QuizLoadingDialog IsVisible="isNavigatingToQuiz" 
-                   LoadingMessage="Your quiz is ready! Loading interactive features..." />
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
@@ -83,7 +80,6 @@
 @code {
     private string errorMessage = string.Empty;
     private bool showOverlay = false;
-    private bool isNavigatingToQuiz = false;
 
     private async Task GenerateQuiz()
     {
@@ -95,8 +91,6 @@
         errorMessage = string.Empty;
         showOverlay = true;
         StateHasChanged();
-
-        await Task.Delay(500); // Optional delay to allow overlay to appear
 
         // 1) Fetch and validate text content from the URL.
         var fetchResult = await ContentFetchingService.FetchValidatedTextContentAsync(url);
@@ -129,13 +123,7 @@
         var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
         if (userQuizId > 0)
         {
-            // Switch to navigation loading dialog
             showOverlay = false;
-            isNavigatingToQuiz = true;
-            StateHasChanged();
-            
-            // Small delay to show loading dialog
-            await Task.Delay(800);
             NavManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
         }
         else

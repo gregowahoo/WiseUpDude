@@ -98,10 +98,22 @@
             </button>
         </div>
 
-        @if (UserQuiz == null || UserQuiz.Questions.Count == 0)
+        @if (isLoading)
+        {
+            <div class="alert alert-info">
+                Page is loading, please wait.
+            </div>
+        }
+        else if (UserQuiz == null)
+        {
+            <div class="alert alert-danger">
+                Quiz not created or not found!
+            </div>
+        }
+        else if (UserQuiz.Questions.Count == 0)
         {
             <div class="alert alert-warning">
-                No quiz questions found. Please go to Home and generate a quiz first.
+                No quiz questions found. Please try again.
             </div>
         }
         else
@@ -141,6 +153,7 @@
     private bool muteSound = false;
     private bool learnMode = false;
     private bool hasStartedQuiz = false;
+    private bool isLoading = true;
     private HashSet<int> answeredQuestions = new HashSet<int>();
     private Dictionary<int, DateTime> questionStartTimes = new Dictionary<int, DateTime>();
     private DateTime? AttemptStartTime;
@@ -179,6 +192,7 @@
         {
             Logger.LogError(ex, "Exception in OnInitializedAsync");
         }
+        isLoading = false;
         Logger.LogInformation("Method: OnInitializedAsync END");
     }
 

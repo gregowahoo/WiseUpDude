@@ -47,31 +47,31 @@
     <!-- Quiz Filter -->
     <div class="mb-4">
         <h5>Filter Quizzes</h5>
-        <div class="btn-group" role="group" aria-label="Quiz filter options">
-            <input type="radio" class="btn-check" name="quizFilter" id="filterToday" autocomplete="off" 
-                   checked="@(selectedFilter == QuizFilterPeriod.Today)" 
+        <div class="quiz-filter-pills">
+            <input type="radio" class="btn-check" name="quizFilter" id="filterToday" autocomplete="off"
+                   checked="@(selectedFilter == QuizFilterPeriod.Today)"
                    @onchange="() => OnFilterChanged(QuizFilterPeriod.Today)">
-            <label class="btn btn-outline-primary" for="filterToday">Today</label>
+            <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.Today ? "active" : null)" for="filterToday">Today</label>
 
             <input type="radio" class="btn-check" name="quizFilter" id="filterThisWeek" autocomplete="off"
                    checked="@(selectedFilter == QuizFilterPeriod.ThisWeek)"
                    @onchange="() => OnFilterChanged(QuizFilterPeriod.ThisWeek)">
-            <label class="btn btn-outline-primary" for="filterThisWeek">This Week</label>
+            <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.ThisWeek ? "active" : null)" for="filterThisWeek">This Week</label>
 
             <input type="radio" class="btn-check" name="quizFilter" id="filterThisMonth" autocomplete="off"
                    checked="@(selectedFilter == QuizFilterPeriod.ThisMonth)"
                    @onchange="() => OnFilterChanged(QuizFilterPeriod.ThisMonth)">
-            <label class="btn btn-outline-primary" for="filterThisMonth">This Month</label>
+            <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.ThisMonth ? "active" : null)" for="filterThisMonth">This Month</label>
 
             <input type="radio" class="btn-check" name="quizFilter" id="filterLast3Months" autocomplete="off"
                    checked="@(selectedFilter == QuizFilterPeriod.Last3Months)"
                    @onchange="() => OnFilterChanged(QuizFilterPeriod.Last3Months)">
-            <label class="btn btn-outline-primary" for="filterLast3Months">Last 3 Months</label>
+            <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.Last3Months ? "active" : null)" for="filterLast3Months">Last 3 Months</label>
 
             <input type="radio" class="btn-check" name="quizFilter" id="filterAllQuizzes" autocomplete="off"
                    checked="@(selectedFilter == QuizFilterPeriod.AllQuizzes)"
                    @onchange="() => OnFilterChanged(QuizFilterPeriod.AllQuizzes)">
-            <label class="btn btn-outline-primary" for="filterAllQuizzes">All Quizzes</label>
+            <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.AllQuizzes ? "active" : null)" for="filterAllQuizzes">All Quizzes</label>
         </div>
     </div>
 
@@ -224,7 +224,7 @@
     private bool IsGenerating = false;
     private int? quizToDeleteId = null;
     private HashSet<int> quizzesWithAnswers = new HashSet<int>();
-    private QuizFilterPeriod selectedFilter = QuizFilterPeriod.AllQuizzes;
+    private QuizFilterPeriod selectedFilter = QuizFilterPeriod.ThisWeek;
 
     private void EditQuizName(int quizId) => editingQuizId = quizId;
     private void CancelEdit() => editingQuizId = null;
@@ -427,3 +427,38 @@
         return filtered;
     }
 }
+
+<style>
+.quiz-filter-pills {
+    display: flex;
+    gap: 0.5rem;
+    background: #f8f9fa;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    width: fit-content;
+    margin-bottom: 0.5rem;
+}
+.quiz-filter-pill {
+    display: inline-block;
+    padding: 0.4rem 1.2rem;
+    border-radius: 2rem;
+    background: transparent;
+    color: #222;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    box-shadow: none;
+    position: relative;
+}
+.quiz-filter-pill.active {
+    background: #2563eb;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.10);
+}
+.quiz-filter-pill:hover:not(.active) {
+    background: #e0e7ff;
+    color: #2563eb;
+}
+</style>

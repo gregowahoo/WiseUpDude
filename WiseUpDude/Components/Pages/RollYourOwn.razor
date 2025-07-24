@@ -26,12 +26,9 @@
 
 @if (IsGenerating || IsSaving)
 {
-    <PleaseWaitDialog IsVisible="(IsGenerating || IsSaving) && !IsNavigatingToQuiz"
+    <PleaseWaitDialog IsVisible="IsGenerating || IsSaving"
                       LoadingTextMessage="@($"Preparing your \"{UserPrompt}\" quiz...")" />
 }
-
-<QuizLoadingDialog IsVisible="IsNavigatingToQuiz" 
-                   LoadingMessage="Your quiz is ready! Loading interactive features..." />
 @if (IsUrlGenerating)
 {
     <PleaseWaitDialog IsVisible="IsUrlGenerating"
@@ -169,7 +166,6 @@
     private bool urlSelected = false;
     private string? PromptTheme { get; set; }
     private string? UrlTheme { get; set; }
-    private bool IsNavigatingToQuiz = false;
 
     protected override void OnInitialized()
     {
@@ -319,14 +315,6 @@
             Logger.LogInformation("Quiz successfully saved to the UserQuiz table. QuizId: {QuizId}", userQuizId);
             await ToastService.ShowToast("Quiz generated successfully!", ToastLevel.Success);
             
-            // Switch to navigation loading dialog
-            IsGenerating = false;
-            IsSaving = false;
-            IsNavigatingToQuiz = true;
-            StateHasChanged();
-            
-            // Small delay to show loading dialog
-            await Task.Delay(800);
             NavigationManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
         }
         catch (Exception ex)
@@ -337,11 +325,8 @@
         }
         finally
         {
-            if (!IsNavigatingToQuiz)
-            {
-                IsGenerating = false;
-                IsSaving = false;
-            }
+            IsGenerating = false;
+            IsSaving = false;
             if (!promptSelected)
             {
                 await InvokeAsync(StateHasChanged);
@@ -379,13 +364,6 @@
             var userQuizId = await UserQuizRepository.AddAsyncGetId(quiz);
             await ToastService.ShowToast("Quiz generated successfully!", ToastLevel.Success);
             
-            // Switch to navigation loading dialog
-            IsUrlGenerating = false;
-            IsNavigatingToQuiz = true;
-            StateHasChanged();
-            
-            // Small delay to show loading dialog
-            await Task.Delay(800);
             NavigationManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
         }
         catch (Exception ex)
@@ -396,10 +374,7 @@
         }
         finally
         {
-            if (!IsNavigatingToQuiz)
-            {
-                IsUrlGenerating = false;
-            }
+            IsUrlGenerating = false;
             await InvokeAsync(StateHasChanged);
         }
     }

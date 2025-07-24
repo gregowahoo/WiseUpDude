@@ -17,9 +17,6 @@
 @inject QuizStateService QuizState
 @rendermode InteractiveServer
 @attribute [Authorize(Roles = "FreeSubscriber,PaidSubscriber,Admin,EnterpriseSubscriber")]
-@inject WiseUpDude.Shared.Services.ToastService ToastService
-
-
 
 <h1 class="text-center mb-4">Welcome to Wise Up Dude!</h1>
 
@@ -397,23 +394,36 @@
         if (Summary?.RecentQuizzes == null)
             return new List<WiseUpDude.Model.RecentQuizDto>();
 
+        var quizzes = Summary.RecentQuizzes;
         if (selectedFilter == QuizFilterPeriod.AllQuizzes)
         {
-            return Summary.RecentQuizzes.ToList();
+            return quizzes.ToList();
         }
 
         var now = DateTime.Now;
-        var startDate = selectedFilter switch
+        var today = now.Date;
+        var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
+        var startOfMonth = new DateTime(now.Year, now.Month, 1);
+        var startOfLast3Months = now.AddMonths(-3).Date;
+
+        DateTime startDate = selectedFilter switch
         {
-            QuizFilterPeriod.Today => now.Date,
-            QuizFilterPeriod.ThisWeek => now.Date.AddDays(-(int)now.DayOfWeek),
-            QuizFilterPeriod.ThisMonth => new DateTime(now.Year, now.Month, 1),
-            QuizFilterPeriod.Last3Months => now.AddMonths(-3).Date,
+            QuizFilterPeriod.Today => today,
+            QuizFilterPeriod.ThisWeek => startOfWeek,
+            QuizFilterPeriod.ThisMonth => startOfMonth,
+            QuizFilterPeriod.Last3Months => startOfLast3Months,
             _ => DateTime.MinValue
         };
 
-        return Summary.RecentQuizzes
-            .Where(q => q.CreationDate >= startDate)
+        // Normalize CreationDate to local time for comparison
+        var filtered = quizzes
+            .Where(q => q.CreationDate.ToLocalTime() >= startDate)
             .ToList();
+
+        // Debug output (optional, remove in production)
+        // foreach (var q in quizzes) Console.WriteLine($"Quiz: {q.Name}, Created: {q.CreationDate}, Local: {q.CreationDate.ToLocalTime()}");
+        // Console.WriteLine($"Filter: {selectedFilter}, StartDate: {startDate}, Count: {filtered.Count}");
+
+        return filtered;
     }
 }

@@ -51,27 +51,37 @@
             <input type="radio" class="btn-check" name="quizFilter" id="filterToday" autocomplete="off"
                    checked="@(selectedFilter == QuizFilterPeriod.Today)"
                    @onchange="() => OnFilterChanged(QuizFilterPeriod.Today)">
-            <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.Today ? "active" : null)" for="filterToday">Today</label>
+            <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.Today ? "active" : null)" for="filterToday">
+                Today <span class="quiz-count-badge">@GetQuizCount(QuizFilterPeriod.Today)</span>
+            </label>
 
             <input type="radio" class="btn-check" name="quizFilter" id="filterThisWeek" autocomplete="off"
                    checked="@(selectedFilter == QuizFilterPeriod.ThisWeek)"
                    @onchange="() => OnFilterChanged(QuizFilterPeriod.ThisWeek)">
-            <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.ThisWeek ? "active" : null)" for="filterThisWeek">This Week</label>
+            <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.ThisWeek ? "active" : null)" for="filterThisWeek">
+                This Week <span class="quiz-count-badge">@GetQuizCount(QuizFilterPeriod.ThisWeek)</span>
+            </label>
 
             <input type="radio" class="btn-check" name="quizFilter" id="filterThisMonth" autocomplete="off"
                    checked="@(selectedFilter == QuizFilterPeriod.ThisMonth)"
                    @onchange="() => OnFilterChanged(QuizFilterPeriod.ThisMonth)">
-            <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.ThisMonth ? "active" : null)" for="filterThisMonth">This Month</label>
+            <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.ThisMonth ? "active" : null)" for="filterThisMonth">
+                This Month <span class="quiz-count-badge">@GetQuizCount(QuizFilterPeriod.ThisMonth)</span>
+            </label>
 
             <input type="radio" class="btn-check" name="quizFilter" id="filterLast3Months" autocomplete="off"
                    checked="@(selectedFilter == QuizFilterPeriod.Last3Months)"
                    @onchange="() => OnFilterChanged(QuizFilterPeriod.Last3Months)">
-            <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.Last3Months ? "active" : null)" for="filterLast3Months">Last 3 Months</label>
+            <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.Last3Months ? "active" : null)" for="filterLast3Months">
+                Last 3 Months <span class="quiz-count-badge">@GetQuizCount(QuizFilterPeriod.Last3Months)</span>
+            </label>
 
             <input type="radio" class="btn-check" name="quizFilter" id="filterAllQuizzes" autocomplete="off"
                    checked="@(selectedFilter == QuizFilterPeriod.AllQuizzes)"
                    @onchange="() => OnFilterChanged(QuizFilterPeriod.AllQuizzes)">
-            <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.AllQuizzes ? "active" : null)" for="filterAllQuizzes">All Quizzes</label>
+            <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.AllQuizzes ? "active" : null)" for="filterAllQuizzes">
+                All Quizzes <span class="quiz-count-badge">@GetQuizCount(QuizFilterPeriod.AllQuizzes)</span>
+            </label>
         </div>
     </div>
 
@@ -426,6 +436,28 @@
 
         return filtered;
     }
+
+    private int GetQuizCount(QuizFilterPeriod filter)
+    {
+        if (Summary?.RecentQuizzes == null)
+            return 0;
+        if (filter == QuizFilterPeriod.AllQuizzes)
+            return Summary.RecentQuizzes.Count;
+        var now = DateTime.Now;
+        var today = now.Date;
+        var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
+        var startOfMonth = new DateTime(now.Year, now.Month, 1);
+        var startOfLast3Months = now.AddMonths(-3).Date;
+        DateTime startDate = filter switch
+        {
+            QuizFilterPeriod.Today => today,
+            QuizFilterPeriod.ThisWeek => startOfWeek,
+            QuizFilterPeriod.ThisMonth => startOfMonth,
+            QuizFilterPeriod.Last3Months => startOfLast3Months,
+            _ => DateTime.MinValue
+        };
+        return Summary.RecentQuizzes.Count(q => q.CreationDate.ToLocalTime() >= startDate);
+    }
 }
 
 <style>
@@ -440,7 +472,9 @@
     margin-bottom: 0.5rem;
 }
 .quiz-filter-pill {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
     padding: 0.4rem 1.2rem;
     border-radius: 2rem;
     background: transparent;
@@ -459,6 +493,24 @@
 }
 .quiz-filter-pill:hover:not(.active) {
     background: #e0e7ff;
+    color: #2563eb;
+}
+.quiz-count-badge {
+    display: inline-block;
+    min-width: 1.5em;
+    padding: 0.15em 0.6em;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: #fff;
+    background: #6366f1;
+    border-radius: 1em;
+    margin-left: 0.2em;
+    box-shadow: 0 1px 4px rgba(99,102,241,0.10);
+    vertical-align: middle;
+    transition: background 0.2s;
+}
+.quiz-filter-pill.active .quiz-count-badge {
+    background: #fff;
     color: #2563eb;
 }
 </style>

@@ -368,3 +368,4 @@ FodyWeavers.xsd
 *.db
 *.db-shm
 *.db-wal
+/WiseUpDude/Properties/ServiceDependencies/WiseUpDude - Web Deploy3/profile.arm.json

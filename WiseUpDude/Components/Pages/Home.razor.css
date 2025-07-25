@@ -124,3 +124,81 @@ h1 {
         transform: scale(1);
     }
 }
+
+/*
+ * Responsive filter pill styles moved from Home.razor
+ */
+.quiz-filter-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    background: #f8f9fa;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    width: fit-content;
+    margin-bottom: 0.5rem;
+    font-size: 0.95em;
+    max-width: 100%;
+}
+.quiz-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 1rem;
+    border-radius: 2rem;
+    background: transparent;
+    color: #222;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    box-shadow: none;
+    position: relative;
+    font-size: 0.95em;
+    margin-bottom: 0.5rem;
+}
+.quiz-filter-pill.active {
+    background: #2563eb;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.10);
+}
+.quiz-filter-pill:hover:not(.active) {
+    background: #e0e7ff;
+    color: #2563eb;
+}
+.quiz-count-badge {
+    display: inline-block;
+    min-width: 1.3em;
+    padding: 0.10em 0.5em;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: #fff;
+    background: #6366f1;
+    border-radius: 1em;
+    margin-left: 0.2em;
+    box-shadow: 0 1px 4px rgba(99,102,241,0.10);
+    vertical-align: middle;
+    transition: background 0.2s;
+}
+.quiz-filter-pill.active .quiz-count-badge {
+    background: #fff;
+    color: #2563eb;
+}
+
+@media (max-width: 600px) {
+    .quiz-filter-pills {
+        width: 100%;
+        padding: 0.5rem 0.2rem;
+        justify-content: flex-start;
+        font-size: 0.95em;
+    }
+    .quiz-filter-pill {
+        flex: 1 1 45%;
+        min-width: 120px;
+        justify-content: center;
+        font-size: 1em;
+        padding: 0.5rem 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+}

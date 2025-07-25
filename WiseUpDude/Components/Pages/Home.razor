@@ -47,7 +47,7 @@
     <!-- Quiz Filter -->
     <div class="mb-4">
         <h5>Filter Quizzes</h5>
-        <div class="quiz-filter-pills">
+        <div class="quiz-filter-pills shadow-sm">
             <input type="radio" class="btn-check" name="quizFilter" id="filterToday" autocomplete="off"
                    checked="@(selectedFilter == QuizFilterPeriod.Today)"
                    @onchange="() => OnFilterChanged(QuizFilterPeriod.Today)">
@@ -470,12 +470,13 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     width: fit-content;
     margin-bottom: 0.5rem;
+    font-size: 0.95em;
 }
 .quiz-filter-pill {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.4rem 1.2rem;
+    padding: 0.3rem 1rem;
     border-radius: 2rem;
     background: transparent;
     color: #222;
@@ -485,6 +486,7 @@
     transition: background 0.2s, color 0.2s, box-shadow 0.2s;
     box-shadow: none;
     position: relative;
+    font-size: 0.95em;
 }
 .quiz-filter-pill.active {
     background: #2563eb;
@@ -497,9 +499,9 @@
 }
 .quiz-count-badge {
     display: inline-block;
-    min-width: 1.5em;
-    padding: 0.15em 0.6em;
-    font-size: 0.85em;
+    min-width: 1.3em;
+    padding: 0.10em 0.5em;
+    font-size: 0.8em;
     font-weight: 600;
     color: #fff;
     background: #6366f1;

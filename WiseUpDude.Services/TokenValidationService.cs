@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.Extensions.Configuration;
 
 namespace WiseUpDude.Services
 {

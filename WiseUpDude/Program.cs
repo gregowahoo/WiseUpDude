@@ -250,29 +250,17 @@ builder.Services.AddScoped<WiseUpDude.Services.ITokenValidationService, WiseUpDu
 
 #region Api Support
 
-string baseAddress;
-if (builder.Environment.IsDevelopment())
-{
-    baseAddress = "https://localhost:7150/"; // or whatever port you're using locally
-}
-else
-{
-    baseAddress = "https://www.wiseupdude.com/";
-}
+string baseAddress = builder.Configuration["ApiBaseAddress"]
+    ?? (builder.Environment.IsDevelopment()
+        ? "https://localhost:7150/"
+        : "https://www.wiseupdude.com/");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddress) });
-
-//var apiBaseAddress = builder.Configuration["ApiBaseAddress"];
-//if (string.IsNullOrWhiteSpace(apiBaseAddress))
-//    throw new InvalidOperationException("ApiBaseAddress is not configured.");
-
-////builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseAddress) });
-//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://wiseupdude.com/") });
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorClient", policy =>
-        policy.WithOrigins("https://wiseupdude.com", "https://localhost:7150")
+        policy.WithOrigins("https://wiseupdude.com", "https://www.wiseupdude.com", "https://localhost:7150")
               .AllowAnyMethod()
               .AllowAnyHeader());
 });

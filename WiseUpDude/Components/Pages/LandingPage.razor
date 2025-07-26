@@ -48,14 +48,15 @@
         _tokenErrorMessage = string.Empty;
         StateHasChanged();
 
-        if (string.IsNullOrWhiteSpace(_tokenInput))
+        var trimmedToken = _tokenInput.Trim();
+        if (string.IsNullOrWhiteSpace(trimmedToken))
         {
             _tokenErrorMessage = "Please enter the access token.";
             _isValidatingToken = false;
             return;
         }
 
-        if (await TokenValidationService.ValidateTokenAsync(_tokenInput))
+        if (await TokenValidationService.ValidateTokenAsync(trimmedToken))
         {
             await TokenValidationService.SetTokenValidatedAsync();
             _isTokenValidated = true;

@@ -234,7 +234,7 @@
     private bool IsGenerating = false;
     private int? quizToDeleteId = null;
     private HashSet<int> quizzesWithAnswers = new HashSet<int>();
-    private QuizFilterPeriod selectedFilter = QuizFilterPeriod.ThisWeek;
+    private QuizFilterPeriod selectedFilter = QuizFilterPeriod.Today;
 
     private void EditQuizName(int quizId) => editingQuizId = quizId;
     private void CancelEdit() => editingQuizId = null;

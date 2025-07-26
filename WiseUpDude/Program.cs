@@ -250,12 +250,21 @@ builder.Services.AddScoped<WiseUpDude.Services.ITokenValidationService, WiseUpDu
 
 #region Api Support
 
-string baseAddress = builder.Configuration["ApiBaseAddress"]
-    ?? (builder.Environment.IsDevelopment()
+// Region Api Support
+
+string? baseAddress = builder.Configuration["ApiBaseAddress"];
+
+if (string.IsNullOrWhiteSpace(baseAddress))
+{
+    baseAddress = builder.Environment.IsDevelopment()
         ? "https://localhost:7150/"
-        : "https://www.wiseupdude.com/");
+        : "https://wiseupdude.com/";
+}
+
+Serilog.Log.Information("[Startup] baseAddress is: {BaseAddress}", baseAddress); // Log the value of baseAddress
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddress) });
+
 
 builder.Services.AddCors(options =>
 {

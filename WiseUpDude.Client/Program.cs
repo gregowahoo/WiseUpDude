@@ -14,26 +14,21 @@ builder.Services.AddAuthenticationStateDeserialization();
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
 //builder.Logging.AddConsole();  
 
-var apiBaseAddress = builder.Configuration["ApiBaseAddress"];
-if (string.IsNullOrWhiteSpace(apiBaseAddress))
-    throw new InvalidOperationException("ApiBaseAddress is not configured.");
 
-//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseAddress) });  
+string? baseAddress = builder.Configuration["ApiBaseAddress"];
 
-string baseAddress;
-if (builder.HostEnvironment.IsDevelopment()) // Corrected line  
+if (string.IsNullOrWhiteSpace(baseAddress))
 {
-    baseAddress = "https://localhost:7150/"; // or whatever port you're using locally  
+    var environment = builder.HostEnvironment; // Use HostEnvironment property
+    baseAddress = environment.IsDevelopment()
+        ? "https://localhost:7150/"
+        : "https://wiseupdude.com/";
 }
-else
-{
-    baseAddress = "https://www.wiseupdude.com/";
-}
-
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddress) });
 
 // Log the base address being used
 Console.WriteLine($"HttpClient BaseAddress set to: {baseAddress}");
+
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddress) });
 
 
 builder.Services.AddScoped<QuizApiService>();

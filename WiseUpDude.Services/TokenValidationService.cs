@@ -27,7 +27,8 @@ namespace WiseUpDude.Services
         {
             var configuredToken = _configuration["TestingAccess:SecretToken"];
             var trimmedToken = token?.Trim();
-            return Task.FromResult(!string.IsNullOrEmpty(configuredToken) && configuredToken == trimmedToken);
+            return Task.FromResult(!string.IsNullOrEmpty(configuredToken) &&
+                string.Equals(configuredToken, trimmedToken, StringComparison.OrdinalIgnoreCase));
         }
 
         public async Task<bool> IsTokenValidatedAsync()

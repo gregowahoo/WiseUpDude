@@ -24,21 +24,32 @@ var builder = WebApplication.CreateBuilder(args);
 #region Logging Configuration
 
 var isAzure = Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID") != null;
+
+// Only create local logs in development
+var shouldUseFileLogging = !isAzure && builder.Environment.IsDevelopment();
 var logPath = isAzure
     ? @"D:\\home\\LogFiles\\serilog.log" // Azure App Service (Windows)
     : Path.Combine("Logs", "log-.txt"); // Local dev logs
 
-if (!isAzure && !Directory.Exists("Logs"))
+if (shouldUseFileLogging && !Directory.Exists("Logs"))
     Directory.CreateDirectory("Logs");
 
 builder.Host.UseSerilog((context, services, configuration) =>
 {
-    configuration
+    var loggerConfig = configuration
         .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
         .MinimumLevel.Information()
         .Enrich.FromLogContext()
-        .WriteTo.Console()
-        .WriteTo.File(logPath, rollingInterval: RollingInterval.Day);
+        .WriteTo.Console();
+
+    // Only write to file in Azure or local development
+    if (isAzure || shouldUseFileLogging)
+    {
+        loggerConfig.WriteTo.File(logPath, 
+            rollingInterval: RollingInterval.Day,
+            retainedFileCountLimit: 7, // Keep only 7 days of logs
+            shared: true); // Allow multiple processes to write to the same file
+    }
 });
 
 // Optional: Also enable Azure Web App Diagnostics if needed for Log Stream
@@ -46,8 +57,10 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
-builder.Logging.AddAzureWebAppDiagnostics();
-
+if (isAzure)
+{
+    builder.Logging.AddAzureWebAppDiagnostics();
+}
 
 #endregion
 
@@ -252,16 +265,27 @@ builder.Services.AddScoped<WiseUpDude.Services.ITokenValidationService, WiseUpDu
 
 // Region Api Support
 
-string? baseAddress = builder.Configuration["ApiBaseAddress"];
+string? configuredBaseAddress = builder.Configuration["ApiBaseAddress"];
+string baseAddress;
 
-if (string.IsNullOrWhiteSpace(baseAddress))
+if (Uri.TryCreate(configuredBaseAddress, UriKind.Absolute, out var uriResult) 
+    && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
 {
+    baseAddress = configuredBaseAddress!;
+    Serilog.Log.Information("[Startup] Using 'ApiBaseAddress' from configuration: {BaseAddress}", baseAddress);
+}
+else
+{
+    if (!string.IsNullOrWhiteSpace(configuredBaseAddress))
+    {
+        Serilog.Log.Warning("[Startup] Configured 'ApiBaseAddress' is invalid ('{ConfiguredBaseAddress}'). Falling back to default.", configuredBaseAddress);
+    }
+
     baseAddress = builder.Environment.IsDevelopment()
         ? "https://localhost:7150/"
         : "https://wiseupdude.com/";
+    Serilog.Log.Information("[Startup] Using default baseAddress: {BaseAddress}", baseAddress);
 }
-
-Serilog.Log.Information("[Startup] baseAddress is: {BaseAddress}", baseAddress); // Log the value of baseAddress
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddress) });
 
@@ -319,6 +343,13 @@ app.MapRazorComponents<App>()
 app.MapAdditionalIdentityEndpoints();
 
 app.UseCors("AllowBlazorClient");
+
+// Custom middleware to add specific CORS header
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("Access-Control-Allow-Origin", "https://www.wiseupdude.com");
+    await next();
+});
 
 
 using (var scope = app.Services.CreateScope())

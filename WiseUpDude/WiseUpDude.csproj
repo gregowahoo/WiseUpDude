@@ -76,5 +76,7 @@
 
 	<ItemGroup>
 		<Content Remove="wwwroot\appsettings*.json" />
+		<Content Remove="Logs\**" />
+		<None Remove="Logs\**" />
 	</ItemGroup>
 </Project>

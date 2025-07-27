@@ -30,7 +30,6 @@ Console.WriteLine($"HttpClient BaseAddress set to: {baseAddress}");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddress) });
 
-
 builder.Services.AddScoped<QuizApiService>();
 builder.Services.AddScoped<UserQuizApiService>();
 

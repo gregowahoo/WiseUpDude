@@ -26,7 +26,7 @@
         }
     </div>
     <div class="score-label">
-        Score: @CorrectAnswers / @TotalQuestions (@PercentCorrect%)
+        Score: @CorrectAnswers / @AnsweredCount (@PercentCorrect%)
     </div>
 </div>
 
@@ -36,7 +36,7 @@
     [Parameter] public List<bool?>? QuestionResults { get; set; } // true=correct, false=incorrect, null=unanswered
     [Parameter] public EventCallback<int> OnQuestionNavigate { get; set; }
 
-    // Percentage of questions answered that are correct (not out of total questions)
+    // Number of questions that have been answered (not null)
     private int AnsweredCount
     {
         get
@@ -47,6 +47,7 @@
         }
     }
 
+    // Percentage of answered questions that are correct
     private double PercentCorrect
     {
         get

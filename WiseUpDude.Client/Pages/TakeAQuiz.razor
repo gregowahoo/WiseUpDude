@@ -96,6 +96,13 @@
                 <i class="bi @(learnMode ? "bi-mortarboard-fill" : "bi-mortarboard") me-1"></i>
                 @(learnMode ? "Learn Mode On" : "Learn Mode Off")
             </button>
+
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                    @onclick="ToggleAutoScroll">
+                <i class="bi @(autoScroll ? "bi-arrow-down-circle-fill" : "bi-arrow-down-circle") me-1"></i>
+                @(autoScroll ? "Auto-Scroll On" : "Auto-Scroll Off")
+            </button>
         </div>
 
         @if (isLoading)
@@ -152,6 +159,7 @@
     private bool autoSubmit = true;
     private bool muteSound = false;
     private bool learnMode = false;
+    private bool autoScroll = true;
     private bool hasStartedQuiz = false;
     private bool isLoading = true;
     private HashSet<int> answeredQuestions = new HashSet<int>();
@@ -233,6 +241,12 @@
     {
         // Logger.LogInformation("Method: ToggleMute");
         muteSound = !muteSound;
+    }
+
+    private void ToggleAutoScroll()
+    {
+        // Logger.LogInformation("Method: ToggleAutoScroll");
+        autoScroll = !autoScroll;
     }
 
     private async Task ToggleLearnMode()
@@ -324,6 +338,21 @@
         if (isCorrect) correctAnswers++;
 
         questionResults = BuildQuestionResults();
+
+        // Auto-scroll to next question if enabled and there is a next question
+        if (autoScroll && questionIndex < totalQuestions - 1)
+        {
+            // Add a small delay for smooth user experience (allows visual feedback before scrolling)
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(300);
+                await InvokeAsync(async () =>
+                {
+                    var nextQuestionElementId = $"question-{questionIndex + 1}";
+                    await JS.InvokeVoidAsync("scrollToElement", nextQuestionElementId);
+                });
+            });
+        }
 
         if (totalAnswered == totalQuestions)
         {

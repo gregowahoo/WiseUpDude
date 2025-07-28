@@ -39,9 +39,13 @@
 @*                     <li class="nav-item">
                         <NavLink class="nav-link px-2 text-white" href="/perplexity-quiz" Match="NavLinkMatch.Prefix">Perplexity Quiz</NavLink>
                     </li> *@
-                    <li class="nav-item">
-                        <NavLink class="nav-link px-2 text-white" href="/learningtrack-maint" Match="NavLinkMatch.Prefix">Learning Track Maint</NavLink>
-                    </li>
+                    <AuthorizeView Roles="PaidSubscriber,Admin,EnterpriseSubscriber">
+                        <Authorized>
+                            <li class="nav-item">
+                                <NavLink class="nav-link px-2 text-white" href="/learningtrack-maint" Match="NavLinkMatch.Prefix">Learning Track Maint</NavLink>
+                            </li>
+                        </Authorized>
+                    </AuthorizeView>
                 </ul>
 
                 <AuthorizeView Roles="Admin">

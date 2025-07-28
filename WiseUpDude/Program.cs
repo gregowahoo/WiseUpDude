@@ -295,7 +295,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowBlazorClient", policy =>
         policy.WithOrigins("https://wiseupdude.com", "https://www.wiseupdude.com", "https://localhost:7150")
               .AllowAnyMethod()
-              .AllowAnyHeader());
+              .AllowAnyHeader()
+              .AllowCredentials()); // Allow credentials for authentication
 });
 
 #endregion
@@ -326,6 +327,9 @@ else
 
 app.UseHttpsRedirection();
 
+// CORS must be configured early in the pipeline, before authentication and authorization
+app.UseCors("AllowBlazorClient");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -341,15 +345,6 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
-
-app.UseCors("AllowBlazorClient");
-
-// Custom middleware to add specific CORS header
-app.Use(async (context, next) =>
-{
-    context.Response.Headers.Append("Access-Control-Allow-Origin", "https://www.wiseupdude.com");
-    await next();
-});
 
 
 using (var scope = app.Services.CreateScope())

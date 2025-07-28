@@ -83,6 +83,13 @@
 
             <button type="button"
                     class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                    @onclick="ToggleAutoScroll">
+                <i class="bi @(autoScroll ? "bi-arrow-down-circle-fill" : "bi-arrow-down-circle") me-1"></i>
+                @(autoScroll ? "Auto-Scroll On" : "Auto-Scroll Off")
+            </button>
+
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
                     @onclick="ToggleMute">
                 <i class="bi @(muteSound ? "bi-volume-mute-fill" : "bi-volume-up-fill") me-1"></i>
                 @(muteSound ? "Muted" : "Sound On")
@@ -150,6 +157,7 @@
     private int totalAnswered;
     private bool showFinalMessage;
     private bool autoSubmit = true;
+    private bool autoScroll = true;
     private bool muteSound = false;
     private bool learnMode = false;
     private bool hasStartedQuiz = false;
@@ -227,6 +235,12 @@
     {
         // Logger.LogInformation("Method: ToggleAutoSubmit");
         autoSubmit = !autoSubmit;
+    }
+
+    private void ToggleAutoScroll()
+    {
+        // Logger.LogInformation("Method: ToggleAutoScroll");
+        autoScroll = !autoScroll;
     }
 
     private void ToggleMute()
@@ -339,6 +353,18 @@
                 }
             }
             await HandleQuizCompletionAsync();
+        }
+        else if (autoScroll)
+        {
+            // Auto-scroll to the next question after a short delay for better UX
+            var nextQuestionIndex = questionIndex + 1;
+            if (nextQuestionIndex < totalQuestions)
+            {
+                var nextQuestionElementId = $"question-{nextQuestionIndex}";
+                // Add a small delay to allow the current question to update visually before scrolling
+                await Task.Delay(300);
+                await JS.InvokeVoidAsync("scrollToElement", nextQuestionElementId);
+            }
         }
 
         // StateHasChanged();

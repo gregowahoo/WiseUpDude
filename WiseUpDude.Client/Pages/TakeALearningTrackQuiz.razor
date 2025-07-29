@@ -13,104 +13,118 @@
 @inject IJSRuntime JS
 @inject NavigationManager Nav
 
-@if (!string.IsNullOrEmpty(errorMessage))
+@if (isLoading)
 {
-    <div class="alert alert-danger">
-        <strong>Error:</strong> @errorMessage
+    <div class="alert alert-info">
+        Page is loading, please wait.
     </div>
 }
-
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <div>
-            <h3 class="mb-0">
-                🧠 Quiz - @LearningTrackQuiz?.Name
-            </h3>
-            @if (!string.IsNullOrWhiteSpace(LearningTrackQuiz?.Description))
-            {
-                <p class="text-muted mb-0"><strong>@LearningTrackQuiz.Description</strong></p>
-            }
-            @if (LearningTrackQuiz != null && LearningTrackQuiz.Questions != null && LearningTrackQuiz.Questions.Count > 0 && !string.IsNullOrWhiteSpace(LearningTrackQuiz.Questions[0].Difficulty))
-            {
-                <p class="text-muted mb-0">Quiz Difficulty: <strong>@LearningTrackQuiz.Questions[0].Difficulty</strong></p>
-            }
-            <p class="mb-0">Select an answer for each question to see if you're correct.</p>
-
+else
+{
+    if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <strong>Error:</strong> @errorMessage
         </div>
-    </div>
-    <div class="card-body">
-        <!-- Score Tracker -->
-        <ScoreTracker TotalQuestions="@totalQuestions" 
-                      CorrectAnswers="@correctAnswers" 
-                      QuestionResults="@GetQuestionResults()" 
-                      OnQuestionNavigate="@HandleQuestionNavigate" />
-
-        <!-- Quiz Controls -->
-        <div class="d-flex align-items-center gap-4 mb-3">
-            <button type="button"
-                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-                    @onclick="ToggleAutoSubmit">
-                <i class="bi @(autoSubmit ? "bi-lightning-fill" : "bi-lightning") me-1"></i>
-                @(autoSubmit ? "Auto-Submit On" : "Auto-Submit Off")
-            </button>
-
-            <button type="button"
-                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-                    @onclick="ToggleMute">
-                <i class="bi @(muteSound ? "bi-volume-mute-fill" : "bi-volume-up-fill") me-1"></i>
-                @(muteSound ? "Muted" : "Sound On")
-            </button>
-
-            <button type="button"
-                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-                    @onclick="ToggleAutoScroll">
-                <i class="bi @(autoScroll ? "bi-arrow-down-circle-fill" : "bi-arrow-down-circle") me-1"></i>
-                @(autoScroll ? "Auto-Scroll On" : "Auto-Scroll Off")
-            </button>
+    }
+    if (!string.IsNullOrEmpty(saveMessage))
+    {
+        <div class="alert alert-@saveMessageType">
+            @saveMessage
         </div>
+    }
 
-        <!-- Final Message -->
-        @if (showFinalMessage)
-        {
-            @if ((double)correctAnswers / totalAnswered >= 0.8)
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">
+                    🧠 Quiz - @LearningTrackQuiz?.Name
+                </h3>
+                @if (!string.IsNullOrWhiteSpace(LearningTrackQuiz?.Description))
+                {
+                    <p class="text-muted mb-0"><strong>@LearningTrackQuiz.Description</strong></p>
+                }
+                @if (LearningTrackQuiz != null && LearningTrackQuiz.Questions != null && LearningTrackQuiz.Questions.Count > 0 && !string.IsNullOrWhiteSpace(LearningTrackQuiz.Questions[0].Difficulty))
+                {
+                    <p class="text-muted mb-0">Quiz Difficulty: <strong>@LearningTrackQuiz.Questions[0].Difficulty</strong></p>
+                }
+                <p class="mb-0">Select an answer for each question to see if you're correct.</p>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Score Tracker -->
+            <ScoreTracker TotalQuestions="@totalQuestions" 
+                          CorrectAnswers="@correctAnswers" 
+                          QuestionResults="@GetQuestionResults()" 
+                          OnQuestionNavigate="@HandleQuestionNavigate" />
+
+            <!-- Quiz Controls -->
+            <div class="d-flex align-items-center gap-4 mb-3">
+                <button type="button"
+                        class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                        @onclick="ToggleAutoSubmit">
+                    <i class="bi @(autoSubmit ? "bi-lightning-fill" : "bi-lightning") me-1"></i>
+                    @(autoSubmit ? "Auto-Submit On" : "Auto-Submit Off")
+                </button>
+
+                <button type="button"
+                        class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                        @onclick="ToggleMute">
+                    <i class="bi @(muteSound ? "bi-volume-mute-fill" : "bi-volume-up-fill") me-1"></i>
+                    @(muteSound ? "Muted" : "Sound On")
+                </button>
+
+                <button type="button"
+                        class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                        @onclick="ToggleAutoScroll">
+                    <i class="bi @(autoScroll ? "bi-arrow-down-circle-fill" : "bi-arrow-down-circle") me-1"></i>
+                    @(autoScroll ? "Auto-Scroll On" : "Auto-Scroll Off")
+                </button>
+            </div>
+
+            <!-- Final Message -->
+            @if (showFinalMessage)
             {
-                <div class="alert alert-success mt-4 fs-5 text-center fw-bold">
-                    🎉 You Wise'd Up! Grade: <strong>@GetGradeLetter()</strong>
+                @if ((double)correctAnswers / totalAnswered >= 0.8)
+                {
+                    <div class="alert alert-success mt-4 fs-5 text-center fw-bold">
+                        🎉 You Wise'd Up! Grade: <strong>@GetGradeLetter()</strong>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-danger mt-4 fs-5 text-center fw-bold">
+                        😬 You've got work to do, wise guy. Grade: <strong>@GetGradeLetter()</strong>
+                    </div>
+                }
+            }
+
+            @if (LearningTrackQuiz == null || LearningTrackQuiz.Questions == null || LearningTrackQuiz.Questions.Count == 0)
+            {
+                <div class="alert alert-warning">
+                    No quiz questions found. Please go to Home and select a quiz first.
                 </div>
             }
             else
             {
-                <div class="alert alert-danger mt-4 fs-5 text-center fw-bold">
-                    😬 You've got work to do, wise guy. Grade: <strong>@GetGradeLetter()</strong>
-                </div>
+                @for (int i = 0; i < LearningTrackQuiz.Questions.Count; i++)
+                {
+                    var question = LearningTrackQuiz.Questions[i];
+                    bool canEdit = !answeredQuestions.Contains(i);
+                    <div class="mb-4" id="question-@i">
+                        <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p>
+                        <LearningTrackQuestionCard Question="question"
+                                                   QuestionIndex="i"
+                                                   AutoSubmit="autoSubmit"
+                                                   MuteSound="muteSound"
+                                                   CanEdit="canEdit"
+                                                   OnAnswerSubmitted="HandleAnswerSubmitted" />
+                    </div>
+                }
             }
-        }
-
-        @if (LearningTrackQuiz == null || LearningTrackQuiz.Questions == null || LearningTrackQuiz.Questions.Count == 0)
-        {
-            <div class="alert alert-warning">
-                No quiz questions found. Please go to Home and select a quiz first.
-            </div>
-        }
-        else
-        {
-            @for (int i = 0; i < LearningTrackQuiz.Questions.Count; i++)
-            {
-                var question = LearningTrackQuiz.Questions[i];
-                bool canEdit = !answeredQuestions.Contains(i);
-                <div class="mb-4" id="question-@i">
-                    <p class="text-muted">Question Difficulty: <strong>@question.Difficulty</strong></p>
-                    <LearningTrackQuestionCard Question="question"
-                                               QuestionIndex="i"
-                                               AutoSubmit="autoSubmit"
-                                               MuteSound="muteSound"
-                                               CanEdit="canEdit"
-                                               OnAnswerSubmitted="HandleAnswerSubmitted" />
-                </div>
-            }
-        }
+        </div>
     </div>
-</div>
+}
 
 @code {
     [Parameter]
@@ -132,9 +146,11 @@
     private string? saveMessage;
     private string? saveMessageType;
     private string? errorMessage;
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
+        isLoading = true;
         try
         {
             Logger.LogInformation("Initializing TakeALearningTrackQuiz for QuizId={QuizId}", QuizId);
@@ -154,6 +170,7 @@
             errorMessage = "Failed to load quiz. Please try again later.";
             Logger.LogError(ex, "Exception in OnInitializedAsync for QuizId={QuizId}", QuizId);
         }
+        isLoading = false;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -194,6 +211,7 @@
             if (LearningTrackQuiz == null || LearningTrackQuiz.Questions == null || questionIndex < 0 || questionIndex >= LearningTrackQuiz.Questions.Count)
             {
                 Logger.LogWarning("Invalid question index or quiz not loaded.");
+                errorMessage = "Invalid question or quiz not loaded.";
                 return;
             }
 

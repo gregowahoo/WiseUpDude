@@ -75,6 +75,13 @@ else
                 <i class="bi @(muteSound ? "bi-volume-mute-fill" : "bi-volume-up-fill") me-1"></i>
                 @(muteSound ? "Muted" : "Sound On")
             </button>
+
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                    @onclick="ToggleAutoScroll">
+                <i class="bi @(autoScroll ? "bi-arrow-down-circle-fill" : "bi-arrow-down-circle") me-1"></i>
+                @(autoScroll ? "Auto-Scroll On" : "Auto-Scroll Off")
+            </button>
         </div>
 
         <!-- Final Message -->
@@ -131,6 +138,7 @@ else
     private bool showFinalMessage;
     private bool autoSubmit = true;
     private bool muteSound = false;
+    private bool autoScroll = true;
     private HashSet<int> answeredQuestions = new HashSet<int>();
     private Dictionary<int, DateTime> questionStartTimes = new();
     private DateTime? AttemptStartTime;
@@ -185,6 +193,12 @@ else
     {
         muteSound = !muteSound;
         Logger.LogInformation("Mute toggled to {MuteSound}", muteSound);
+    }
+
+    private void ToggleAutoScroll()
+    {
+        autoScroll = !autoScroll;
+        Logger.LogInformation("AutoScroll toggled to {AutoScroll}", autoScroll);
     }
 
     private async Task HandleAnswerSubmitted((bool isCorrect, int questionIndex, string userAnswer) args)
@@ -283,6 +297,21 @@ else
             answeredQuestions.Add(questionIndex);
             totalAnswered++;
             if (isCorrect) correctAnswers++;
+
+            // Auto-scroll to next question if enabled and there is a next question
+            if (autoScroll && questionIndex < totalQuestions - 1)
+            {
+                // Add a small delay for smooth user experience (allows visual feedback before scrolling)
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(300);
+                    await InvokeAsync(async () =>
+                    {
+                        var nextQuestionElementId = $"question-{questionIndex + 1}";
+                        await JS.InvokeVoidAsync("scrollToElement", nextQuestionElementId);
+                    });
+                });
+            }
 
             if (totalAnswered == totalQuestions)
             {

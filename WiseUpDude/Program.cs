@@ -1,4 +1,4 @@
-using Azure.AI.OpenAI;
+﻿using Azure.AI.OpenAI;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -25,14 +25,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 var isAzure = Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID") != null;
 
-// Only create local logs in development
 var shouldUseFileLogging = !isAzure && builder.Environment.IsDevelopment();
 var logPath = isAzure
-    ? @"D:\\home\\LogFiles\\serilog.log" // Azure App Service (Windows)
-    : Path.Combine("Logs", "log-.txt"); // Local dev logs
+    ? @"D:\\home\\LogFiles\\serilog.log"
+    : Path.Combine("Logs", "log-.txt");
 
 if (shouldUseFileLogging && !Directory.Exists("Logs"))
     Directory.CreateDirectory("Logs");
+
+var aiKey = builder.Configuration["ApplicationInsights:InstrumentationKey"] ?? builder.Configuration["ApplicationInsights:ConnectionString"];
 
 builder.Host.UseSerilog((context, services, configuration) =>
 {
@@ -42,17 +43,31 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .Enrich.FromLogContext()
         .WriteTo.Console();
 
-    // Only write to file in Azure or local development
-    if (isAzure || shouldUseFileLogging)
+    if (!string.IsNullOrWhiteSpace(aiKey))
     {
-        loggerConfig.WriteTo.File(logPath, 
+        if (aiKey.Contains("InstrumentationKey"))
+        {
+            loggerConfig.WriteTo.ApplicationInsights(
+                aiKey,
+                TelemetryConverter.Traces);
+        }
+        else
+        {
+            loggerConfig.WriteTo.ApplicationInsights(
+                connectionString: aiKey,
+                telemetryConverter: TelemetryConverter.Traces);
+        }
+    }
+
+    if (shouldUseFileLogging || isAzure)
+    {
+        loggerConfig.WriteTo.File(logPath,
             rollingInterval: RollingInterval.Day,
-            retainedFileCountLimit: 7, // Keep only 7 days of logs
-            shared: true); // Allow multiple processes to write to the same file
+            retainedFileCountLimit: 7,
+            shared: true);
     }
 });
 
-// Optional: Also enable Azure Web App Diagnostics if needed for Log Stream
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
@@ -63,7 +78,6 @@ if (isAzure)
 }
 
 #endregion
-
 
 // Log Perplexity API Key presence, length, and value for diagnostics (WARNING: do not log secrets in production)
 var perplexityApiKey = builder.Configuration["Perplexity:ApiKey"];
@@ -366,3 +380,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+Log.Information("🔥 Test log from Azure to Application Insights");
+Log.Information("🔥 Test log from Azure to File");
+Log.Information("🔥 Test log from Azure to Console");
+Log.Information("🔥 WiseUpDude application started successfully.");

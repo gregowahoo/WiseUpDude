@@ -19,6 +19,8 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="9.0.7" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter" Version="9.0.7" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.7" />
+		<PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+		<PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="4.0.0" />
 		<PackageReference Include="System.Net.Http.Json" Version="9.0.7" />
 		<PackageReference Include="UglyToad.PdfPig" Version="1.7.0-custom-5" />
 		<ProjectReference Include="..\WiseUpDude.Client\WiseUpDude.Client.csproj" />

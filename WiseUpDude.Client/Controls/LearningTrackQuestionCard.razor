@@ -97,28 +97,30 @@
 <div class="card mb-3 shadow-sm">
     <div class="card-body">
         <h5 class="card-title">@($"Q{QuestionIndex + 1}: {Question?.Question}")</h5>
-        @if (options.Count > 0)
-        {
-            @foreach (var option in options)
+        <div class="options-center">
+            @if (options.Count > 0)
             {
-                <button class="@GetOptionClass(option)"
-                        @onclick="() => OnSelectAnswer(option)"
-                        disabled="@(!CanEdit)">
-                    @option
-                </button>
+                @foreach (var option in options)
+                {
+                    <button class="@GetOptionClass(option)"
+                            @onclick="() => OnSelectAnswer(option)"
+                            disabled="@(!CanEdit)">
+                        @option
+                    </button>
+                }
             }
-        }
-        else
-        {
-            @foreach (var tf in new[] { "True", "False" })
+            else
             {
-                <button class="@GetOptionClass(tf)"
-                        @onclick="() => OnSelectAnswer(tf)"
-                        disabled="@(!CanEdit)">
-                    @tf
-                </button>
+                @foreach (var tf in new[] { "True", "False" })
+                {
+                    <button class="@GetOptionClass(tf)"
+                            @onclick="() => OnSelectAnswer(tf)"
+                            disabled="@(!CanEdit)">
+                        @tf
+                    </button>
+                }
             }
-        }
+        </div>
         @if (!AutoSubmit)
         {
             <div class="mt-3">

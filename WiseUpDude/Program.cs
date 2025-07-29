@@ -21,6 +21,8 @@ Serilog.Debugging.SelfLog.Enable(msg => Console.WriteLine($"[Serilog SelfLog] {m
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddApplicationInsightsTelemetry();
+
 #region Logging Configuration
 
 var isAzure = Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID") != null;

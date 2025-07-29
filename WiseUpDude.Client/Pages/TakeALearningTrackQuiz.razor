@@ -13,21 +13,6 @@
 @inject IJSRuntime JS
 @inject NavigationManager Nav
 
-@if (OperatingSystem.IsBrowser())
-{
-    <div class="alert alert-success">
-        <strong>WASM Mode:</strong> This page is running in WebAssembly mode.
-    </div>
-}
-else
-{
-    <div class="alert alert-warning">
-        <strong>Server Mode:</strong> This page is running in Blazor Server mode.
-    </div>
-}
-
-<p>Running on: @(OperatingSystem.IsBrowser() ? "WASM" : "Server")</p>
-
 @if (!string.IsNullOrEmpty(errorMessage))
 {
     <div class="alert alert-danger">

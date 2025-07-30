@@ -70,7 +70,7 @@ builder.Host.UseSerilog((context, services, configuration) =>
     }
 });
 
-builder.Logging.ClearProviders();
+//builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
@@ -381,9 +381,16 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.Run();
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    Log.Information("🔥 WiseUpDude application started successfully.");
+});
+
 
 Log.Information("🔥 Test log from Azure to Application Insights");
 Log.Information("🔥 Test log from Azure to File");
 Log.Information("🔥 Test log from Azure to Console");
 Log.Information("🔥 WiseUpDude application started successfully.");
+
+//app.Run();
+await app.RunAsync();

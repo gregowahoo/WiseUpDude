@@ -71,8 +71,8 @@ builder.Host.UseSerilog((context, services, configuration) =>
 });
 
 //builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.AddDebug();
+//builder.Logging.AddConsole();
+//builder.Logging.AddDebug();
 
 if (isAzure)
 {

@@ -167,7 +167,7 @@
 
     protected override void OnParametersSet()
     {
-        Logger.LogInformation($"Method: OnParametersSet for question {QuestionIndex}");
+        // Logger.LogInformation($"Method: OnParametersSet for question {QuestionIndex}");
         try
         {
             if (!string.IsNullOrEmpty(Question?.UserAnswer) && Question.UserAnswer != userAnswer)

@@ -1,8 +1,10 @@
-﻿namespace WiseUpDude.Services
+﻿using Microsoft.Extensions.Logging;
+
+namespace WiseUpDude.Services
 {
     public static class ContextualQuizPromptTemplates
     {
-        public static string BuildQuizPromptWithContext(string topicOrUrl, string? explicitContext)
+        public static string BuildQuizPromptWithContext(string topicOrUrl, string? explicitContext, ILogger? logger = null)
         {
             var intro = @"
 
@@ -45,6 +47,15 @@ For true/false questions:
 - The correct answer must be ""True"" for about half the questions and ""False"" for about half the questions. Do not default to ""True"" as the correct answer for most questions. If you generate 4 true/false questions, 2 should have ""True"" as the correct answer and 2 should have ""False"".
 
 - If the correct answer is not evenly distributed between ""True"" and ""False"", regenerate the quiz until this requirement is met.
+
+- TRUE/FALSE ANSWER-EXPLANATION ALIGNMENT REQUIREMENT:
+    - For every True/False question:
+        1. Restate the main claim being tested as a statement.
+        2. Use only the provided content/context to decide if it is true or false.
+        3. The answer must be ""True"" if the content/context supports the statement, or ""False"" if not.
+        4. The explanation must directly justify and support the answer, using only the content/context.
+        5. **Strict check:** If at any point, the answer and explanation do not exactly agree (for example, if the explanation shows the statement is true but the answer is ""False""), then regenerate both until perfectly consistent.
+    - Do NOT use outside knowledge or guess.
 
 For all questions:
 
@@ -127,8 +138,9 @@ ERROR HANDLING:
 - If the provided content/context is ambiguous, choose the most likely intended topic based on the text. If still unclear, return the above error object explaining that the content/context was ambiguous.
 
 ";
-
-            return string.Format(intro, topicOrUrl, explicitContext == null ? "" : $"CONTEXT SUMMARY:\n{explicitContext}");
+            var prompt = string.Format(intro, topicOrUrl, explicitContext == null ? "" : $"CONTEXT SUMMARY:\n{explicitContext}");
+            logger?.LogInformation("[QUIZ_PROMPT_TEMPLATE] BuildQuizPromptWithContext generated prompt: {Prompt}", prompt);
+            return prompt;
         }
     }
 }

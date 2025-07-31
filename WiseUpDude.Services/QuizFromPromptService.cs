@@ -23,8 +23,8 @@ public class QuizFromPromptService : IQuizFromPromptService
 
     public async Task<List<QuizQuestion>?> GenerateQuestionsFromPromptAsync(string prompt)
     {
-        var aiPrompt = QuizPromptTemplates.BuildQuizPrompt(prompt);
-        _logger.LogInformation("Sending AI prompt: {AiPrompt}", aiPrompt);
+        var aiPrompt = QuizPromptTemplates.BuildQuizPrompt(prompt, _logger);
+        // _logger.LogInformation("Sending AI prompt: {AiPrompt}", aiPrompt); // Now logged in QuizPromptTemplates
 
         var options = new JsonSerializerOptions
         {

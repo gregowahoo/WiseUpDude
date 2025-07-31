@@ -31,7 +31,7 @@ namespace WiseUpDude.Services
             string searchContextSize = "medium")
         {
             var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithContext(
-                contextSource, explicitContextSummary);
+                contextSource, explicitContextSummary, _logger);
 
             var client = _httpClientFactory.CreateClient("PerplexityAI");
             var requestBody = new
@@ -42,8 +42,6 @@ namespace WiseUpDude.Services
                 {
                     new { role = "system", content =
                         "You are a contextual quiz generator. For each quiz question, always provide a 1-2 sentence summary of why the question is relevant, before listing answer options. Context must be presented as a field in the JSON output. Base all questions, answers, and explanations only on the provided content and context." },
-                    //new { role = "user", content = explicitContextSummary == null ? "" : $"Context: {explicitContextSummary}" },
-                    //new { role = "user", content = promptBody }
                     new { role = "user", content = $"Context: {explicitContextSummary}\n\n{promptBody}" }
                 }
             };

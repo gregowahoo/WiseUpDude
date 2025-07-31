@@ -49,7 +49,7 @@ namespace WiseUpDude.Services
 
             //var aiPrompt = QuizPromptTemplates.BuildQuizPrompt(urlWithTimestamp);
             // Use the URL directly for the prompt
-            var aiPrompt = QuizPromptTemplates.BuildQuizPrompt(url);
+            var aiPrompt = QuizPromptTemplates.BuildQuizPrompt(url, _logger);
 
             var (json, apiError) = await GetPerplexityQuizJsonAsync(aiPrompt);
 
@@ -79,7 +79,7 @@ namespace WiseUpDude.Services
 
         public async Task<(Quiz? Quiz, string? Error)> GenerateQuizFromPromptAsync(string prompt, string? userId)
         {
-            var aiPrompt = QuizPromptTemplates.BuildQuizPrompt(prompt);
+            var aiPrompt = QuizPromptTemplates.BuildQuizPrompt(prompt, _logger);
             var (json, apiError) = await GetPerplexityQuizJsonAsync(aiPrompt);
 
             if (apiError != null)
@@ -309,7 +309,7 @@ namespace WiseUpDude.Services
             var explicitContextSummary = "Summary of key points from the content or user-provided background.";
             var searchContextSize = "medium"; // Default size, can be adjusted as needed
 
-            var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithContext(prompt, explicitContextSummary);
+            var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithContext(prompt, explicitContextSummary, _logger);
 
             var client = _httpClientFactory.CreateClient("PerplexityAI");
             var requestBody = new
@@ -378,7 +378,7 @@ namespace WiseUpDude.Services
             var explicitContextSummary = "Summary of key points from the content or user-provided background.";
             var searchContextSize = "medium"; // Default size, can be adjusted as needed
 
-            var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithContext(url, explicitContextSummary);
+            var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithContext(url, explicitContextSummary, _logger);
 
             var client = _httpClientFactory.CreateClient("PerplexityAI");
             var requestBody = new

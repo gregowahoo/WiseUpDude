@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 namespace WiseUpDude.Services
 {
     public static class QuizPromptTemplates
@@ -93,7 +95,7 @@ ERROR HANDLING:
         }
 
 
-        public static string BuildQuizPrompt(string urlOrPrompt)
+        public static string BuildQuizPrompt(string urlOrPrompt, ILogger? logger = null)
         {
             var intro = @"
 IMPORTANT: You must base ALL questions, answers, and explanations ONLY on the content provided from the following URL or prompt. Do NOT use outside knowledge, do NOT guess, and do NOT invent facts. If the content is not provided, or if you cannot answer based on the content, skip the question or return an error as described below.
@@ -101,15 +103,19 @@ IMPORTANT: You must base ALL questions, answers, and explanations ONLY on the co
 CONTENT TO USE:
 {0}
 ";
-            return string.Format(intro, urlOrPrompt) + GetQuizPromptBody(false);
+            var prompt = string.Format(intro, urlOrPrompt) + GetQuizPromptBody(false);
+            logger?.LogInformation("[QUIZ_PROMPT_TEMPLATE] BuildQuizPrompt generated prompt: {Prompt}", prompt);
+            return prompt;
         }
 
-        public static string BuildQuizGenerationInstructions()
+        public static string BuildQuizGenerationInstructions(ILogger? logger = null)
         {
             var intro = @"
 You are an expert quiz generator. Your task is to create a comprehensive and engaging quiz in a specific JSON format.
 ";
-            return intro.Trim() + "\n" + GetQuizPromptBody(true);
+            var prompt = intro.Trim() + "\n" + GetQuizPromptBody(true);
+            logger?.LogInformation("[QUIZ_PROMPT_TEMPLATE] BuildQuizGenerationInstructions generated prompt: {Prompt}", prompt);
+            return prompt;
         }
     }
 }

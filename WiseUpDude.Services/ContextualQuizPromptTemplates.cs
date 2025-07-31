@@ -126,15 +126,19 @@ OUTPUT:
 }}
 
 - Return only the raw JSON, without any code block formatting or prefixes like 'json'.
-
 - Do NOT include any Markdown code block formatting (such as triple backticks or the word 'json') in your response. Return only the raw JSON.
-
 - Do NOT include any explanation, commentary, or additional metadata (such as id, model, usage, citations, search_results, or any wrapper object). Return ONLY the quiz JSON object as specified above, and nothing else.
 
+FINAL VERIFICATION:
+- Before providing your final response, review each question and answer one more time to ensure:
+  • Every answer is directly supported by the provided content
+  • No external knowledge was inadvertently included
+  • All explanations reference specific information from the content
+  • Questions are clear and unambiguous based on the material provided
+  • For True/False questions, the answer must always match the truth of the explanation—**never allow mismatches**.
+
 ERROR HANDLING:
-
 - If the provided content/context is too vague, factually impossible, or cannot result in a meaningful quiz, return a JSON object in this format: {{ ""Error"": """" }}.
-
 - If the provided content/context is ambiguous, choose the most likely intended topic based on the text. If still unclear, return the above error object explaining that the content/context was ambiguous.
 
 ";

@@ -22,17 +22,20 @@ namespace WiseUpDude.Services
         private readonly ContentFetchingService _contentFetchingService;
         private readonly ILogger<PerplexityService> _logger;
         private readonly UrlMetaService _urlMetaService;
+        private readonly AnswerRandomizerService _answerRandomizer;
 
         public PerplexityService(
             IHttpClientFactory httpClientFactory,
             ContentFetchingService contentFetchingService,
             ILogger<PerplexityService> logger,
-            UrlMetaService urlMetaService)
+            UrlMetaService urlMetaService,
+            AnswerRandomizerService answerRandomizer)
         {
             _httpClientFactory = httpClientFactory;
             _contentFetchingService = contentFetchingService;
             _logger = logger;
             _urlMetaService = urlMetaService;
+            _answerRandomizer = answerRandomizer;
         }
 
         // Add: GenerateQuizFromUserInputAsync for user quizzes (not LearningTrack)
@@ -68,6 +71,9 @@ namespace WiseUpDude.Services
             quizModel.Url = url;
             quizModel.CreationDate = DateTime.UtcNow;
 
+            // Apply answer randomization to ensure even distribution across positions
+            quizModel = _answerRandomizer.DistributeAnswersEvenly(quizModel);
+
             return (quizModel, null);
         }
 
@@ -92,6 +98,9 @@ namespace WiseUpDude.Services
             quizModel.Name = prompt;
             quizModel.Description = prompt;
             quizModel.CreationDate = DateTime.UtcNow;
+
+            // Apply answer randomization to ensure even distribution across positions
+            quizModel = _answerRandomizer.DistributeAnswersEvenly(quizModel);
 
             return (quizModel, null);
         }
@@ -356,6 +365,9 @@ namespace WiseUpDude.Services
                         }
                     }
                 }
+
+                // Apply answer randomization to ensure even distribution across positions
+                quiz = _answerRandomizer.DistributeAnswersEvenly(quiz);
             }
 
             return (quiz, parseError);
@@ -424,6 +436,9 @@ namespace WiseUpDude.Services
                         }
                     }
                 }
+
+                // Apply answer randomization to ensure even distribution across positions
+                quiz = _answerRandomizer.DistributeAnswersEvenly(quiz);
             }
 
             return (quiz, parseError);

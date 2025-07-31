@@ -26,6 +26,12 @@ For true/false questions:
 
 For all questions:
 - Ensure the correct answers and explanations are factually accurate and grounded ONLY in the provided content. Do not use outside knowledge or assumptions.
+- VERIFICATION REQUIREMENT: After generating each question and answer, double-check the answer against the provided content. Verify that:
+  • The correct answer can be clearly found or derived from the content
+  • The explanation accurately reflects information from the content
+  • No outside knowledge was used in determining the answer
+  • The question is answerable based solely on the provided material
+- If during verification you find an answer cannot be supported by the content, either revise the question/answer or skip that question entirely.
 - Each question should be an object with: ""Question"", ""Options"", ""Answer"", ""Explanation"", ""QuestionType"", and ""Difficulty"".
 - The ""QuestionType"" must be exactly ""TrueFalse"" or ""MultipleChoice"" (case-sensitive).
 - The ""Difficulty"" must be one of: ""Easy"", ""Medium"", or ""Hard"". Distribute difficulties roughly evenly across the quiz.
@@ -62,6 +68,13 @@ OUTPUT:
 - Return only the raw JSON, without any code block formatting or prefixes like 'json'.
 - Do NOT include any Markdown code block formatting (such as triple backticks or the word 'json') in your response. Return only the raw JSON.
 - Do NOT include any explanation, commentary, or additional metadata (such as id, model, usage, citations, search_results, or any wrapper object). Return ONLY the quiz JSON object as specified above, and nothing else.
+
+FINAL VERIFICATION:
+- Before providing your final response, review each question and answer one more time to ensure:
+  • Every answer is directly supported by the provided content
+  • No external knowledge was inadvertently included
+  • All explanations reference specific information from the content
+  • Questions are clear and unambiguous based on the material provided
 
 ERROR HANDLING:
 - If the provided content is too vague, factually impossible, or cannot result in a meaningful quiz, return a JSON object in this format: {{ ""Error"": ""<reason>"" }}.

@@ -60,7 +60,7 @@ logger.LogInformation("OpenAI:ApiKey = {ApiKey}", openAIApiKey);
 //Do not remove commentting as may need to change to a different model.
 //builder.Services.AddChatClient(innerChatClientAzure); // Azure-based GPT-3.5
 //builder.Services.AddChatClient(innerChatClientGithub); // Azure-based GPT-3.5
-builder.Services.AddChatClient(innerChatClientOpenAI); // “gpt-4o-mini” from OpenAI
+builder.Services.AddChatClient(innerChatClientOpenAI); // ï¿½gpt-4o-miniï¿½ from OpenAI
 
 // Register the LLM name as a configuration or service
 builder.Services.AddSingleton(llmName => "gpt-4.1"); // Replace with the actual LLM name being used
@@ -77,6 +77,7 @@ Console.WriteLine($"DefaultConnection: {builder.Configuration.GetConnectionStrin
 
 // Register Services
 builder.Services.AddScoped<ContentCreatorService>(); // Register ContentCreatorService
+builder.Services.AddScoped<AnswerRandomizerService>(); // Register AnswerRandomizerService
 
 builder.Services.AddScoped<TopicService>(); // Register TopicService
 builder.Services.AddScoped<TopicRepository>();  // Register TopicRepository

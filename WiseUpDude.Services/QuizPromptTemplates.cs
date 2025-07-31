@@ -24,6 +24,14 @@ For true/false questions:
 - The correct answer must be ""True"" for about half the questions and ""False"" for about half the questions. Do not default to ""True"" as the correct answer for most questions. If you generate 4 true/false questions, 2 should have ""True"" as the correct answer and 2 should have ""False"".
 - If the correct answer is not evenly distributed between ""True"" and ""False"", regenerate the quiz until this requirement is met.
 
+- **TRUE/FALSE ALIGNMENT REQUIREMENT:**
+    - For every True/False question, strictly follow these steps:
+        1. Restate the claim being tested as a plain statement.
+        2. Use only the provided content to determine whether this statement is true or false.
+        3. Provide the answer: ""True"" if the statement accurately reflects the provided content; ""False"" if it does not.
+        4. Write an explanation using only the provided content, and ensure it clearly justifies why the answer is ""True"" or ""False"".
+        5. **Verification:** Explicitly check that the answer perfectly aligns with the explanation—never allow a mismatch. If they do not match, regenerate the question and explanation until they do.
+
 For all questions:
 - Ensure the correct answers and explanations are factually accurate and grounded ONLY in the provided content. Do not use outside knowledge or assumptions.
 - VERIFICATION REQUIREMENT: After generating each question and answer, double-check the answer against the provided content. Verify that:
@@ -31,6 +39,7 @@ For all questions:
   • The explanation accurately reflects information from the content
   • No outside knowledge was used in determining the answer
   • The question is answerable based solely on the provided material
+- **For both types:** If the answer and explanation do not agree, automatically regenerate them until they do.
 - If during verification you find an answer cannot be supported by the content, either revise the question/answer or skip that question entirely.
 - Each question should be an object with: ""Question"", ""Options"", ""Answer"", ""Explanation"", ""QuestionType"", and ""Difficulty"".
 - The ""QuestionType"" must be exactly ""TrueFalse"" or ""MultipleChoice"" (case-sensitive).
@@ -75,12 +84,14 @@ FINAL VERIFICATION:
   • No external knowledge was inadvertently included
   • All explanations reference specific information from the content
   • Questions are clear and unambiguous based on the material provided
+  • For True/False questions, the answer must always match the truth of the explanation—**never allow mismatches**.
 
 ERROR HANDLING:
 - If the provided content is too vague, factually impossible, or cannot result in a meaningful quiz, return a JSON object in this format: {{ ""Error"": ""<reason>"" }}.
 - If the provided content is ambiguous, choose the most likely intended topic based on the text. If still unclear, return the above error object explaining that the content was ambiguous.
 ".Replace("{0}", forGemini ? "" : ", and must be based on the provided content");
         }
+
 
         public static string BuildQuizPrompt(string urlOrPrompt)
         {

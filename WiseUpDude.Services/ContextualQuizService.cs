@@ -13,13 +13,16 @@ namespace WiseUpDude.Services
     public class ContextualQuizService
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly AnswerRandomizerService _answerRandomizer;
         private readonly ILogger<ContextualQuizService> _logger;
 
         public ContextualQuizService(
             IHttpClientFactory httpClientFactory,
+            AnswerRandomizerService answerRandomizer,
             ILogger<ContextualQuizService> logger)
         {
             _httpClientFactory = httpClientFactory;
+            _answerRandomizer = answerRandomizer;
             _logger = logger;
         }
         public async Task<(Quiz? Quiz, string? Error)> GenerateQuizWithContextAsync(
@@ -57,6 +60,13 @@ namespace WiseUpDude.Services
             var content = await response.Content.ReadAsStringAsync();
             // Assume downstream logic parses JSON and maps to Quiz model
             var (quiz, parseError) = ParseQuizJson(content);
+            
+            // Apply answer randomization if quiz was successfully parsed
+            if (quiz != null && quiz.Questions != null)
+            {
+                quiz = _answerRandomizer.DistributeAnswersEvenly(quiz);
+            }
+            
             return (quiz, parseError);
         }
 

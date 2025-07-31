@@ -12,10 +12,12 @@ namespace WiseUpDude.Services
     public class QuizBuilderService
     {
         private readonly IChatClient _chatClient;
+        private readonly AnswerRandomizerService _answerRandomizer;
 
-        public QuizBuilderService(IChatClient chatClient)
+        public QuizBuilderService(IChatClient chatClient, AnswerRandomizerService answerRandomizer)
         {
             _chatClient = chatClient;
+            _answerRandomizer = answerRandomizer;
         }
 
         public async Task<Quiz> GenerateQuizAsync(string content, int maxQuestions)
@@ -54,11 +56,15 @@ namespace WiseUpDude.Services
                 if (allQuestions.Count >= maxQuestions)
                 {
                     quiz.Questions = allQuestions.Take(maxQuestions).ToList();
+                    // Apply answer randomization to ensure even distribution across positions
+                    quiz = _answerRandomizer.DistributeAnswersEvenly(quiz);
                     return quiz;
                 }
             }
 
             quiz.Questions = allQuestions;
+            // Apply answer randomization to ensure even distribution across positions
+            quiz = _answerRandomizer.DistributeAnswersEvenly(quiz);
             return quiz;
         }
 

@@ -60,7 +60,7 @@ public class QuizFromPromptService : IQuizFromPromptService
             var quiz = JsonSerializer.Deserialize<Quiz>(json, options);
             if (quiz?.Questions != null && quiz.Questions.Any())
             {
-                var randomizedQuiz = _answerRandomizer.RandomizeAnswers(quiz);
+                var randomizedQuiz = _answerRandomizer.DistributeAnswersEvenly(quiz);
 
                 return Task.FromResult<List<QuizQuestion>?>(randomizedQuiz.Questions);
             }

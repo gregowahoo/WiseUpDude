@@ -9,10 +9,16 @@ namespace WiseUpDude.Services
     public class QuizFromTopicService
     {
         private readonly IChatClient _chatClient;
+        private readonly AnswerRandomizerService _answerRandomizer;
         private readonly ILogger<QuizFromTopicService> _logger;
-        public QuizFromTopicService(IChatClient chatClient, ILogger<QuizFromTopicService> logger)
+        
+        public QuizFromTopicService(
+            IChatClient chatClient, 
+            AnswerRandomizerService answerRandomizer,
+            ILogger<QuizFromTopicService> logger)
         {
             _chatClient = chatClient;
+            _answerRandomizer = answerRandomizer;
             _logger = logger;
         }
 
@@ -92,6 +98,11 @@ namespace WiseUpDude.Services
                     {
                         question.Difficulty = criteria.Difficulty;
                     }
+                    
+                    // Apply answer randomization to ensure even distribution across positions
+                    var tempQuiz = new Quiz { Questions = quizResponse.Questions };
+                    var randomizedQuiz = _answerRandomizer.DistributeAnswersEvenly(tempQuiz);
+                    quizResponse.Questions = randomizedQuiz.Questions;
                 }
                 else
                 {

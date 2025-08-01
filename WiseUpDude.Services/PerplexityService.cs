@@ -377,6 +377,8 @@ When generating answers and explanations:
                             }
                         }
                     }
+                    // Verification for True/False questions (refactored)
+                    await VerifyAndFixTrueFalseQuestionAsync(question);
                 }
 
                 // Apply answer randomization to ensure even distribution across positions
@@ -463,6 +465,8 @@ When generating answers and explanations:
                             }
                         }
                     }
+                    // Verification for True/False questions (refactored)
+                    await VerifyAndFixTrueFalseQuestionAsync(question);
                 }
 
                 // Apply answer randomization to ensure even distribution across positions
@@ -515,6 +519,62 @@ When generating answers and explanations:
             catch (Exception ex)
             {
                 return (null, $"Failed to parse quiz JSON: {ex.Message}. Please try again.");
+            }
+        }
+
+        private async Task<bool> VerifyTrueFalseAnswerAsync(string question, string answer, string explanation)
+        {
+            var client = _httpClientFactory.CreateClient("PerplexityAI");
+            var prompt = $@"Given the following True/False question, answer, and explanation, does the explanation fully justify and support the answer? Reply only 'Yes' or 'No'.\n\nQuestion: {question}\nAnswer: {answer}\nExplanation: {explanation}";
+            var requestBody = new
+            {
+                model = "sonar-pro",
+                messages = new[]
+                {
+                    new { role = "user", content = prompt }
+                }
+            };
+            var response = await client.PostAsJsonAsync("/chat/completions", requestBody);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("[TF_VERIFY] Verification API call failed for question: {Question}", question);
+                return true; // Fail open: don't flip if verification fails
+            }
+            var content = await response.Content.ReadAsStringAsync();
+            bool isValid = content.Contains("Yes", StringComparison.OrdinalIgnoreCase);
+            _logger.LogInformation("[TF_VERIFY] Q: {Question} | A: {Answer} | Explanation: {Explanation} | API Response: {ApiResponse} | IsValid: {IsValid}", question, answer, explanation, content, isValid);
+            return isValid;
+        }
+
+        private async Task VerifyAndFixTrueFalseQuestionAsync(QuizQuestion question)
+        {
+            if (question.QuestionType != QuizQuestionType.TrueFalse ||
+                string.IsNullOrWhiteSpace(question.Question) ||
+                string.IsNullOrWhiteSpace(question.Answer) ||
+                string.IsNullOrWhiteSpace(question.Explanation))
+                return;
+
+            string originalAnswer = question.Answer?.Trim();
+            bool isValid = await VerifyTrueFalseAnswerAsync(question.Question, question.Answer, question.Explanation);
+            if (!isValid)
+            {
+                string normalized = (originalAnswer ?? string.Empty).Trim().ToLowerInvariant();
+                string flipped;
+                if (normalized == "true")
+                    flipped = "False";
+                else if (normalized == "false")
+                    flipped = "True";
+                else
+                {
+                    _logger.LogWarning("[TF_VERIFY_FLIP] Could not flip answer for Q: {Question} | Unrecognized answer: {Answer}", question.Question, question.Answer);
+                    return;
+                }
+                _logger.LogWarning("[TF_VERIFY_FLIP] Flipping answer for Q: {Question} | Old: {OldAnswer} | New: {NewAnswer} | Explanation: {Explanation}", question.Question, originalAnswer, flipped, question.Explanation);
+                question.Answer = flipped;
+            }
+            else
+            {
+                _logger.LogInformation("[TF_VERIFY_OK] Q: {Question} | Answer: {Answer} | Explanation: {Explanation} | No flip needed.", question.Question, question.Answer, question.Explanation);
             }
         }
     }

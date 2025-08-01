@@ -72,7 +72,7 @@ namespace WiseUpDude.Services
             quizModel.CreationDate = DateTime.UtcNow;
 
             // Apply answer randomization to ensure even distribution across positions
-            quizModel = _answerRandomizer.DistributeAnswersEvenly(quizModel);
+            //quizModel = _answerRandomizer.DistributeAnswersEvenly(quizModel);
 
             return (quizModel, null);
         }
@@ -100,7 +100,7 @@ namespace WiseUpDude.Services
             quizModel.CreationDate = DateTime.UtcNow;
 
             // Apply answer randomization to ensure even distribution across positions
-            quizModel = _answerRandomizer.DistributeAnswersEvenly(quizModel);
+            //quizModel = _answerRandomizer.DistributeAnswersEvenly(quizModel);
 
             return (quizModel, null);
         }
@@ -309,16 +309,29 @@ namespace WiseUpDude.Services
             var explicitContextSummary = "Summary of key points from the content or user-provided background.";
             var searchContextSize = "medium"; // Default size, can be adjusted as needed
 
-            var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithContext(prompt, explicitContextSummary, _logger);
+            var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithUserTopic(prompt, explicitContextSummary, _logger);
 
             var client = _httpClientFactory.CreateClient("PerplexityAI");
             var requestBody = new
             {
-                model = "sonar",
+                //model = "sonar",
+                //model = "sonar-pro-chat",
+                model = "sonar-pro",
                 search_context_size = searchContextSize,
                 messages = new[]
                 {
-                    new { role = "system", content = "You are a contextual quiz generator. For each quiz question, always provide a 1-2 sentence summary of why the question is relevant, before listing answer options. Context must be presented as a field in the JSON output. Base all questions, answers, and explanations only on the provided content and context." },
+                    new { role = "system", 
+                    content = @"You are a contextual quiz generator.
+For each quiz question:
+- Always provide a 1-2 sentence summary ('ContextSnippet') of why the question is relevant, before listing answer options.
+- Context must be presented as a field in the JSON output.
+
+When generating answers and explanations:
+- The explanation MUST always fully support and justify the provided answer. You must check and double-check that the 'Answer' and 'Explanation' fields are perfectly consistent and logically aligned.
+- For True/False questions, never allow a mismatch: the explanation must clearly justify why the answer is 'True' or 'False' for the question as stated.
+- If you find any mismatch between answer and explanation, immediately regenerate the pair so they agree.
+- Base all questions, answers, and explanations ONLY on the provided content and context." },
+
                     new { role = "user", content = $"Context: {explicitContextSummary}\n\n{promptBody}" }
                 }
             };
@@ -378,16 +391,31 @@ namespace WiseUpDude.Services
             var explicitContextSummary = "Summary of key points from the content or user-provided background.";
             var searchContextSize = "medium"; // Default size, can be adjusted as needed
 
-            var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithContext(url, explicitContextSummary, _logger);
+            //var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithUserTopic(url, explicitContextSummary, _logger);
+            var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithUrlContext(url, explicitContextSummary, _logger);
 
             var client = _httpClientFactory.CreateClient("PerplexityAI");
             var requestBody = new
             {
-                model = "sonar",
+                //model = "sonar",
+                //model = "sonar-pro-chat",
+                model = "sonar-pro",
                 search_context_size = searchContextSize,
                 messages = new[]
                 {
-                    new { role = "system", content = "You are a contextual quiz generator. For each quiz question, always provide a 1-2 sentence summary of why the question is relevant, before listing answer options. Context must be presented as a field in the JSON output. Base all questions, answers, and explanations only on the provided content and context." },
+                    new { role = "system", 
+                        //content = "You are a contextual quiz generator. For each quiz question, always provide a 1-2 sentence summary of why the question is relevant, before listing answer options. Context must be presented as a field in the JSON output. Base all questions, answers, and explanations only on the provided content and context." },
+                    content = @"You are a contextual quiz generator.
+For each quiz question:
+- Always provide a 1-2 sentence summary ('ContextSnippet') of why the question is relevant, before listing answer options.
+- Context must be presented as a field in the JSON output.
+
+When generating answers and explanations:
+- The explanation MUST always fully support and justify the provided answer. You must check and double-check that the 'Answer' and 'Explanation' fields are perfectly consistent and logically aligned.
+- For True/False questions, never allow a mismatch: the explanation must clearly justify why the answer is 'True' or 'False' for the question as stated.
+- If you find any mismatch between answer and explanation, immediately regenerate the pair so they agree.
+- Base all questions, answers, and explanations ONLY on the provided content and context." },
+
                     new { role = "user", content = $"Context: {explicitContextSummary}\n\n{promptBody}" }
                 }
             };

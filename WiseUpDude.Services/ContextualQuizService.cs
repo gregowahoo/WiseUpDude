@@ -30,8 +30,7 @@ namespace WiseUpDude.Services
             string? explicitContextSummary,
             string searchContextSize = "medium")
         {
-            var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithContext(
-                contextSource, explicitContextSummary, _logger);
+            var promptBody = ContextualQuizPromptTemplates.BuildQuizPromptWithUserTopic(contextSource, explicitContextSummary, _logger);
 
             var client = _httpClientFactory.CreateClient("PerplexityAI");
             var requestBody = new

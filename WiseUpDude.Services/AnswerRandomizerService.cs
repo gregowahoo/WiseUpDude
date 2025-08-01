@@ -13,28 +13,16 @@ namespace WiseUpDude.Services
         public Quiz DistributeAnswersEvenly(Quiz quiz)
         {
             var random = new Random();
-            
-            // Separate multiple choice and true/false questions
+            // Only process multiple choice questions for answer distribution
             var multipleChoiceQuestions = quiz.Questions
                 .Where(q => q.QuestionType == QuizQuestionType.MultipleChoice && q.Options != null && q.Options.Count > 1)
                 .ToList();
-            
-            var trueFalseQuestions = quiz.Questions
-                .Where(q => q.QuestionType == QuizQuestionType.TrueFalse && q.Options != null && q.Options.Count == 2)
-                .ToList();
 
-            // Process multiple choice questions for even distribution
             if (multipleChoiceQuestions.Any())
             {
                 ProcessMultipleChoiceQuestions(multipleChoiceQuestions, random);
             }
-
-            // Process true/false questions for even distribution
-            if (trueFalseQuestions.Any())
-            {
-                ProcessTrueFalseQuestions(trueFalseQuestions, random);
-            }
-
+            // Do NOT process True/False questions for answer distribution
             return quiz;
         }
 
@@ -102,55 +90,6 @@ namespace WiseUpDude.Services
                 // Update the question with the new options arrangement
                 question.Options = newOptions;
                 question.Answer = correctAnswer; // Ensure correct answer is preserved
-            }
-        }
-
-        private void ProcessTrueFalseQuestions(List<QuizQuestion> questions, Random random)
-        {
-            int trueCount = 0;
-            int falseCount = 0;
-            var questionsToProcess = new List<(QuizQuestion question, bool shouldBeTrue)>();
-
-            // First pass: determine distribution to balance True/False answers
-            for (int i = 0; i < questions.Count; i++)
-            {
-                bool shouldBeTrue;
-                
-                // Alternate or balance based on current counts
-                if (trueCount <= falseCount)
-                {
-                    shouldBeTrue = true;
-                    trueCount++;
-                }
-                else
-                {
-                    shouldBeTrue = false;
-                    falseCount++;
-                }
-
-                questionsToProcess.Add((questions[i], shouldBeTrue));
-            }
-
-            // Shuffle the assignments to avoid predictable patterns
-            questionsToProcess = questionsToProcess.OrderBy(_ => random.Next()).ToList();
-
-            // Second pass: set the correct answers
-            foreach (var (question, shouldBeTrue) in questionsToProcess)
-            {
-                if (question.Options == null || question.Options.Count != 2)
-                    continue;
-
-                // Ensure options are in standard order: ["True", "False"]
-                var trueOption = question.Options.FirstOrDefault(o => 
-                    o.Equals("True", StringComparison.OrdinalIgnoreCase));
-                var falseOption = question.Options.FirstOrDefault(o => 
-                    o.Equals("False", StringComparison.OrdinalIgnoreCase));
-
-                if (!string.IsNullOrEmpty(trueOption) && !string.IsNullOrEmpty(falseOption))
-                {
-                    question.Options = new List<string> { trueOption, falseOption };
-                    question.Answer = shouldBeTrue ? trueOption : falseOption;
-                }
             }
         }
     }

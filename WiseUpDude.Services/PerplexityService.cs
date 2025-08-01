@@ -378,7 +378,7 @@ When generating answers and explanations:
                         }
                     }
                     // Verification for True/False questions (refactored)
-                    await VerifyAndFixTrueFalseQuestionAsync(question);
+                    //await VerifyAndFixTrueFalseQuestionAsync(question);
                 }
 
                 // Apply answer randomization to ensure even distribution across positions
@@ -466,7 +466,7 @@ When generating answers and explanations:
                         }
                     }
                     // Verification for True/False questions (refactored)
-                    await VerifyAndFixTrueFalseQuestionAsync(question);
+                    //await VerifyAndFixTrueFalseQuestionAsync(question);
                 }
 
                 // Apply answer randomization to ensure even distribution across positions

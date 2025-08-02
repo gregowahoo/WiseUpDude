@@ -103,8 +103,8 @@
     background: var(--ryo-card-bg);
     border-radius: var(--ryo-radius);
     box-shadow: var(--ryo-shadow);
-    padding: 2rem 1.5rem 1.5rem 1.5rem;
-    margin-bottom: 2rem;
+    padding: 1.2rem 1rem 1rem 1rem;
+    margin-bottom: 1.2rem;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
@@ -146,6 +146,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    padding: 0.75rem !important;
+    margin-bottom: 1rem !important;
 }
 .ryo-form-group-inline {
     display: flex;
@@ -187,7 +189,7 @@
 .ryo-form-actions {
     display: flex;
     justify-content: center;
-    margin-top: 1rem;
+    margin-top: 0.5rem !important;
 }
 .ryo-action-btn {
     font-size: 1.1rem;
@@ -258,6 +260,22 @@
     font-weight: 400;
 }
 
+/* Center the main container vertically and reduce vertical padding for better fit on standard monitors */
+.container.py-5 {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-top: 2.5rem !important;
+    padding-bottom: 2.5rem !important;
+}
+
+/* Reduce margin below header to bring card up */
+.text-center.mb-5 {
+    margin-bottom: 2rem !important;
+}
+
 /* Optional: Add a subtle divider between tab content for extra clarity */
 .ryo-tab-content > .ryo-form-card {
     border-top: 1.5px solid #e3e8ee;
@@ -273,7 +291,7 @@
         padding: 0 0.25rem;
     }
     .ryo-form-card {
-        padding: 1.2rem 0.5rem 1rem 0.5rem;
+        padding: 0.7rem 0.3rem 0.7rem 0.3rem;
     }
     .ryo-form-title {
         font-size: 1rem;
@@ -281,6 +299,11 @@
     .ryo-action-btn {
         font-size: 1rem;
         padding: 0.6rem 1.2rem;
+    }
+    .container.py-5 {
+        min-height: unset;
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
     }
 }
 

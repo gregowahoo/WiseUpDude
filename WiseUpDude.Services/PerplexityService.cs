@@ -368,7 +368,7 @@ When generating answers and explanations:
                         for (int i = 0; i < question.Citation.Count; i++)
                         {
                             var citation = question.Citation[i];
-                            if (!string.IsNullOrWhiteSpace(citation.Url))
+                            if (!string.IsNullOrWhiteSpace(citation.Url) && IsValidUrl(citation.Url))
                             {
                                 var meta = await GetUrlMetaAsync(citation.Url);
                                 citation.Title = meta.Title;
@@ -456,7 +456,7 @@ When generating answers and explanations:
                         for (int i = 0; i < question.Citation.Count; i++)
                         {
                             var citation = question.Citation[i];
-                            if (!string.IsNullOrWhiteSpace(citation.Url))
+                            if (!string.IsNullOrWhiteSpace(citation.Url) && IsValidUrl(citation.Url))
                             {
                                 var meta = await GetUrlMetaAsync(citation.Url);
                                 citation.Title = meta.Title;
@@ -576,6 +576,12 @@ When generating answers and explanations:
             {
                 _logger.LogInformation("[TF_VERIFY_OK] Q: {Question} | Answer: {Answer} | Explanation: {Explanation} | No flip needed.", question.Question, question.Answer, question.Explanation);
             }
+        }
+
+        private static bool IsValidUrl(string url)
+        {
+            return Uri.TryCreate(url, UriKind.Absolute, out var uriResult)
+                && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
         }
     }
 

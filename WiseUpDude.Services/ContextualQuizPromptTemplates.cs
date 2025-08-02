@@ -33,7 +33,7 @@ QUIZ INSTRUCTIONS:
     - Write an explanation that is clearly aligned with the answer.
     - Assign Difficulty: Easy, Medium, Hard.
     - Add a 'ContextSnippet' summarizing supporting info.
-    - Add a 'Citation': a reputable book, journal, URL, or ['general knowledge'].
+    - Add a 'Citation': always include a reputable URL if available; only use 'general knowledge' if no reputable URL, book, or journal can be found. Prefer URLs over other sources.
 - For ALL questions, 'Answer' and 'Explanation' MUST match perfectly. If any mismatch is detected, fix or skip the question.
 
 REQUIRED OUTPUT FORMAT:

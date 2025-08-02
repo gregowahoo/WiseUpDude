@@ -376,6 +376,10 @@ When generating answers and explanations:
                                 question.Citation[i] = citation;
                             }
                         }
+                        // Remove citations with no info
+                        question.Citation = question.Citation
+                            .Where(c => !(string.IsNullOrWhiteSpace(c.Title) || c.Title == c.Url) && !string.IsNullOrWhiteSpace(c.Description))
+                            .ToList();
                     }
                     // Verification for True/False questions (refactored)
                     //await VerifyAndFixTrueFalseQuestionAsync(question);
@@ -464,6 +468,10 @@ When generating answers and explanations:
                                 question.Citation[i] = citation;
                             }
                         }
+                        // Remove citations with no info
+                        question.Citation = question.Citation
+                            .Where(c => !(string.IsNullOrWhiteSpace(c.Title) || c.Title == c.Url) && !string.IsNullOrWhiteSpace(c.Description))
+                            .ToList();
                     }
                     // Verification for True/False questions (refactored)
                     //await VerifyAndFixTrueFalseQuestionAsync(question);

@@ -129,7 +129,7 @@
                                         <tr>
                                             <td>@quiz.Name</td>
                                             <td>
-                                                <span class="badge @GetTypeBadgeClass(quiz.Type)">@quiz.Type</span>
+                                                <span class="badge @GetTypeBadgeClass(quiz.Type ?? "Unknown")">@quiz.Type</span>
                                             </td>
                                             <td>
                                                 @if (quiz.Type == "Topic")
@@ -209,7 +209,7 @@
                                             <td>@quiz.Name</td>
                                             <td>@quiz.QuizOfTheDayDate?.ToString("MMMM dd, yyyy")</td>
                                             <td>
-                                                <span class="badge @GetTypeBadgeClass(quiz.Type)">@quiz.Type</span>
+                                                <span class="badge @GetTypeBadgeClass(quiz.Type ?? "Unknown")">@quiz.Type</span>
                                             </td>
                                             <td>@quiz.UserName</td>
                                             <td>
@@ -312,7 +312,7 @@
                 var allQuizzes = JsonSerializer.Deserialize<List<Quiz>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
                 
                 SearchResults = allQuizzes
-                    .Where(q => q.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    .Where(q => q.Name?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
                                (q.Topic?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
                                (q.Prompt?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
                     .OrderByDescending(q => q.CreationDate)

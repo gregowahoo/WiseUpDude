@@ -57,7 +57,7 @@
     </div>
 
     <!-- Topics Grid -->
-    <div class="row row-cols-1 row-cols-md-3 g-4">
+    <div id="tests-section" class="row row-cols-1 row-cols-md-3 g-4">
         @foreach (var topic in FilteredTopics)
         {
             <div class="col">
@@ -100,6 +100,8 @@
             // Load topics filtered by the selected category
             FilteredTopics = (await TopicRepository.GetTopicsByCategoryAsync(category.Id)).ToList();
         }
+        // Scroll to tests-section after filtering
+        await JSRuntime.InvokeVoidAsync("scrollHelpers.scrollToSection", "tests-section");
     }
 
     private async Task GetQuiz(int topicId)

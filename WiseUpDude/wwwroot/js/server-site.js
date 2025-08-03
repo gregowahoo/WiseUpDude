@@ -134,3 +134,13 @@ window.togglePopover = (elementId) => {
         element._popoverInstance.toggle();
     }
 };
+
+// Scroll to section by id (for Blazor interop)
+window.scrollHelpers = {
+    scrollToSection: function (elementId) {
+        var element = document.getElementById(elementId);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+};

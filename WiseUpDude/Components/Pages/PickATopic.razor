@@ -25,6 +25,8 @@
 
 @inject IConfiguration Configuration
 
+@inject ILogger<PickATopic> Logger
+
 @rendermode InteractiveServer
 @attribute [Authorize(Roles = "FreeSubscriber,PaidSubscriber,Admin,EnterpriseSubscriber")]
 
@@ -153,11 +155,13 @@
             else
             {
                 Console.WriteLine("🚫 No quizzes found for the selected topic. Consider generating one via AI.");
+                Logger.LogWarning("No quizzes found for topicId {TopicId}", topicId);
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error during quiz generation or fetch: {ex.Message}");
+            Logger.LogError(ex, "Error during quiz generation or fetch for topicId {TopicId}", topicId);
         }
         finally
         {

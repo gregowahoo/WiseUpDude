@@ -86,5 +86,77 @@ namespace WiseUpDude.Controllers
 
             return NoContent();
         }
+
+        // GET: api/Quizzes/QuizOfTheDay
+        [HttpGet("QuizOfTheDay")]
+        [OutputCache(Duration = 60)]
+        public async Task<ActionResult<Quiz>> GetCurrentQuizOfTheDay()
+        {
+            var today = DateTime.Today;
+            var quizzes = await _quizRepository.GetAllAsync();
+            var todaysQuiz = quizzes.FirstOrDefault(q => q.IsQuizOfTheDay && 
+                q.QuizOfTheDayDate.HasValue && 
+                q.QuizOfTheDayDate.Value.Date == today);
+            
+            if (todaysQuiz == null)
+            {
+                return NotFound("No Quiz of the Day set for today");
+            }
+            
+            return Ok(todaysQuiz);
+        }
+
+        // GET: api/Quizzes/QuizOfTheDay/All
+        [HttpGet("QuizOfTheDay/All")]
+        [OutputCache(Duration = 300)]
+        public async Task<ActionResult<IEnumerable<Quiz>>> GetAllQuizzesOfTheDay()
+        {
+            var quizzes = await _quizRepository.GetAllAsync();
+            var quizzesOfTheDay = quizzes.Where(q => q.IsQuizOfTheDay && q.QuizOfTheDayDate.HasValue)
+                                        .OrderByDescending(q => q.QuizOfTheDayDate)
+                                        .ToList();
+            
+            return Ok(quizzesOfTheDay);
+        }
+
+        // POST: api/Quizzes/{id}/SetQuizOfTheDay
+        [HttpPost("{id}/SetQuizOfTheDay")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SetQuizOfTheDay(int id, [FromBody] DateTime? date = null)
+        {
+            try
+            {
+                var quiz = await _quizRepository.GetByIdAsync(id);
+                quiz.IsQuizOfTheDay = true;
+                quiz.QuizOfTheDayDate = date ?? DateTime.Today;
+                
+                await _quizRepository.UpdateAsync(quiz);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+        }
+
+        // DELETE: api/Quizzes/{id}/RemoveQuizOfTheDay
+        [HttpDelete("{id}/RemoveQuizOfTheDay")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RemoveQuizOfTheDay(int id)
+        {
+            try
+            {
+                var quiz = await _quizRepository.GetByIdAsync(id);
+                quiz.IsQuizOfTheDay = false;
+                quiz.QuizOfTheDayDate = null;
+                
+                await _quizRepository.UpdateAsync(quiz);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+        }
     }
 }

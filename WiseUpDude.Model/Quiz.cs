@@ -40,6 +40,11 @@ namespace WiseUpDude.Model
 
         // New field for Learn Mode
         public bool LearnMode { get; set; }
+
+        // Quiz of the Day fields
+        public bool IsQuizOfTheDay { get; set; } = false;
+        
+        public DateTime? QuizOfTheDayDate { get; set; }
     }
 
 }

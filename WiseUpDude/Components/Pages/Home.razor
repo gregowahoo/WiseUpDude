@@ -15,7 +15,7 @@
 @inject IUserQuizRepository<Quiz> UserQuizRepository
 @inject IUserQuizQuestionRepository<QuizQuestion> UserQuizQuestionRepository
 @inject QuizStateService QuizState
-@inject HttpClient Http
+@inject IQuizOfTheDayService QuizOfTheDayService
 @rendermode InteractiveServer
 @attribute [Authorize(Roles = "FreeSubscriber,PaidSubscriber,Admin,EnterpriseSubscriber")]
 
@@ -343,12 +343,7 @@
     {
         try
         {
-            var response = await Http.GetAsync("/api/Quizzes/QuizOfTheDay");
-            if (response.IsSuccessStatusCode)
-            {
-                var quizJson = await response.Content.ReadAsStringAsync();
-                TodaysQuizOfTheDay = System.Text.Json.JsonSerializer.Deserialize<Quiz>(quizJson, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            }
+            TodaysQuizOfTheDay = await QuizOfTheDayService.GetCurrentQuizOfTheDayAsync();
         }
         catch (Exception ex)
         {

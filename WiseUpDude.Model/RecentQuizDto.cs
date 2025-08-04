@@ -12,5 +12,7 @@ namespace WiseUpDude.Model
         public bool LearnMode { get; set; }
         public string? Url { get; set; } // Add Url property for URL quizzes
         public DateTime CreationDate { get; set; } // Add CreationDate for filtering
+        public bool IsQuizOfTheDay { get; set; } = false;
+        public DateTime? QuizOfTheDayDate { get; set; }
     }
 }

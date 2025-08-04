@@ -44,6 +44,11 @@ namespace WiseUpDude.Data.Entities
         public Topic? Topic { get; set; } // Now nullable
 
         public DateTime CreationDate { get; set; }
+
+        // Quiz of the Day fields
+        public bool IsQuizOfTheDay { get; set; } = false;
+        
+        public DateTime? QuizOfTheDayDate { get; set; }
     }
 }
 

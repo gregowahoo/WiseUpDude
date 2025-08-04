@@ -15,6 +15,7 @@
 @inject IUserQuizRepository<Quiz> UserQuizRepository
 @inject IUserQuizQuestionRepository<QuizQuestion> UserQuizQuestionRepository
 @inject QuizStateService QuizState
+@inject HttpClient Http
 @rendermode InteractiveServer
 @attribute [Authorize(Roles = "FreeSubscriber,PaidSubscriber,Admin,EnterpriseSubscriber")]
 
@@ -40,6 +41,58 @@
                 <h5>Best Quiz</h5>
                 <p>@(Summary?.BestQuizName ?? "N/A")</p>
                 <p class="text-success">Score: @($"{Summary?.BestQuizScore ?? 0:F0}%")</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz of the Day Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">🎯 Quiz of the Day</h5>
+                </div>
+                <div class="card-body">
+                    @if (TodaysQuizOfTheDay != null)
+                    {
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title">@TodaysQuizOfTheDay.Name</h6>
+                                <p class="card-text text-muted small mb-0">
+                                    @if (TodaysQuizOfTheDay.Type == "Topic")
+                                    {
+                                        <span class="badge bg-info me-1">Topic:</span>@TodaysQuizOfTheDay.Topic
+                                    }
+                                    else if (TodaysQuizOfTheDay.Type == "Prompt")
+                                    {
+                                        <span class="badge bg-warning me-1">Prompt:</span>@(TodaysQuizOfTheDay.Prompt?.Length > 50 ? TodaysQuizOfTheDay.Prompt.Substring(0, 50) + "..." : TodaysQuizOfTheDay.Prompt)
+                                    }
+                                    else if (TodaysQuizOfTheDay.Type == "Url")
+                                    {
+                                        <span class="badge bg-primary me-1">URL Quiz</span>
+                                    }
+                                </p>
+                            </div>
+                            <div>
+                                <button class="btn btn-primary btn-sm" @onclick="() => TakeTodaysQuiz(TodaysQuizOfTheDay.Id)">
+                                    <i class="bi bi-play-fill"></i> Take Quiz
+                                </button>
+                                <a href="/quiz-of-the-day" class="btn btn-outline-primary btn-sm ms-2">
+                                    View All
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex justify-content-between align-items-center">
+                            <p class="mb-0 text-muted">No Quiz of the Day set for today.</p>
+                            <a href="/quiz-of-the-day" class="btn btn-outline-primary btn-sm">
+                                View Previous Quizzes
+                            </a>
+                        </div>
+                    }
+                </div>
             </div>
         </div>
     </div>
@@ -235,6 +288,7 @@
     private int? quizToDeleteId = null;
     private HashSet<int> quizzesWithAnswers = new HashSet<int>();
     private QuizFilterPeriod selectedFilter = QuizFilterPeriod.Today;
+    private Quiz? TodaysQuizOfTheDay;
 
     private void EditQuizName(int quizId) => editingQuizId = quizId;
     private void CancelEdit() => editingQuizId = null;
@@ -278,7 +332,27 @@
                         .Distinct();
                     quizzesWithAnswers = new HashSet<int>(quizIdsWithAnswers);
                 }
+                
+                // Load today's Quiz of the Day
+                await LoadTodaysQuizOfTheDay();
             }
+        }
+    }
+
+    private async Task LoadTodaysQuizOfTheDay()
+    {
+        try
+        {
+            var response = await Http.GetAsync("/api/Quizzes/QuizOfTheDay");
+            if (response.IsSuccessStatusCode)
+            {
+                var quizJson = await response.Content.ReadAsStringAsync();
+                TodaysQuizOfTheDay = System.Text.Json.JsonSerializer.Deserialize<Quiz>(quizJson, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading today's quiz: {ex.Message}");
         }
     }
 
@@ -457,5 +531,28 @@
             _ => DateTime.MinValue
         };
         return Summary.RecentQuizzes.Count(q => q.CreationDate.ToLocalTime() >= startDate);
+    }
+
+    private async Task TakeTodaysQuiz(int quizId)
+    {
+        IsGenerating = true;
+        
+        try
+        {
+            var selectedQuiz = await UserQuizRepository.GetByIdAsync(quizId);
+            if (selectedQuiz != null)
+            {
+                QuizState.CurrentQuiz = selectedQuiz;
+                NavManager.NavigateTo($"/TakeAQuiz/{quizId}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error taking today's quiz: {ex.Message}");
+        }
+        finally
+        {
+            IsGenerating = false;
+        }
     }
 }

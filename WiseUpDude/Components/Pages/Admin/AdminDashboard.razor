@@ -11,9 +11,36 @@
 <PageTitle>Admin - User Management</PageTitle>  
   
 <h2>User Management</h2>  
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Quiz Management</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Manage Quiz of the Day settings and featured quizzes.</p>
+                <a href="/admin/quiz-of-the-day" class="btn btn-primary">Quiz of the Day Management</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">User Management</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Add, edit, and remove users from the system.</p>
+                <button class="btn btn-success" @onclick="AddUser">Add New User</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3>Users</h3>
   
 <p>  
-    <button class="btn btn-success" @onclick="AddUser">Add New User</button>  
+    <button class="btn btn-success" @onclick="AddUser">Add Another User</button>  
 </p>  
   
 @if (users == null)  

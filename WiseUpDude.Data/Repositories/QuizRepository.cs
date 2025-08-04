@@ -48,7 +48,10 @@ namespace WiseUpDude.Data.Repositories
                 Topic = e.Topic?.Name, // Use the Topic's Name
                 TopicId = (int)e.TopicId, // Map TopicId
                 Description = e.Description,
-                Difficulty = e.Difficulty // Include quiz-level difficulty
+                Difficulty = e.Difficulty, // Include quiz-level difficulty
+                CreationDate = e.CreationDate,
+                IsQuizOfTheDay = e.IsQuizOfTheDay,
+                QuizOfTheDayDate = e.QuizOfTheDayDate
             });
         }
 
@@ -84,7 +87,10 @@ namespace WiseUpDude.Data.Repositories
                 Topic = entity.Topic?.Name, // Use the Topic's Name
                 TopicId = entity.TopicId, // Map TopicId
                 Description = entity.Description,
-                Difficulty = entity.Difficulty // Include quiz-level difficulty
+                Difficulty = entity.Difficulty, // Include quiz-level difficulty
+                CreationDate = entity.CreationDate,
+                IsQuizOfTheDay = entity.IsQuizOfTheDay,
+                QuizOfTheDayDate = entity.QuizOfTheDayDate
             };
         }
 
@@ -119,7 +125,10 @@ namespace WiseUpDude.Data.Repositories
                 TopicId = q.TopicId,
                 Prompt = q.Prompt,
                 Description = q.Description,
-                Difficulty = q.Difficulty
+                Difficulty = q.Difficulty,
+                CreationDate = q.CreationDate,
+                IsQuizOfTheDay = q.IsQuizOfTheDay,
+                QuizOfTheDayDate = q.QuizOfTheDayDate
             });
         }
 
@@ -136,7 +145,10 @@ namespace WiseUpDude.Data.Repositories
                 Prompt = quiz.Prompt,
                 TopicId = quiz.TopicId, // Use TopicId directly
                 Description = quiz.Description,
-                Difficulty = quiz.Difficulty
+                Difficulty = quiz.Difficulty,
+                CreationDate = quiz.CreationDate != default ? quiz.CreationDate : DateTime.UtcNow,
+                IsQuizOfTheDay = quiz.IsQuizOfTheDay,
+                QuizOfTheDayDate = quiz.QuizOfTheDayDate
             };
 
             // Add the Quiz to the database first to generate its ID
@@ -231,6 +243,8 @@ namespace WiseUpDude.Data.Repositories
             entity.TopicId = model.TopicId; // Update TopicId
             entity.Description = model.Description;
             entity.Difficulty = model.Difficulty; // Update quiz-level difficulty
+            entity.IsQuizOfTheDay = model.IsQuizOfTheDay;
+            entity.QuizOfTheDayDate = model.QuizOfTheDayDate;
 
             // Update Questions with the Quiz reference
             entity.Questions = model.Questions.Select(q => new Entities.QuizQuestion

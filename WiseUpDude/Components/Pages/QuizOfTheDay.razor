@@ -4,10 +4,9 @@
 
 @using Microsoft.AspNetCore.Components.Authorization
 @using WiseUpDude.Model
-@using System.Net.Http
-@using System.Text.Json
+@using WiseUpDude.Services
 
-@inject HttpClient Http
+@inject IQuizOfTheDayService QuizOfTheDayService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavManager
 
@@ -220,20 +219,11 @@
         try
         {
             // Load today's quiz
-            var todaysResponse = await Http.GetAsync("/api/Quizzes/QuizOfTheDay");
-            if (todaysResponse.IsSuccessStatusCode)
-            {
-                var todaysQuizJson = await todaysResponse.Content.ReadAsStringAsync();
-                TodaysQuiz = JsonSerializer.Deserialize<Quiz>(todaysQuizJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            }
+            TodaysQuiz = await QuizOfTheDayService.GetCurrentQuizOfTheDayAsync();
 
             // Load all quizzes of the day
-            var allResponse = await Http.GetAsync("/api/Quizzes/QuizOfTheDay/All");
-            if (allResponse.IsSuccessStatusCode)
-            {
-                var allQuizzesJson = await allResponse.Content.ReadAsStringAsync();
-                AllQuizzesOfTheDay = JsonSerializer.Deserialize<List<Quiz>>(allQuizzesJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
-            }
+            var allQuizzes = await QuizOfTheDayService.GetAllQuizzesOfTheDayAsync();
+            AllQuizzesOfTheDay = allQuizzes.ToList();
         }
         catch (Exception ex)
         {

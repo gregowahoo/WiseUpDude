@@ -4,11 +4,11 @@
 
 @using Microsoft.AspNetCore.Components.Authorization
 @using WiseUpDude.Model
-@using System.Net.Http
-@using System.Text.Json
-@using System.Text
+@using WiseUpDude.Services
+@using WiseUpDude.Data.Repositories
 
-@inject HttpClient Http
+@inject IQuizOfTheDayService QuizOfTheDayService
+@inject IRepository<Quiz> QuizRepository
 @inject NavigationManager NavigationManager
 
 <PageTitle>Admin - Quiz of the Day Management</PageTitle>
@@ -269,20 +269,11 @@
         try
         {
             // Load current quiz of the day
-            var currentResponse = await Http.GetAsync("/api/Quizzes/QuizOfTheDay");
-            if (currentResponse.IsSuccessStatusCode)
-            {
-                var currentJson = await currentResponse.Content.ReadAsStringAsync();
-                CurrentQuizOfTheDay = JsonSerializer.Deserialize<Quiz>(currentJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            }
+            CurrentQuizOfTheDay = await QuizOfTheDayService.GetCurrentQuizOfTheDayAsync();
 
             // Load all quizzes of the day
-            var allResponse = await Http.GetAsync("/api/Quizzes/QuizOfTheDay/All");
-            if (allResponse.IsSuccessStatusCode)
-            {
-                var allJson = await allResponse.Content.ReadAsStringAsync();
-                AllQuizzesOfTheDay = JsonSerializer.Deserialize<List<Quiz>>(allJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
-            }
+            var allQuizzes = await QuizOfTheDayService.GetAllQuizzesOfTheDayAsync();
+            AllQuizzesOfTheDay = allQuizzes.ToList();
         }
         catch (Exception ex)
         {
@@ -305,19 +296,14 @@
 
         try
         {
-            var response = await Http.GetAsync("/api/Quizzes");
-            if (response.IsSuccessStatusCode)
-            {
-                var json = await response.Content.ReadAsStringAsync();
-                var allQuizzes = JsonSerializer.Deserialize<List<Quiz>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
-                
-                SearchResults = allQuizzes
-                    .Where(q => q.Name?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
-                               (q.Topic?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                               (q.Prompt?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
-                    .OrderByDescending(q => q.CreationDate)
-                    .ToList();
-            }
+            var allQuizzes = await QuizRepository.GetAllAsync();
+            
+            SearchResults = allQuizzes
+                .Where(q => q.Name?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                           (q.Topic?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                           (q.Prompt?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
+                .OrderByDescending(q => q.CreationDate)
+                .ToList();
         }
         catch (Exception ex)
         {
@@ -334,20 +320,10 @@
 
         try
         {
-            var dateJson = JsonSerializer.Serialize(SelectedDate);
-            var content = new StringContent(dateJson, Encoding.UTF8, "application/json");
-            var response = await Http.PostAsync($"/api/Quizzes/{quizId}/SetQuizOfTheDay", content);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                await LoadData();
-                SearchResults.Clear();
-                SearchTerm = "";
-            }
-            else
-            {
-                Console.WriteLine($"Error setting quiz of the day: {response.StatusCode}");
-            }
+            await QuizOfTheDayService.SetQuizOfTheDayAsync(quizId, SelectedDate);
+            await LoadData();
+            SearchResults.Clear();
+            SearchTerm = "";
         }
         catch (Exception ex)
         {
@@ -367,16 +343,8 @@
 
         try
         {
-            var response = await Http.DeleteAsync($"/api/Quizzes/{quizId}/RemoveQuizOfTheDay");
-            
-            if (response.IsSuccessStatusCode)
-            {
-                await LoadData();
-            }
-            else
-            {
-                Console.WriteLine($"Error removing quiz of the day: {response.StatusCode}");
-            }
+            await QuizOfTheDayService.RemoveQuizOfTheDayAsync(quizId);
+            await LoadData();
         }
         catch (Exception ex)
         {

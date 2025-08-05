@@ -26,6 +26,8 @@
 
 @inject WiseUpDude.Client.Services.JwtAuthService JwtAuthService
 
+@inject IAssignmentTypeService AssignmentTypeService
+
 
 
 <div class="card">
@@ -215,7 +217,7 @@
     private string? saveMessageType;
     private List<bool?> questionResults = new();
 
-    private List<AssignmentType> AssignmentTypes = new();
+    private List<AssignmentTypeDto> AssignmentTypes = new();
     private int SelectedAssignmentTypeId;
     private DateTime SpecialStartDate = DateTime.Today;
     private DateTime SpecialEndDate = DateTime.Today.AddDays(7);
@@ -223,6 +225,7 @@
     private bool IsAdmin = false;
     private bool IsAssigningSpecial = false;
     private string SpecialAssignMessage = "";
+    private bool adminChecked = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -248,15 +251,16 @@
                 totalAnswered = answeredQuestions.Count;
                 questionResults = BuildQuestionResults();
             }
-
-            IsAdmin = await JwtAuthService.IsAdminAsync();
             try
             {
-                var types = await HttpClient.GetFromJsonAsync<List<AssignmentType>>("/api/SpecialQuizAssignments/types");
-                if (types != null)
-                    AssignmentTypes = types;
+                AssignmentTypes = await AssignmentTypeService.GetAllAsync();
+                Logger.LogInformation($"Loaded {AssignmentTypes.Count} assignment types successfully in TakeAQuiz.razor.");
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to load assignment types in TakeAQuiz.razor");
+                SpecialAssignMessage = "Could not load assignment types. Please try again later.";
+            }
         }
         catch (Exception ex)
         {
@@ -266,20 +270,15 @@
         Logger.LogInformation("Method: OnInitializedAsync END");
     }
 
-    private List<bool?> BuildQuestionResults()
-    {
-        // Logger.LogInformation("Method: BuildQuestionResults");
-        if (UserQuiz?.Questions == null)
-            return Enumerable.Repeat<bool?>(null, totalQuestions).ToList();
-        return UserQuiz.Questions.Select(q =>
-            string.IsNullOrEmpty(q.UserAnswer)
-                ? (bool?)null
-                : q.UserAnswer == q.Answer).ToList();
-    }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         Logger.LogInformation($"Method: OnAfterRenderAsync (firstRender={firstRender})");
+        if (firstRender && !adminChecked)
+        {
+            IsAdmin = await JwtAuthService.IsAdminAsync();
+            adminChecked = true;
+            StateHasChanged();
+        }
         if (firstRender)
         {
             try
@@ -291,6 +290,17 @@
                 Logger.LogError(ex, "Exception in OnAfterRenderAsync");
             }
         }
+    }
+
+    private List<bool?> BuildQuestionResults()
+    {
+        // Logger.LogInformation("Method: BuildQuestionResults");
+        if (UserQuiz?.Questions == null)
+            return Enumerable.Repeat<bool?>(null, totalQuestions).ToList();
+        return UserQuiz.Questions.Select(q =>
+            string.IsNullOrEmpty(q.UserAnswer)
+                ? (bool?)null
+                : q.UserAnswer == q.Answer).ToList();
     }
 
     private void ToggleAutoSubmit()

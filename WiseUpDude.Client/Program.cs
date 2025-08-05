@@ -45,5 +45,6 @@ builder.Services.AddScoped<IUserQuizAttemptApiService, UserQuizAttemptApiService
 builder.Services.AddScoped<WiseUpDude.Shared.Services.UrlMetaClient>();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<WiseUpDude.Client.Services.JwtAuthService>();
+builder.Services.AddScoped<WiseUpDude.Shared.Services.IAssignmentTypeService, WiseUpDude.Shared.Services.AssignmentTypeService>();
 
 await builder.Build().RunAsync();

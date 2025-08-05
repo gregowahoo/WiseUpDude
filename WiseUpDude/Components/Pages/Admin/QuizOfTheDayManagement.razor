@@ -11,71 +11,15 @@
 @inject IRepository<Quiz> QuizRepository
 @inject NavigationManager NavigationManager
 
-<PageTitle>Admin - Quiz of the Day Management</PageTitle>
+<PageTitle>Admin - Quizzes of the Day Management</PageTitle>
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Quiz of the Day Management</h2>
+        <h2>Quizzes of the Day Management</h2>
         <a href="/admin/users" class="btn btn-secondary">Back to Admin Dashboard</a>
     </div>
 
-    <!-- Current Quiz of the Day -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-primary">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Current Quiz of the Day</h5>
-                </div>
-                <div class="card-body">
-                    @if (IsLoading)
-                    {
-                        <div class="text-center">
-                            <div class="spinner-border spinner-border-sm" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            Loading...
-                        </div>
-                    }
-                    else if (CurrentQuizOfTheDay != null)
-                    {
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6>@CurrentQuizOfTheDay.Name</h6>
-                                <p class="text-muted mb-1">
-                                    <strong>Type:</strong> @CurrentQuizOfTheDay.Type
-                                    @if (CurrentQuizOfTheDay.Type == "Topic")
-                                    {
-                                        <span> - @CurrentQuizOfTheDay.Topic</span>
-                                    }
-                                </p>
-                                <p class="text-muted mb-1"><strong>Featured on:</strong> @CurrentQuizOfTheDay.QuizOfTheDayDate?.ToString("MMMM dd, yyyy")</p>
-                                <p class="text-muted mb-0"><strong>Created by:</strong> @CurrentQuizOfTheDay.UserName</p>
-                            </div>
-                            <div>
-                                <button class="btn btn-warning btn-sm" @onclick="() => RemoveQuizOfTheDay(CurrentQuizOfTheDay.Id)" disabled="@IsProcessing">
-                                    @if (IsProcessing)
-                                    {
-                                        <span class="spinner-border spinner-border-sm" role="status"></span>
-                                    }
-                                    else
-                                    {
-                                        <i class="bi bi-x-circle"></i>
-                                    }
-                                    Remove
-                                </button>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <p class="text-muted mb-0">No Quiz of the Day set for today.</p>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Search and Set Quiz of the Day -->
+    <!-- Search and Set Quizzes of the Day -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
@@ -181,12 +125,12 @@
         </div>
     }
 
-    <!-- All Quizzes of the Day -->
+    <!-- Quizzes of the Day -->
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">All Quizzes of the Day (@AllQuizzesOfTheDay.Count)</h5>
+                    <h5 class="mb-0">Quizzes of the Day (@AllQuizzesOfTheDay.Count)</h5>
                 </div>
                 <div class="card-body">
                     @if (AllQuizzesOfTheDay.Any())
@@ -239,7 +183,7 @@
                     }
                     else
                     {
-                        <p class="text-muted">No quizzes have been featured as Quiz of the Day yet.</p>
+                        <p class="text-muted">No quizzes have been featured as Quizzes of the Day yet.</p>
                     }
                 </div>
             </div>
@@ -248,7 +192,6 @@
 </div>
 
 @code {
-    private Quiz? CurrentQuizOfTheDay;
     private List<Quiz> AllQuizzesOfTheDay = new();
     private List<Quiz> SearchResults = new();
     private string SearchTerm = "";
@@ -268,9 +211,6 @@
 
         try
         {
-            // Load current quiz of the day
-            CurrentQuizOfTheDay = await QuizOfTheDayService.GetCurrentQuizOfTheDayAsync();
-
             // Load all quizzes of the day
             var allQuizzes = await QuizOfTheDayService.GetAllQuizzesOfTheDayAsync();
             AllQuizzesOfTheDay = allQuizzes.ToList();

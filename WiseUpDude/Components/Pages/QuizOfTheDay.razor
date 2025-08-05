@@ -13,79 +13,21 @@
 @rendermode InteractiveServer
 @attribute [Authorize(Roles = "FreeSubscriber,PaidSubscriber,Admin,EnterpriseSubscriber")]
 
-<h1 class="text-center mb-4">🎯 Quiz of the Day</h1>
+<h1 class="text-center mb-4">🎯 Quizzes of the Day</h1>
 
 <div class="container">
-    <!-- Current Quiz of the Day -->
-    <div class="row mb-5">
-        <div class="col-12">
-            <h2>Today's Featured Quiz</h2>
-            @if (IsLoading)
-            {
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2">Loading today's quiz...</p>
-                </div>
-            }
-            else if (TodaysQuiz != null)
-            {
-                <div class="card shadow-lg border-primary">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">@TodaysQuiz.Name</h4>
-                        <small>Featured on @TodaysQuiz.QuizOfTheDayDate?.ToString("MMMM dd, yyyy")</small>
-                    </div>
-                    <div class="card-body">
-                        @if (TodaysQuiz.Type == "Prompt")
-                        {
-                            <p><span class="badge bg-warning">Prompt:</span> @TodaysQuiz.Prompt</p>
-                        }
-                        else if (TodaysQuiz.Type == "Topic")
-                        {
-                            <p><span class="badge bg-info">Topic:</span> @TodaysQuiz.Topic</p>
-                        }
-                        else if (TodaysQuiz.Type == "Url")
-                        {
-                            <p>
-                                <span class="badge bg-primary">URL</span>
-                                @if (!string.IsNullOrWhiteSpace(TodaysQuiz.Url))
-                                {
-                                    <a href="@TodaysQuiz.Url" target="_blank" class="ms-1 text-decoration-underline text-primary">@TodaysQuiz.Url</a>
-                                }
-                            </p>
-                        }
-                        @if (!string.IsNullOrWhiteSpace(TodaysQuiz.Description))
-                        {
-                            <p class="text-muted">@TodaysQuiz.Description</p>
-                        }
-                        <p><span class="badge bg-secondary">Difficulty:</span> @TodaysQuiz.Difficulty</p>
-                    </div>
-                    <div class="card-footer">
-                        <button class="btn btn-primary btn-lg" @onclick="() => TakeQuiz(TodaysQuiz.Id)">
-                            <i class="bi bi-play-fill"></i> Take This Quiz
-                        </button>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i>
-                    No Quiz of the Day has been set for today. Check back tomorrow or browse previous featured quizzes below!
-                </div>
-            }
-        </div>
-    </div>
-
     <!-- Filter Controls -->
     <div class="row mb-4">
         <div class="col-12">
-            <h3>Previous Quizzes of the Day</h3>
+            <h3>Quizzes of the Day</h3>
             <div class="d-flex gap-2 flex-wrap">
                 <button class="btn @(selectedFilter == QuizOfDayFilter.All ? "btn-primary" : "btn-outline-primary")" 
                         @onclick="() => OnFilterChanged(QuizOfDayFilter.All)">
                     All (@GetFilteredCount(QuizOfDayFilter.All))
+                </button>
+                <button class="btn @(selectedFilter == QuizOfDayFilter.Today ? "btn-primary" : "btn-outline-primary")" 
+                        @onclick="() => OnFilterChanged(QuizOfDayFilter.Today)">
+                    Today (@GetFilteredCount(QuizOfDayFilter.Today))
                 </button>
                 <button class="btn @(selectedFilter == QuizOfDayFilter.ThisWeek ? "btn-primary" : "btn-outline-primary")" 
                         @onclick="() => OnFilterChanged(QuizOfDayFilter.ThisWeek)">
@@ -123,7 +65,7 @@
                     <div class="col-md-6 col-lg-4 mb-4">
                         <div class="card shadow-sm h-100">
                             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0 text-truncate">@quiz.Name</h5>
+                                <h6 class="mb-0 text-truncate">@quiz.Name</h6>
                                 <small>@quiz.QuizOfTheDayDate?.ToString("MM/dd/yyyy")</small>
                             </div>
                             <div class="card-body">
@@ -182,7 +124,7 @@
                             <h5 class="mb-0">Admin Controls</h5>
                         </div>
                         <div class="card-body">
-                            <p>Admin functionality for managing Quiz of the Day will be available in the Admin Dashboard.</p>
+                            <p>Admin functionality for managing Quizzes of the Day will be available in the Admin Dashboard.</p>
                             <a href="/admin" class="btn btn-warning">Go to Admin Dashboard</a>
                         </div>
                     </div>
@@ -196,12 +138,12 @@
     public enum QuizOfDayFilter
     {
         All,
+        Today,
         ThisWeek,
         ThisMonth,
         Last3Months
     }
 
-    private Quiz? TodaysQuiz;
     private List<Quiz> AllQuizzesOfTheDay = new();
     private bool IsLoading = true;
     private QuizOfDayFilter selectedFilter = QuizOfDayFilter.All;
@@ -218,9 +160,6 @@
 
         try
         {
-            // Load today's quiz
-            TodaysQuiz = await QuizOfTheDayService.GetCurrentQuizOfTheDayAsync();
-
             // Load all quizzes of the day
             var allQuizzes = await QuizOfTheDayService.GetAllQuizzesOfTheDayAsync();
             AllQuizzesOfTheDay = allQuizzes.ToList();
@@ -244,11 +183,6 @@
 
     private List<Quiz> GetFilteredQuizzes()
     {
-        if (selectedFilter == QuizOfDayFilter.All)
-        {
-            return AllQuizzesOfTheDay.ToList();
-        }
-
         var now = DateTime.Now;
         var today = now.Date;
         var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
@@ -257,11 +191,17 @@
 
         DateTime startDate = selectedFilter switch
         {
+            QuizOfDayFilter.Today => today,
             QuizOfDayFilter.ThisWeek => startOfWeek,
             QuizOfDayFilter.ThisMonth => startOfMonth,
             QuizOfDayFilter.Last3Months => startOfLast3Months,
             _ => DateTime.MinValue
         };
+
+        if (selectedFilter == QuizOfDayFilter.All)
+        {
+            return AllQuizzesOfTheDay.ToList();
+        }
 
         return AllQuizzesOfTheDay
             .Where(q => q.QuizOfTheDayDate.HasValue && q.QuizOfTheDayDate.Value.Date >= startDate)
@@ -270,11 +210,6 @@
 
     private int GetFilteredCount(QuizOfDayFilter filter)
     {
-        if (filter == QuizOfDayFilter.All)
-        {
-            return AllQuizzesOfTheDay.Count;
-        }
-
         var now = DateTime.Now;
         var today = now.Date;
         var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
@@ -283,11 +218,17 @@
 
         DateTime startDate = filter switch
         {
+            QuizOfDayFilter.Today => today,
             QuizOfDayFilter.ThisWeek => startOfWeek,
             QuizOfDayFilter.ThisMonth => startOfMonth,
             QuizOfDayFilter.Last3Months => startOfLast3Months,
             _ => DateTime.MinValue
         };
+
+        if (filter == QuizOfDayFilter.All)
+        {
+            return AllQuizzesOfTheDay.Count;
+        }
 
         return AllQuizzesOfTheDay
             .Count(q => q.QuizOfTheDayDate.HasValue && q.QuizOfTheDayDate.Value.Date >= startDate);

@@ -16,6 +16,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="9.0.7" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="9.0.7" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter" Version="9.0.7" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.7" />

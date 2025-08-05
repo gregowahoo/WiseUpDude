@@ -31,6 +31,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<LearningTrackQuizAttempt> LearningTrackQuizAttempts { get; set; }
     public DbSet<LearningTrackQuizAttemptQuestion> LearningTrackAttemptQuestions { get; set; }
 
+    public DbSet<AssignmentType> AssignmentTypes { get; set; }
+    public DbSet<SpecialQuizAssignment> SpecialQuizAssignments { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -73,6 +76,47 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<Category>()
             .Property(uqq => uqq.CreationDate)
             .HasDefaultValueSql("GETDATE()");
+
+        // Configure AssignmentType entity
+        modelBuilder.Entity<AssignmentType>(entity =>
+        {
+            entity.HasKey(at => at.Id);
+            entity.Property(at => at.Id).ValueGeneratedOnAdd();
+            entity.HasData(
+                new AssignmentType { Id = 1, Name = "Featured", Description = "Quizzes selected for special prominence." },
+                new AssignmentType { Id = 2, Name = "SeniorsNeedToKnow", Description = "Practical, health, safety, and life skills quizzes for older adults." },
+                new AssignmentType { Id = 3, Name = "FunFacts", Description = "Quizzes packed with surprising, quirky, or little-known facts." },
+                new AssignmentType { Id = 4, Name = "Wow", Description = "Quizzes with mind-blowing, record-breaking, or 'did you know?' content." },
+                new AssignmentType { Id = 5, Name = "BrainBoosters", Description = "Puzzles, logic, and memory challenges to keep minds sharp." },
+                new AssignmentType { Id = 6, Name = "HistoryMysteries", Description = "Quizzes about unsolved historical events or famous mysteries." },
+                new AssignmentType { Id = 7, Name = "TechTrends", Description = "Quizzes about the latest in technology, gadgets, and digital life." },
+                new AssignmentType { Id = 8, Name = "PopCulturePicks", Description = "Quizzes on movies, music, celebrities, and viral trends." },
+                new AssignmentType { Id = 9, Name = "TravelTreasures", Description = "Quizzes about world geography, cultures, and travel tips." },
+                new AssignmentType { Id = 10, Name = "HealthWellness", Description = "Nutrition, exercise, and mental health quizzes." },
+                new AssignmentType { Id = 11, Name = "FinancialSmarts", Description = "Quizzes on saving, investing, and money management." },
+                new AssignmentType { Id = 12, Name = "ScienceWonders", Description = "Quizzes about amazing discoveries and scientific phenomena." },
+                new AssignmentType { Id = 13, Name = "LiteraryLegends", Description = "Quizzes on classic books, authors, and literary trivia." },
+                new AssignmentType { Id = 14, Name = "EverydayHacks", Description = "Quizzes with tips and tricks for daily life." },
+                new AssignmentType { Id = 15, Name = "LocalLore", Description = "Quizzes about local history, landmarks, and traditions." },
+                new AssignmentType { Id = 16, Name = "GreenLiving", Description = "Quizzes on sustainability, nature, and eco-friendly habits." }
+            );
+        });
+
+        // Configure SpecialQuizAssignment entity
+        modelBuilder.Entity<SpecialQuizAssignment>(entity =>
+        {
+            entity.HasKey(sqa => sqa.Id);
+            entity.Property(sqa => sqa.Id).ValueGeneratedOnAdd();
+            entity.Property(sqa => sqa.CreatedAt).HasDefaultValueSql("GETDATE()");
+            entity.HasOne<UserQuiz>()
+                .WithMany()
+                .HasForeignKey(sqa => sqa.UserQuizId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<AssignmentType>()
+                .WithMany()
+                .HasForeignKey(sqa => sqa.AssignmentTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
         // Existing configuration for Quiz and Topic relationship
         modelBuilder.Entity<Quiz>()

@@ -1,13 +1,17 @@
 ﻿using Azure.AI.OpenAI;
+using Blazored.LocalStorage;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Events;
 using System.ClientModel;
+using System.Text;
 using WiseUpDude.Components;
 using WiseUpDude.Components.Account;
 using WiseUpDude.Data;
@@ -320,7 +324,9 @@ builder.Services.AddCors(options =>
 
 #endregion
 
+builder.Services.AddBlazoredLocalStorage();
 
+builder.Services.AddScoped<WiseUpDude.Client.Services.JwtAuthService>();
 //Build the pipline
 
 var app = builder.Build();

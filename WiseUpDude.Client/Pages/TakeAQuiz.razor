@@ -24,6 +24,8 @@
 
 @inject NavigationManager Nav
 
+@inject WiseUpDude.Client.Services.JwtAuthService JwtAuthService
+
 
 
 <div class="card">
@@ -147,6 +149,48 @@
     </div>
 </div>
 
+@if (IsAdmin)
+{
+    <div class="card mb-3 border-warning">
+        <div class="card-header bg-warning text-dark">
+            <strong>Mark this quiz as Special Assignment</strong>
+        </div>
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-md-4">
+                    <label>Assignment Type</label>
+                    <select class="form-select" @bind="SelectedAssignmentTypeId">
+                        <option value="">Select type...</option>
+                        @foreach (var type in AssignmentTypes)
+                        {
+                            <option value="@type.Id">@type.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Start Date</label>
+                    <input type="date" class="form-control" @bind="SpecialStartDate" />
+                </div>
+                <div class="col-md-3">
+                    <label>End Date</label>
+                    <input type="date" class="form-control" @bind="SpecialEndDate" />
+                </div>
+            </div>
+            <div class="mb-2">
+                <label>Notes</label>
+                <input type="text" class="form-control" @bind="SpecialNotes" />
+            </div>
+            <button class="btn btn-warning" @onclick="AssignSpecialQuizAsync" disabled="@(IsAssigningSpecial || SelectedAssignmentTypeId == 0)">
+                <i class="bi bi-star"></i> Assign Special
+            </button>
+            @if (!string.IsNullOrEmpty(SpecialAssignMessage))
+            {
+                <div class="mt-2 alert alert-info">@SpecialAssignMessage</div>
+            }
+        </div>
+    </div>
+}
+
 @code {
     [Parameter]
     public int QuizId { get; set; }
@@ -170,6 +214,15 @@
     private string? saveMessage;
     private string? saveMessageType;
     private List<bool?> questionResults = new();
+
+    private List<AssignmentType> AssignmentTypes = new();
+    private int SelectedAssignmentTypeId;
+    private DateTime SpecialStartDate = DateTime.Today;
+    private DateTime SpecialEndDate = DateTime.Today.AddDays(7);
+    private string SpecialNotes = "";
+    private bool IsAdmin = false;
+    private bool IsAssigningSpecial = false;
+    private string SpecialAssignMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -195,6 +248,15 @@
                 totalAnswered = answeredQuestions.Count;
                 questionResults = BuildQuestionResults();
             }
+
+            IsAdmin = await JwtAuthService.IsAdminAsync();
+            try
+            {
+                var types = await HttpClient.GetFromJsonAsync<List<AssignmentType>>("/api/SpecialQuizAssignments/types");
+                if (types != null)
+                    AssignmentTypes = types;
+            }
+            catch { }
         }
         catch (Exception ex)
         {
@@ -425,5 +487,42 @@
         if (percent >= 63) return "D";
         if (percent >= 60) return "D-";
         return "F";
+    }
+
+    private async Task AssignSpecialQuizAsync()
+    {
+        IsAssigningSpecial = true;
+        SpecialAssignMessage = "";
+        try
+        {
+            var token = await JwtAuthService.GetTokenAsync();
+            string userId = "";
+            if (!string.IsNullOrEmpty(token))
+            {
+                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                var jwt = handler.ReadJwtToken(token);
+                userId = jwt.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+            }
+            var assignment = new SpecialQuizAssignment
+            {
+                UserQuizId = QuizId,
+                AssignedByUserId = userId,
+                AssignmentTypeId = SelectedAssignmentTypeId,
+                StartDate = SpecialStartDate,
+                EndDate = SpecialEndDate,
+                Notes = SpecialNotes,
+                CreatedAt = DateTime.UtcNow
+            };
+            var resp = await HttpClient.PostAsJsonAsync("/api/SpecialQuizAssignments", assignment);
+            if (resp.IsSuccessStatusCode)
+                SpecialAssignMessage = "Special assignment saved!";
+            else
+                SpecialAssignMessage = "Failed to save special assignment.";
+        }
+        catch (Exception ex)
+        {
+            SpecialAssignMessage = $"Error: {ex.Message}";
+        }
+        IsAssigningSpecial = false;
     }
 }

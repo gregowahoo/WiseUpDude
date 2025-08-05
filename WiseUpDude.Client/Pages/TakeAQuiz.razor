@@ -270,15 +270,34 @@
         Logger.LogInformation("Method: OnInitializedAsync END");
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        Logger.LogInformation("Method: OnParametersSetAsync START");
+        
+        // Check admin status if not already checked
+        if (!adminChecked)
+        {
+            try
+            {
+                IsAdmin = await JwtAuthService.IsAdminAsync();
+                adminChecked = true;
+                Logger.LogInformation($"Admin check completed: IsAdmin={IsAdmin}");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Exception during admin check in OnParametersSetAsync");
+                IsAdmin = false;
+                adminChecked = true;
+            }
+        }
+        
+        Logger.LogInformation("Method: OnParametersSetAsync END");
+        await base.OnParametersSetAsync();
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         Logger.LogInformation($"Method: OnAfterRenderAsync (firstRender={firstRender})");
-        if (firstRender && !adminChecked)
-        {
-            IsAdmin = await JwtAuthService.IsAdminAsync();
-            adminChecked = true;
-            StateHasChanged();
-        }
         if (firstRender)
         {
             try

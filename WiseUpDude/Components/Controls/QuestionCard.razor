@@ -44,7 +44,8 @@
         {
             Question.UserAnswer = userAnswer;
 
-            bool isCorrect = userAnswer == Question.Answer;
+            // Normalize answers for comparison
+            bool isCorrect = string.Equals(userAnswer?.Trim(), Question.Answer?.Trim(), StringComparison.OrdinalIgnoreCase);
 
             Logger.LogInformation("Answer checked for question {QuestionIndex}. UserAnswer: {UserAnswer}, CorrectAnswer: {CorrectAnswer}, IsCorrect: {IsCorrect}",
                 QuestionIndex, userAnswer, Question.Answer, isCorrect);
@@ -136,7 +137,7 @@
         @if (submitted && !string.IsNullOrEmpty(userAnswer))
         {
             <div class="mt-3">
-                @if (userAnswer == Question?.Answer)
+                @if (string.Equals(userAnswer?.Trim(), Question?.Answer?.Trim(), StringComparison.OrdinalIgnoreCase))
                 {
                     <div class="feedback-correct">
                         ✅ Correct!

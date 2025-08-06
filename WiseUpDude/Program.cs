@@ -288,11 +288,13 @@ builder.Services.AddScoped<WiseUpDude.Shared.Services.UrlMetaClient>();
 builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddScoped<WiseUpDude.Services.ITokenValidationService, WiseUpDude.Services.TokenValidationService>();
 
-builder.Services.AddScoped<WiseUpDude.Shared.Services.IAssignmentTypeService, WiseUpDude.Shared.Services.AssignmentTypeService>();
+#if BlazorWebAssembly
+builder.Services.AddScoped<IAssignmentTypeService, WiseUpDude.Shared.Services.AssignmentTypeApiService>();
+#else
+builder.Services.AddScoped<IAssignmentTypeService, WiseUpDude.Services.AssignmentTypeDbService>();
+#endif
 
 builder.Services.AddScoped<SpecialQuizAssignmentService>();
-builder.Services.AddScoped<WiseUpDude.Services.AssignmentTypeService>();
-
 builder.Services.AddScoped<AssignmentTypeRepository>();
 builder.Services.AddScoped<SpecialQuizAssignmentRepository>();
 #endregion

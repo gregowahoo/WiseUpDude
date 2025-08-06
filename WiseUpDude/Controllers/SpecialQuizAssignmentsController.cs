@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using WiseUpDude.Data.Entities;
 using WiseUpDude.Services;
+using WiseUpDude.Shared.Services;
 
 namespace WiseUpDude.Controllers
 {
@@ -11,8 +12,8 @@ namespace WiseUpDude.Controllers
     public class SpecialQuizAssignmentsController : ControllerBase
     {
         private readonly SpecialQuizAssignmentService _service;
-        private readonly AssignmentTypeService _typeService;
-        public SpecialQuizAssignmentsController(SpecialQuizAssignmentService service, AssignmentTypeService typeService)
+        private readonly IAssignmentTypeService _typeService;
+        public SpecialQuizAssignmentsController(SpecialQuizAssignmentService service, IAssignmentTypeService typeService)
         {
             _service = service;
             _typeService = typeService;
@@ -28,7 +29,7 @@ namespace WiseUpDude.Controllers
             return await _service.GetByTypeAsync(typeId);
         }
         [HttpGet("types")]
-        public async Task<ActionResult<List<AssignmentType>>> GetTypes()
+        public async Task<ActionResult<List<AssignmentTypeDto>>> GetTypes()
         {
             return await _typeService.GetAllAsync();
         }

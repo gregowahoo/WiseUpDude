@@ -5,16 +5,6 @@ using WiseUpDude.Data.Repositories;
 
 namespace WiseUpDude.Services
 {
-    public class AssignmentTypeService
-    {
-        private readonly AssignmentTypeRepository _repo;
-        public AssignmentTypeService(AssignmentTypeRepository repo)
-        {
-            _repo = repo;
-        }
-        public Task<List<AssignmentType>> GetAllAsync() => _repo.GetAllAsync();
-        public Task<AssignmentType> GetByIdAsync(int id) => _repo.GetByIdAsync(id);
-    }
 
     public class SpecialQuizAssignmentService
     {

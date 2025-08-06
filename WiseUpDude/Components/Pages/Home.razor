@@ -8,6 +8,7 @@
 @using WiseUpDude.Data.Repositories
 @using WiseUpDude.Data.Repositories.Interfaces
 @using WiseUpDude.Components.Controls
+@using WiseUpDude.Shared.Services
 
 @inject DashboardDataService DashboardData
 @inject AuthenticationStateProvider AuthStateProvider
@@ -15,8 +16,11 @@
 @inject IUserQuizRepository<Quiz> UserQuizRepository
 @inject IUserQuizQuestionRepository<QuizQuestion> UserQuizQuestionRepository
 @inject QuizStateService QuizState
-@inject IQuizOfTheDayService QuizOfTheDayService
+@inject SpecialQuizAssignmentService SpecialQuizAssignmentService
+@inject IAssignmentTypeService AssignmentTypeService
+
 @rendermode InteractiveServer
+
 @attribute [Authorize(Roles = "FreeSubscriber,PaidSubscriber,Admin,EnterpriseSubscriber")]
 
 <h1 class="text-center mb-4">Welcome to Wise Up Dude!</h1>
@@ -45,55 +49,59 @@
         </div>
     </div>
 
-    <!-- Quizzes of the Day Section -->
+    <!-- Featured Quizzes Carousel -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow-sm border-primary">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">🎯 Quizzes of the Day</h5>
+                    <h5 class="mb-0">🌟 Featured Quizzes</h5>
                 </div>
                 <div class="card-body">
-                    @if (TodaysQuizzesOfTheDay != null && TodaysQuizzesOfTheDay.Any())
+                    @if (FeaturedQuizzes != null && FeaturedQuizzes.Any())
                     {
-                        @foreach (var quiz in TodaysQuizzesOfTheDay)
-                        {
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div>
-                                    <h5 class="card-title mb-0 text-truncate">@quiz.Name</h5>
-                                    <p class="card-text text-muted small mb-0">
-                                        @if (quiz.Type == "Topic")
-                                        {
-                                            <span class="badge bg-info me-1">Topic:</span>@quiz.Topic
-                                        }
-                                        else if (quiz.Type == "Prompt")
-                                        {
-                                            <span class="badge bg-warning me-1">Prompt:</span>@(quiz.Prompt?.Length > 50 ? quiz.Prompt.Substring(0, 50) + "..." : quiz.Prompt)
-                                        }
-                                        else if (quiz.Type == "Url")
-                                        {
-                                            <span class="badge bg-primary me-1">URL Quiz</span>
-                                        }
-                                    </p>
-                                </div>
-                                <div>
-                                    <button class="btn btn-primary btn-sm" @onclick="() => TakeTodaysQuiz(quiz.Id)">
-                                        <i class="bi bi-play-fill"></i> Take Quiz
-                                    </button>
-                                </div>
+                        <div id="featuredQuizCarousel" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                @for (int i = 0; i < FeaturedQuizzes.Count; i++)
+                                {
+                                    var featured = FeaturedQuizzes[i];
+                                    var quiz = featured.Quiz;
+                                    var type = featured.AssignmentType;
+                                    <div class="carousel-item @(i == 0 ? "active" : null)">
+                                        <div class="card h-100 shadow-sm">
+                                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                <span class="badge bg-info">@type.Name</span>
+                                                <span class="text-muted small">@quiz.Difficulty</span>
+                                            </div>
+                                            <div class="card-body">
+                                                <h5 class="card-title text-truncate">
+                                                    @(!string.IsNullOrWhiteSpace(quiz.Topic) ? quiz.Topic :
+                                                      !string.IsNullOrWhiteSpace(quiz.Name) ? quiz.Name :
+                                                      !string.IsNullOrWhiteSpace(quiz.Description) ? quiz.Description : "Untitled Quiz")
+                                                </h5>
+                                                <p class="card-text text-muted small">@quiz.Description</p>
+                                            </div>
+                                            <div class="card-footer text-end">
+                                                <button class="btn btn-primary" @onclick="() => TakeFeaturedQuiz(quiz.Id)">
+                                                    <i class="bi bi-play-fill"></i> Take Quiz
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
                             </div>
-                        }
-                        <a href="/quiz-of-the-day" class="btn btn-outline-primary btn-sm">
-                            View Quizzes of the Day
-                        </a>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#featuredQuizCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#featuredQuizCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </button>
+                        </div>
                     }
                     else
                     {
-                        <div class="d-flex justify-content-between align-items-center">
-                            <p class="mb-0 text-muted">No Quizzes of the Day set for today.</p>
-                            <a href="/quiz-of-the-day" class="btn btn-outline-primary btn-sm">
-                                View Quizzes of the Day
-                            </a>
-                        </div>
+                        <div class="text-muted">No featured quizzes are currently active.</div>
                     }
                 </div>
             </div>
@@ -276,6 +284,13 @@
 </div>
 
 @code {
+    public class FeaturedQuizDisplay
+    {
+        public Quiz Quiz { get; set; }
+        public WiseUpDude.Shared.Services.AssignmentTypeDto AssignmentType { get; set; }
+        public WiseUpDude.Model.SpecialQuizAssignment Assignment { get; set; }
+    }
+
     public enum QuizFilterPeriod
     {
         Today,
@@ -286,6 +301,7 @@
     }
 
     private int? editingQuizId = null;
+    private List<FeaturedQuizDisplay> FeaturedQuizzes = new();
     private DashboardSummaryDto? Summary;
     private bool IsGenerating = false;
     private int? quizToDeleteId = null;
@@ -336,23 +352,37 @@
                     quizzesWithAnswers = new HashSet<int>(quizIdsWithAnswers);
                 }
                 
-                // Load today's Quizzes of the Day
-                await LoadTodaysQuizzesOfTheDay();
+                // Load featured quizzes
+                await LoadFeaturedQuizzes();
             }
         }
     }
 
-    private async Task LoadTodaysQuizzesOfTheDay()
+    private async Task LoadFeaturedQuizzes()
     {
-        try
-        {
-            var allQuizzes = await QuizOfTheDayService.GetAllQuizzesOfTheDayAsync();
-            TodaysQuizzesOfTheDay = allQuizzes.Where(q => q.QuizOfTheDayDate.HasValue && q.QuizOfTheDayDate.Value.Date == DateTime.Today).ToList();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error loading today's quizzes of the day: {ex.Message}");
-        }
+        var now = DateTime.UtcNow;
+        var assignments = await SpecialQuizAssignmentService.GetAllAsync();
+        var types = await AssignmentTypeService.GetAllAsync();
+        var quizzes = await UserQuizRepository.GetAllAsync();
+        FeaturedQuizzes = assignments
+            .Where(a => a.StartDate <= now && a.EndDate >= now)
+            .Select(a => new FeaturedQuizDisplay
+            {
+                Quiz = quizzes.FirstOrDefault(q => q.Id == a.UserQuizId),
+                AssignmentType = types.FirstOrDefault(t => t.Id == a.AssignmentTypeId),
+                Assignment = new WiseUpDude.Model.SpecialQuizAssignment {
+                    Id = a.Id,
+                    UserQuizId = a.UserQuizId,
+                    AssignedByUserId = a.AssignedByUserId,
+                    AssignmentTypeId = a.AssignmentTypeId,
+                    StartDate = a.StartDate,
+                    EndDate = a.EndDate,
+                    Notes = a.Notes,
+                    CreatedAt = a.CreatedAt
+                }
+            })
+            .Where(fq => fq.Quiz != null && fq.AssignmentType != null)
+            .ToList();
     }
 
     private async Task ResumeQuiz(int quizId)
@@ -530,6 +560,11 @@
             _ => DateTime.MinValue
         };
         return Summary.RecentQuizzes.Count(q => q.CreationDate.ToLocalTime() >= startDate);
+    }
+
+    private async Task TakeFeaturedQuiz(int quizId)
+    {
+        NavManager.NavigateTo($"/TakeAQuiz/{quizId}");
     }
 
     private async Task TakeTodaysQuiz(int quizId)

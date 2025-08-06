@@ -373,3 +373,4 @@ FodyWeavers.xsd
 /WiseUpDude/appsettings.Production.json
 /WiseUpDude/local.settings.json
 /*.secrets
+/WiseUpDude/WiseUpDude.http

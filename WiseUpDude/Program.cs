@@ -4,6 +4,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
@@ -102,9 +103,14 @@ builder.Services.AddControllers();
 //builder.Services.AddSwaggerGen();
 
 // Add services to the container.
+builder.Services.AddAuthentication("Cookies")
+    .AddCookie("Cookies");
+
+builder.Services.AddAuthorization();
+
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents()
+    .AddInteractiveServerComponents()
     .AddAuthenticationStateSerialization();
 
 #region Identity and Login Configuration
@@ -279,6 +285,7 @@ builder.Services.AddScoped<LearningTrackQuizService>();
 builder.Services.AddScoped<WiseUpDude.Services.UrlMetaService>();
 builder.Services.AddScoped<WiseUpDude.Shared.Services.UrlMetaClient>();
 
+builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddScoped<WiseUpDude.Services.ITokenValidationService, WiseUpDude.Services.TokenValidationService>();
 
 builder.Services.AddScoped<WiseUpDude.Shared.Services.IAssignmentTypeService, WiseUpDude.Shared.Services.AssignmentTypeService>();
@@ -333,7 +340,6 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddBlazoredLocalStorage();
 
-builder.Services.AddScoped<WiseUpDude.Client.Services.JwtAuthService>();
 //Build the pipline
 
 var app = builder.Build();

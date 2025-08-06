@@ -24,9 +24,24 @@
 
 @inject NavigationManager Nav
 
-@inject WiseUpDude.Client.Services.JwtAuthService JwtAuthService
-
 @inject IAssignmentTypeService AssignmentTypeService
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@if (OperatingSystem.IsBrowser())
+{
+    <div class="alert alert-success">
+        <strong>WASM Mode:</strong> This page is running in WebAssembly mode.
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">
+        <strong>Server Mode:</strong> This page is running in Blazor Server mode.
+    </div>
+}
+
+<p>Running on: @(OperatingSystem.IsBrowser() ? "WASM" : "Server")</p>
 
 
 
@@ -232,6 +247,11 @@
         Logger.LogInformation($"Method: OnInitializedAsync START for QuizId={QuizId}");
         try
         {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            IsAdmin = user.Identity?.IsAuthenticated == true && user.IsInRole("Admin");
+
+
             UserQuiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
             if (UserQuiz != null && UserQuiz.Questions != null)
             {
@@ -273,24 +293,7 @@
     protected override async Task OnParametersSetAsync()
     {
         Logger.LogInformation("Method: OnParametersSetAsync START");
-        
-        // Check admin status if not already checked
-        if (!adminChecked)
-        {
-            try
-            {
-                IsAdmin = await JwtAuthService.IsAdminAsync();
-                adminChecked = true;
-                Logger.LogInformation($"Admin check completed: IsAdmin={IsAdmin}");
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Exception during admin check in OnParametersSetAsync");
-                IsAdmin = false;
-                adminChecked = true;
-            }
-        }
-        
+
         Logger.LogInformation("Method: OnParametersSetAsync END");
         await base.OnParametersSetAsync();
     }
@@ -524,18 +527,10 @@
         SpecialAssignMessage = "";
         try
         {
-            var token = await JwtAuthService.GetTokenAsync();
-            string userId = "";
-            if (!string.IsNullOrEmpty(token))
-            {
-                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-                var jwt = handler.ReadJwtToken(token);
-                userId = jwt.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
-            }
             var assignment = new SpecialQuizAssignment
             {
                 UserQuizId = QuizId,
-                AssignedByUserId = userId,
+                AssignedByUserId = "",
                 AssignmentTypeId = SelectedAssignmentTypeId,
                 StartDate = SpecialStartDate,
                 EndDate = SpecialEndDate,

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using WiseUpDude.Shared.Services;
 using WiseUpDude.Shared.State;
 using Blazored.LocalStorage;
-using WiseUpDude.Client.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -44,7 +43,6 @@ builder.Services.AddScoped<QuizState>();
 builder.Services.AddScoped<IUserQuizAttemptApiService, UserQuizAttemptApiService>();
 builder.Services.AddScoped<WiseUpDude.Shared.Services.UrlMetaClient>();
 builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddScoped<WiseUpDude.Client.Services.JwtAuthService>();
 builder.Services.AddScoped<WiseUpDude.Shared.Services.IAssignmentTypeService, WiseUpDude.Shared.Services.AssignmentTypeService>();
 
 await builder.Build().RunAsync();

@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="FeaturedQuizDisplay.cs" />
     <Compile Remove="Services\SpecialQuizAssignmentService.cs" />
   </ItemGroup>
 

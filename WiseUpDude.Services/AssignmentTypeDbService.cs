@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WiseUpDude.Shared.Services;
-using WiseUpDude.Data.Entities;
+using WiseUpDude.Model;
 using WiseUpDude.Data.Repositories;
 
 namespace WiseUpDude.Services
@@ -14,25 +14,13 @@ namespace WiseUpDude.Services
         {
             _repo = repo;
         }
-        public async Task<List<AssignmentTypeDto>> GetAllAsync()
+        public async Task<List<AssignmentType>> GetAllAsync()
         {
-            var entities = await _repo.GetAllAsync();
-            return entities.Select(e => new AssignmentTypeDto
-            {
-                Id = e.Id,
-                Name = e.Name,
-                Description = e.Description
-            }).ToList();
+            return await _repo.GetAllAsync();
         }
-        public async Task<AssignmentTypeDto> GetByIdAsync(int id)
+        public async Task<AssignmentType> GetByIdAsync(int id)
         {
-            var e = await _repo.GetByIdAsync(id);
-            return new AssignmentTypeDto
-            {
-                Id = e.Id,
-                Name = e.Name,
-                Description = e.Description
-            };
+            return await _repo.GetByIdAsync(id);
         }
     }
 }

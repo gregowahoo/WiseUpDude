@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using WiseUpDude.Data.Entities;
+using WiseUpDude.Model;
 using WiseUpDude.Services;
 using WiseUpDude.Shared.Services;
 
@@ -29,7 +29,7 @@ namespace WiseUpDude.Controllers
             return await _service.GetByTypeAsync(typeId);
         }
         [HttpGet("types")]
-        public async Task<ActionResult<List<AssignmentTypeDto>>> GetTypes()
+        public async Task<ActionResult<List<AssignmentType>>> GetTypes()
         {
             return await _typeService.GetAllAsync();
         }

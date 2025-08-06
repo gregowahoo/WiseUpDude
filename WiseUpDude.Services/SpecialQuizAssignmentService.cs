@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using WiseUpDude.Data.Entities;
+using WiseUpDude.Model;
 using WiseUpDude.Data.Repositories;
 
 namespace WiseUpDude.Services

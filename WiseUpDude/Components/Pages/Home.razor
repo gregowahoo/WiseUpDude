@@ -9,6 +9,7 @@
 @using WiseUpDude.Data.Repositories.Interfaces
 @using WiseUpDude.Components.Controls
 @using WiseUpDude.Shared.Services
+@using WiseUpDude.Shared
 
 @inject DashboardDataService DashboardData
 @inject AuthenticationStateProvider AuthStateProvider
@@ -50,63 +51,7 @@
     </div>
 
     <!-- Featured Quizzes Carousel -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm border-primary">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">🌟 Featured Quizzes</h5>
-                </div>
-                <div class="card-body">
-                    @if (FeaturedQuizzes != null && FeaturedQuizzes.Any())
-                    {
-                        <div id="featuredQuizCarousel" class="carousel slide" data-bs-ride="carousel">
-                            <div class="carousel-inner">
-                                @for (int i = 0; i < FeaturedQuizzes.Count; i++)
-                                {
-                                    var featured = FeaturedQuizzes[i];
-                                    var quiz = featured.Quiz;
-                                    var type = featured.AssignmentType;
-                                    <div class="carousel-item @(i == 0 ? "active" : null)">
-                                        <div class="card h-100 shadow-sm">
-                                            <div class="card-header d-flex justify-content-between align-items-center">
-                                                <span class="badge bg-info">@type.Name</span>
-                                                <span class="text-muted small">@quiz.Difficulty</span>
-                                            </div>
-                                            <div class="card-body">
-                                                <h5 class="card-title text-truncate">
-                                                    @(!string.IsNullOrWhiteSpace(quiz.Topic) ? quiz.Topic :
-                                                      !string.IsNullOrWhiteSpace(quiz.Name) ? quiz.Name :
-                                                      !string.IsNullOrWhiteSpace(quiz.Description) ? quiz.Description : "Untitled Quiz")
-                                                </h5>
-                                                <p class="card-text text-muted small">@quiz.Description</p>
-                                            </div>
-                                            <div class="card-footer text-end">
-                                                <button class="btn btn-primary" @onclick="() => TakeFeaturedQuiz(quiz.Id)">
-                                                    <i class="bi bi-play-fill"></i> Take Quiz
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                            <button class="carousel-control-prev" type="button" data-bs-target="#featuredQuizCarousel" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Previous</span>
-                            </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#featuredQuizCarousel" data-bs-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Next</span>
-                            </button>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="text-muted">No featured quizzes are currently active.</div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
+    <FeaturedQuizzesCarousel FeaturedQuizzes="FeaturedQuizzes" OnTakeQuiz="TakeFeaturedQuiz" />
 
     <!-- Quiz Filter -->
     <div class="mb-4">
@@ -284,13 +229,6 @@
 </div>
 
 @code {
-    public class FeaturedQuizDisplay
-    {
-        public Quiz Quiz { get; set; }
-        public WiseUpDude.Shared.Services.AssignmentTypeDto AssignmentType { get; set; }
-        public WiseUpDude.Model.SpecialQuizAssignment Assignment { get; set; }
-    }
-
     public enum QuizFilterPeriod
     {
         Today,
@@ -301,7 +239,7 @@
     }
 
     private int? editingQuizId = null;
-    private List<FeaturedQuizDisplay> FeaturedQuizzes = new();
+    private List<Model.FeaturedQuizDisplay> FeaturedQuizzes = new();
     private DashboardSummaryDto? Summary;
     private bool IsGenerating = false;
     private int? quizToDeleteId = null;
@@ -366,7 +304,7 @@
         var quizzes = await UserQuizRepository.GetAllAsync();
         FeaturedQuizzes = assignments
             .Where(a => a.StartDate <= now && a.EndDate >= now)
-            .Select(a => new FeaturedQuizDisplay
+            .Select(a => new Model.FeaturedQuizDisplay
             {
                 Quiz = quizzes.FirstOrDefault(q => q.Id == a.UserQuizId),
                 AssignmentType = types.FirstOrDefault(t => t.Id == a.AssignmentTypeId),

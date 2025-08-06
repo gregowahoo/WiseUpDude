@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using WiseUpDude.Data.Entities;
+using WiseUpDude.Model;
 
 namespace WiseUpDude.Data.Repositories
 {
@@ -13,13 +14,24 @@ namespace WiseUpDude.Data.Repositories
         {
             _context = context;
         }
-        public async Task<List<AssignmentType>> GetAllAsync()
+        public async Task<List<WiseUpDude.Model.AssignmentType>> GetAllAsync()
         {
-            return await _context.AssignmentTypes.ToListAsync();
+            var entities = await _context.AssignmentTypes.ToListAsync();
+            return entities.Select(ToModel).ToList();
         }
-        public async Task<AssignmentType> GetByIdAsync(int id)
+        public async Task<WiseUpDude.Model.AssignmentType> GetByIdAsync(int id)
         {
-            return await _context.AssignmentTypes.FindAsync(id);
+            var entity = await _context.AssignmentTypes.FindAsync(id);
+            return entity == null ? null : ToModel(entity);
+        }
+        private static WiseUpDude.Model.AssignmentType ToModel(Data.Entities.AssignmentType entity)
+        {
+            return new WiseUpDude.Model.AssignmentType
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Description = entity.Description
+            };
         }
     }
 
@@ -30,38 +42,72 @@ namespace WiseUpDude.Data.Repositories
         {
             _context = context;
         }
-        public async Task<List<SpecialQuizAssignment>> GetAllAsync()
+        public async Task<List<WiseUpDude.Model.SpecialQuizAssignment>> GetAllAsync()
         {
-            return await _context.SpecialQuizAssignments.ToListAsync();
+            var entities = await _context.SpecialQuizAssignments.ToListAsync();
+            return entities.Select(ToModel).ToList();
         }
-        public async Task<SpecialQuizAssignment> GetByIdAsync(int id)
+        public async Task<WiseUpDude.Model.SpecialQuizAssignment> GetByIdAsync(int id)
         {
-            return await _context.SpecialQuizAssignments.FindAsync(id);
+            var entity = await _context.SpecialQuizAssignments.FindAsync(id);
+            return entity == null ? null : ToModel(entity);
         }
-        public async Task<List<SpecialQuizAssignment>> GetByTypeAsync(int assignmentTypeId)
+        public async Task<List<WiseUpDude.Model.SpecialQuizAssignment>> GetByTypeAsync(int assignmentTypeId)
         {
-            return await _context.SpecialQuizAssignments
+            var entities = await _context.SpecialQuizAssignments
                 .Where(a => a.AssignmentTypeId == assignmentTypeId)
                 .ToListAsync();
+            return entities.Select(ToModel).ToList();
         }
-        public async Task AddAsync(SpecialQuizAssignment assignment)
+        public async Task AddAsync(WiseUpDude.Model.SpecialQuizAssignment model)
         {
-            _context.SpecialQuizAssignments.Add(assignment);
+            var entity = ToEntity(model);
+            _context.SpecialQuizAssignments.Add(entity);
             await _context.SaveChangesAsync();
+            model.Id = entity.Id;
         }
-        public async Task UpdateAsync(SpecialQuizAssignment assignment)
+        public async Task UpdateAsync(WiseUpDude.Model.SpecialQuizAssignment model)
         {
-            _context.SpecialQuizAssignments.Update(assignment);
+            var entity = ToEntity(model);
+            _context.SpecialQuizAssignments.Update(entity);
             await _context.SaveChangesAsync();
         }
         public async Task DeleteAsync(int id)
         {
-            var assignment = await _context.SpecialQuizAssignments.FindAsync(id);
-            if (assignment != null)
+            var entity = await _context.SpecialQuizAssignments.FindAsync(id);
+            if (entity != null)
             {
-                _context.SpecialQuizAssignments.Remove(assignment);
+                _context.SpecialQuizAssignments.Remove(entity);
                 await _context.SaveChangesAsync();
             }
+        }
+        private static WiseUpDude.Model.SpecialQuizAssignment ToModel(Data.Entities.SpecialQuizAssignment entity)
+        {
+            return new WiseUpDude.Model.SpecialQuizAssignment
+            {
+                Id = entity.Id,
+                UserQuizId = entity.UserQuizId,
+                AssignedByUserId = entity.AssignedByUserId,
+                AssignmentTypeId = entity.AssignmentTypeId,
+                StartDate = entity.StartDate,
+                EndDate = entity.EndDate,
+                Notes = entity.Notes,
+                CreatedAt = entity.CreatedAt
+            };
+        }
+        private static Data.Entities.SpecialQuizAssignment ToEntity(WiseUpDude.Model.SpecialQuizAssignment model)
+        {
+            return new Data.Entities.SpecialQuizAssignment
+            {
+                Id = model.Id,
+                UserQuizId = model.UserQuizId,
+                AssignedByUserId = model.AssignedByUserId,
+                AssignmentTypeId = model.AssignmentTypeId,
+                StartDate = model.StartDate,
+                EndDate = model.EndDate,
+                Notes = model.Notes,
+                CreatedAt = model.CreatedAt
+            };
         }
     }
 }

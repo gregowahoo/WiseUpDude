@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WiseUpDude.Data;
 
@@ -11,9 +12,11 @@ using WiseUpDude.Data;
 namespace WiseUpDude.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250806123926_UpdateAssignmentTypeSeed")]
+    partial class UpdateAssignmentTypeSeed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -251,13 +254,13 @@ namespace WiseUpDude.Data.Migrations
                         {
                             Id = 2,
                             Description = "Practical, health, safety, and life skills quizzes for older adults.",
-                            Name = "Seniors Need To Know"
+                            Name = "SeniorsNeedToKnow"
                         },
                         new
                         {
                             Id = 3,
                             Description = "Quizzes packed with surprising, quirky, or little-known facts.",
-                            Name = "Fun Facts"
+                            Name = "FunFacts"
                         },
                         new
                         {
@@ -269,73 +272,73 @@ namespace WiseUpDude.Data.Migrations
                         {
                             Id = 5,
                             Description = "Puzzles, logic, and memory challenges to keep minds sharp.",
-                            Name = "Brain Boosters"
+                            Name = "BrainBoosters"
                         },
                         new
                         {
                             Id = 6,
                             Description = "Quizzes about unsolved historical events or famous mysteries.",
-                            Name = "History Mysteries"
+                            Name = "HistoryMysteries"
                         },
                         new
                         {
                             Id = 7,
                             Description = "Quizzes about the latest in technology, gadgets, and digital life.",
-                            Name = "Tech Trends"
+                            Name = "TechTrends"
                         },
                         new
                         {
                             Id = 8,
                             Description = "Quizzes on movies, music, celebrities, and viral trends.",
-                            Name = "Pop Culture Picks"
+                            Name = "PopCulturePicks"
                         },
                         new
                         {
                             Id = 9,
                             Description = "Quizzes about world geography, cultures, and travel tips.",
-                            Name = "Travel Treasures"
+                            Name = "TravelTreasures"
                         },
                         new
                         {
                             Id = 10,
                             Description = "Nutrition, exercise, and mental health quizzes.",
-                            Name = "Health Wellness"
+                            Name = "HealthWellness"
                         },
                         new
                         {
                             Id = 11,
                             Description = "Quizzes on saving, investing, and money management.",
-                            Name = "Financial Smarts"
+                            Name = "FinancialSmarts"
                         },
                         new
                         {
                             Id = 12,
                             Description = "Quizzes about amazing discoveries and scientific phenomena.",
-                            Name = "Science Wonders"
+                            Name = "ScienceWonders"
                         },
                         new
                         {
                             Id = 13,
                             Description = "Quizzes on classic books, authors, and literary trivia.",
-                            Name = "Literary Legends"
+                            Name = "LiteraryLegends"
                         },
                         new
                         {
                             Id = 14,
                             Description = "Quizzes with tips and tricks for daily life.",
-                            Name = "Everyday Hacks"
+                            Name = "EverydayHacks"
                         },
                         new
                         {
                             Id = 15,
                             Description = "Quizzes about local history, landmarks, and traditions.",
-                            Name = "Local Lore"
+                            Name = "LocalLore"
                         },
                         new
                         {
                             Id = 16,
                             Description = "Quizzes on sustainability, nature, and eco-friendly habits.",
-                            Name = "Green Living"
+                            Name = "GreenLiving"
                         });
                 });
 

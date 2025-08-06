@@ -84,21 +84,21 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(at => at.Id).ValueGeneratedOnAdd();
             entity.HasData(
                 new AssignmentType { Id = 1, Name = "Featured", Description = "Quizzes selected for special prominence." },
-                new AssignmentType { Id = 2, Name = "SeniorsNeedToKnow", Description = "Practical, health, safety, and life skills quizzes for older adults." },
-                new AssignmentType { Id = 3, Name = "FunFacts", Description = "Quizzes packed with surprising, quirky, or little-known facts." },
+                new AssignmentType { Id = 2, Name = "Seniors Need To Know", Description = "Practical, health, safety, and life skills quizzes for older adults." },
+                new AssignmentType { Id = 3, Name = "Fun Facts", Description = "Quizzes packed with surprising, quirky, or little-known facts." },
                 new AssignmentType { Id = 4, Name = "Wow", Description = "Quizzes with mind-blowing, record-breaking, or 'did you know?' content." },
-                new AssignmentType { Id = 5, Name = "BrainBoosters", Description = "Puzzles, logic, and memory challenges to keep minds sharp." },
-                new AssignmentType { Id = 6, Name = "HistoryMysteries", Description = "Quizzes about unsolved historical events or famous mysteries." },
-                new AssignmentType { Id = 7, Name = "TechTrends", Description = "Quizzes about the latest in technology, gadgets, and digital life." },
-                new AssignmentType { Id = 8, Name = "PopCulturePicks", Description = "Quizzes on movies, music, celebrities, and viral trends." },
-                new AssignmentType { Id = 9, Name = "TravelTreasures", Description = "Quizzes about world geography, cultures, and travel tips." },
-                new AssignmentType { Id = 10, Name = "HealthWellness", Description = "Nutrition, exercise, and mental health quizzes." },
-                new AssignmentType { Id = 11, Name = "FinancialSmarts", Description = "Quizzes on saving, investing, and money management." },
-                new AssignmentType { Id = 12, Name = "ScienceWonders", Description = "Quizzes about amazing discoveries and scientific phenomena." },
-                new AssignmentType { Id = 13, Name = "LiteraryLegends", Description = "Quizzes on classic books, authors, and literary trivia." },
-                new AssignmentType { Id = 14, Name = "EverydayHacks", Description = "Quizzes with tips and tricks for daily life." },
-                new AssignmentType { Id = 15, Name = "LocalLore", Description = "Quizzes about local history, landmarks, and traditions." },
-                new AssignmentType { Id = 16, Name = "GreenLiving", Description = "Quizzes on sustainability, nature, and eco-friendly habits." }
+                new AssignmentType { Id = 5, Name = "Brain Boosters", Description = "Puzzles, logic, and memory challenges to keep minds sharp." },
+                new AssignmentType { Id = 6, Name = "History Mysteries", Description = "Quizzes about unsolved historical events or famous mysteries." },
+                new AssignmentType { Id = 7, Name = "Tech Trends", Description = "Quizzes about the latest in technology, gadgets, and digital life." },
+                new AssignmentType { Id = 8, Name = "Pop Culture Picks", Description = "Quizzes on movies, music, celebrities, and viral trends." },
+                new AssignmentType { Id = 9, Name = "Travel Treasures", Description = "Quizzes about world geography, cultures, and travel tips." },
+                new AssignmentType { Id = 10, Name = "Health Wellness", Description = "Nutrition, exercise, and mental health quizzes." },
+                new AssignmentType { Id = 11, Name = "Financial Smarts", Description = "Quizzes on saving, investing, and money management." },
+                new AssignmentType { Id = 12, Name = "Science Wonders", Description = "Quizzes about amazing discoveries and scientific phenomena." },
+                new AssignmentType { Id = 13, Name = "Literary Legends", Description = "Quizzes on classic books, authors, and literary trivia." },
+                new AssignmentType { Id = 14, Name = "Everyday Hacks", Description = "Quizzes with tips and tricks for daily life." },
+                new AssignmentType { Id = 15, Name = "Local Lore", Description = "Quizzes about local history, landmarks, and traditions." },
+                new AssignmentType { Id = 16, Name = "Green Living", Description = "Quizzes on sustainability, nature, and eco-friendly habits." }
             );
         });
 

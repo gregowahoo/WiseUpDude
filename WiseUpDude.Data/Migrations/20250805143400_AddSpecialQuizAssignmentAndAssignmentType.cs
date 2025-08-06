@@ -64,21 +64,21 @@ namespace WiseUpDude.Data.Migrations
                 values: new object[,]
                 {
                     { 1, "Quizzes selected for special prominence.", "Featured" },
-                    { 2, "Practical, health, safety, and life skills quizzes for older adults.", "SeniorsNeedToKnow" },
-                    { 3, "Quizzes packed with surprising, quirky, or little-known facts.", "FunFacts" },
+                    { 2, "Practical, health, safety, and life skills quizzes for older adults.", "Seniors Need To Know" },
+                    { 3, "Quizzes packed with surprising, quirky, or little-known facts.", "Fun Facts" },
                     { 4, "Quizzes with mind-blowing, record-breaking, or 'did you know?' content.", "Wow" },
-                    { 5, "Puzzles, logic, and memory challenges to keep minds sharp.", "BrainBoosters" },
-                    { 6, "Quizzes about unsolved historical events or famous mysteries.", "HistoryMysteries" },
-                    { 7, "Quizzes about the latest in technology, gadgets, and digital life.", "TechTrends" },
-                    { 8, "Quizzes on movies, music, celebrities, and viral trends.", "PopCulturePicks" },
-                    { 9, "Quizzes about world geography, cultures, and travel tips.", "TravelTreasures" },
-                    { 10, "Nutrition, exercise, and mental health quizzes.", "HealthWellness" },
-                    { 11, "Quizzes on saving, investing, and money management.", "FinancialSmarts" },
-                    { 12, "Quizzes about amazing discoveries and scientific phenomena.", "ScienceWonders" },
-                    { 13, "Quizzes on classic books, authors, and literary trivia.", "LiteraryLegends" },
-                    { 14, "Quizzes with tips and tricks for daily life.", "EverydayHacks" },
-                    { 15, "Quizzes about local history, landmarks, and traditions.", "LocalLore" },
-                    { 16, "Quizzes on sustainability, nature, and eco-friendly habits.", "GreenLiving" }
+                    { 5, "Puzzles, logic, and memory challenges to keep minds sharp.", "Brain Boosters" },
+                    { 6, "Quizzes about unsolved historical events or famous mysteries.", "History Mysteries" },
+                    { 7, "Quizzes about the latest in technology, gadgets, and digital life.", "Tech Trends" },
+                    { 8, "Quizzes on movies, music, celebrities, and viral trends.", "Pop Culture Picks" },
+                    { 9, "Quizzes about world geography, cultures, and travel tips.", "Travel Treasures" },
+                    { 10, "Nutrition, exercise, and mental health quizzes.", "Health Wellness" },
+                    { 11, "Quizzes on saving, investing, and money management.", "Financial Smarts" },
+                    { 12, "Quizzes about amazing discoveries and scientific phenomena.", "Science Wonders" },
+                    { 13, "Quizzes on classic books, authors, and literary trivia.", "Literary Legends" },
+                    { 14, "Quizzes with tips and tricks for daily life.", "Everyday Hacks" },
+                    { 15, "Quizzes about local history, landmarks, and traditions.", "Local Lore" },
+                    { 16, "Quizzes on sustainability, nature, and eco-friendly habits.", "Green Living" }
                 });
 
             migrationBuilder.CreateIndex(

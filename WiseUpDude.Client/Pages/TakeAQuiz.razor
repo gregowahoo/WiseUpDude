@@ -241,6 +241,7 @@ else
     private bool IsAssigningSpecial = false;
     private string SpecialAssignMessage = "";
     private bool adminChecked = false;
+    private string? CurrentUserId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -250,6 +251,7 @@ else
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
             IsAdmin = user.Identity?.IsAuthenticated == true && user.IsInRole("Admin");
+            CurrentUserId = user.FindFirst(c => c.Type == "sub" || c.Type.EndsWith("nameidentifier"))?.Value;
 
 
             UserQuiz = await UserQuizApiService.GetUserQuizByIdAsync(QuizId);
@@ -530,11 +532,11 @@ else
             var assignment = new SpecialQuizAssignment
             {
                 UserQuizId = QuizId,
-                AssignedByUserId = "",
+                AssignedByUserId = CurrentUserId ?? "",
                 AssignmentTypeId = SelectedAssignmentTypeId,
                 StartDate = SpecialStartDate,
                 EndDate = SpecialEndDate,
-                Notes = SpecialNotes,
+                Notes = SpecialNotes,   
                 CreatedAt = DateTime.UtcNow
             };
             var resp = await HttpClient.PostAsJsonAsync("/api/SpecialQuizAssignments", assignment);

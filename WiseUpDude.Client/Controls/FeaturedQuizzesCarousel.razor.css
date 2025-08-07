@@ -1,0 +1,26 @@
+.featured-quizzes-scroll {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 0.5rem;
+    padding-bottom: 0.25rem;
+    scrollbar-width: thin;
+}
+
+.featured-quiz-card {
+    min-width: 220px;
+    max-width: 240px;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    max-height: 2.4em;
+    line-height: 1.2;
+}

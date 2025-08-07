@@ -1,5 +1,10 @@
 ﻿@using WiseUpDude.Shared
 @using WiseUpDude.Model
+@using Microsoft.Extensions.Logging
+
+@inject ILogger<WiseUpDude.Components.Controls.FeaturedQuizzesCarousel> Logger
+
+@rendermode InteractiveServer
 
 <div class="row mb-4">
     <div class="col-12">
@@ -10,45 +15,32 @@
             <div class="card-body">
                 @if (FeaturedQuizzes != null && FeaturedQuizzes.Any())
                 {
-                    <div id="featuredQuizCarousel" class="carousel slide" data-bs-ride="carousel">
-                        <div class="carousel-inner">
-                            @for (int i = 0; i < FeaturedQuizzes.Count; i++)
-                            {
-                                var featured = FeaturedQuizzes[i];
-                                var quiz = featured.Quiz;
-                                var type = featured.AssignmentType;
-                                <div class="carousel-item @(i == 0 ? "active" : null)">
-                                    <div class="card h-100 shadow-sm">
-                                        <div class="card-header d-flex justify-content-between align-items-center">
-                                            <span class="badge bg-info">@type.Name</span>
-                                            <span class="text-muted small">@quiz.Difficulty</span>
-                                        </div>
-                                        <div class="card-body">
-                                            <h5 class="card-title text-truncate">
-                                                @( !string.IsNullOrWhiteSpace(quiz.Topic) ? quiz.Topic :
-                                                   (!string.IsNullOrWhiteSpace(quiz.Name) && !quiz.Name.Trim().EndsWith("?")) ? quiz.Name :
-                                                   !string.IsNullOrWhiteSpace(quiz.Description) ? quiz.Description :
-                                                   "Untitled Quiz" )
-                                            </h5>
-                                            <p class="card-text text-muted small">@quiz.Description</p>
-                                        </div>
-                                        <div class="card-footer text-end">
-                                            <button class="btn btn-primary" @onclick="() => OnTakeQuiz.InvokeAsync(quiz.Id)">
-                                                <i class="bi bi-play-fill"></i> Take Quiz
-                                            </button>
-                                        </div>
-                                    </div>
+                    <div class="featured-quizzes-scroll d-flex flex-row overflow-auto gap-3 pb-2" style="scrollbar-width: thin;">
+                        @foreach (var featured in FeaturedQuizzes)
+                        {
+                            var quiz = featured.Quiz;
+                            var type = featured.AssignmentType;
+                            <div class="card h-100 shadow-sm flex-shrink-0" style="min-width: 320px; max-width: 340px;">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-info">@type.Name</span>
+                                    <span class="text-muted small">@quiz.Difficulty</span>
                                 </div>
-                            }
-                        </div>
-                        <button class="carousel-control-prev" type="button" data-bs-target="#featuredQuizCarousel" data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Previous</span>
-                        </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#featuredQuizCarousel" data-bs-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Next</span>
-                        </button>
+                                <div class="card-body">
+                                    <h5 class="card-title text-truncate">
+                                        @( !string.IsNullOrWhiteSpace(quiz.Topic) ? quiz.Topic :
+                                           (!string.IsNullOrWhiteSpace(quiz.Name) && !quiz.Name.Trim().EndsWith("?")) ? quiz.Name :
+                                           !string.IsNullOrWhiteSpace(quiz.Description) ? quiz.Description :
+                                           "Untitled Quiz" )
+                                    </h5>
+                                    <p class="card-text text-muted small">@quiz.Description</p>
+                                </div>
+                                <div class="card-footer text-end">
+                                    <button class="btn btn-primary" @onclick="() => OnTakeQuiz.InvokeAsync(quiz.Id)">
+                                        <i class="bi bi-play-fill"></i> Take Quiz
+                                    </button>
+                                </div>
+                            </div>
+                        }
                     </div>
                 }
                 else

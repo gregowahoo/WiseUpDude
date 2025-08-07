@@ -19,6 +19,7 @@
 @inject QuizStateService QuizState
 @inject SpecialQuizAssignmentService SpecialQuizAssignmentService
 @inject IAssignmentTypeService AssignmentTypeService
+@inject ILogger<Home> Logger
 
 @rendermode InteractiveServer
 
@@ -226,6 +227,9 @@
             </div>
         </div>
     }
+
+    <!-- Test Button for Diagnostics -->
+    <button class="btn btn-warning mb-3" @onclick="TestButtonClick">Test Button (diagnostics)</button>
 </div>
 
 @code {
@@ -500,8 +504,9 @@
         return Summary.RecentQuizzes.Count(q => q.CreationDate.ToLocalTime() >= startDate);
     }
 
-    private async Task TakeFeaturedQuiz(int quizId)
+    private void TakeFeaturedQuiz(int quizId)
     {
+        Logger.LogInformation("TakeFeaturedQuiz called with quizId: {QuizId}", quizId);
         NavManager.NavigateTo($"/TakeAQuiz/{quizId}");
     }
 
@@ -563,5 +568,10 @@
         {
             IsGenerating = false;
         }
+    }
+
+    private void TestButtonClick()
+    {
+        Logger.LogInformation("TestButtonClick was triggered.");
     }
 }

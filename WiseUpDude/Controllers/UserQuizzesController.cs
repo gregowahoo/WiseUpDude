@@ -98,6 +98,52 @@ namespace WiseUpDude.API.Controllers
             await _userQuizRepository.DeleteAsync(id);
             return NoContent();
         }
+
+        // POST: api/UserQuizzes/{id}/copy
+        [HttpPost("{id}/copy")]
+        public async Task<ActionResult<int>> CopyQuiz(int id)
+        {
+            // Get the original quiz
+            var originalQuiz = await _userQuizRepository.GetByIdAsync(id);
+            if (originalQuiz == null)
+            {
+                return NotFound();
+            }
+
+            // Deep copy the quiz (excluding Id and related navigation properties)
+            var copy = new Quiz
+            {
+                Name = originalQuiz.Name,
+                UserName = originalQuiz.UserName,
+                UserId = originalQuiz.UserId,
+                Type = originalQuiz.Type,
+                Topic = originalQuiz.Topic,
+                Prompt = originalQuiz.Prompt,
+                Description = originalQuiz.Description,
+                Url = originalQuiz.Url,
+                Difficulty = originalQuiz.Difficulty,
+                TopicId = originalQuiz.TopicId,
+                CreationDate = DateTime.UtcNow,
+                LearnMode = false,
+                IsQuizOfTheDay = false,
+                QuizOfTheDayDate = null,
+                Questions = originalQuiz.Questions?.Select(q => new QuizQuestion
+                {
+                    Question = q.Question,
+                    QuestionType = q.QuestionType,
+                    Options = q.Options != null ? new List<string>(q.Options) : new List<string>(),
+                    Answer = q.Answer,
+                    Explanation = q.Explanation,
+                    Difficulty = q.Difficulty,
+                    ContextSnippet = q.ContextSnippet,
+                    Citation = q.Citation != null ? new List<CitationMeta>(q.Citation) : new List<CitationMeta>()
+                }).ToList() ?? new List<QuizQuestion>()
+            };
+
+            // Use AddAsyncGetId to get the new quiz Id
+            var newQuizId = await _userQuizRepository.AddAsyncGetId(copy);
+            return Ok(newQuizId);
+        }
     }
 }
 

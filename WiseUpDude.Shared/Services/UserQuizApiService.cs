@@ -17,10 +17,27 @@ public class UserQuizApiService
     // Insert a new UserQuiz record using the shared Quiz model
     public async Task<Quiz?> CreateUserQuizAsync(Quiz quiz)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/UserQuizzes", quiz);
-        response.EnsureSuccessStatusCode();
-
-        return await response.Content.ReadFromJsonAsync<Quiz>();
+        try
+        {
+            _logger.LogInformation("Attempting to create a new UserQuiz via API.");
+            var response = await _httpClient.PostAsJsonAsync("api/UserQuizzes", quiz);
+            response.EnsureSuccessStatusCode();
+            var createdQuiz = await response.Content.ReadFromJsonAsync<Quiz>();
+            if (createdQuiz == null || createdQuiz.Id == 0)
+            {
+                _logger.LogError("Quiz creation API returned null or invalid Id. Payload: {@Quiz}", quiz);
+            }
+            else
+            {
+                _logger.LogInformation("Successfully created UserQuiz with Id={QuizId}", createdQuiz.Id);
+            }
+            return createdQuiz;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception occurred while creating UserQuiz. Payload: {@Quiz}", quiz);
+            return null;
+        }
     }
 
     // Update an existing UserQuiz record using the shared Quiz model
@@ -68,5 +85,43 @@ public class UserQuizApiService
     {
         var response = await _httpClient.PutAsJsonAsync($"api/UserQuizQuestions/{questionId}/useranswer", userAnswer);
         response.EnsureSuccessStatusCode();
+    }
+
+    // Copies a quiz by id and creates a special assignment in one operation
+    public async Task<(bool Success, int? NewQuizId)> CreateSpecialAssignmentWithQuizCopyAsync(int quizId, SpecialQuizAssignment assignment)
+    {
+        try
+        {
+            _logger.LogInformation("Copying quiz with id {QuizId} via API.", quizId);
+            var copyResponse = await _httpClient.PostAsync($"api/UserQuizzes/{quizId}/copy", null);
+            if (!copyResponse.IsSuccessStatusCode)
+            {
+                _logger.LogError("Failed to copy quiz. Status: {Status}", copyResponse.StatusCode);
+                return (false, null);
+            }
+
+            var newQuizId = await copyResponse.Content.ReadFromJsonAsync<int>();
+            if (newQuizId == 0)
+            {
+                _logger.LogError("Copy API returned invalid new QuizId.");
+                return (false, null);
+            }
+
+            assignment.UserQuizId = newQuizId;
+            var assignResponse = await _httpClient.PostAsJsonAsync("/api/SpecialQuizAssignments", assignment);
+            if (!assignResponse.IsSuccessStatusCode)
+            {
+                _logger.LogError("Failed to submit SpecialQuizAssignment. Status: {Status}, Payload: {@Assignment}", assignResponse.StatusCode, assignment);
+                return (false, newQuizId);
+            }
+
+            _logger.LogInformation("Special assignment created for new quiz {QuizId}", newQuizId);
+            return (true, newQuizId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in CreateSpecialAssignmentWithQuizCopyAsync for QuizId={QuizId}", quizId);
+            return (false, null);
+        }
     }
 }

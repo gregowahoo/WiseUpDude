@@ -23,11 +23,12 @@ if (string.IsNullOrWhiteSpace(baseAddress))
     var environment = builder.HostEnvironment; // Use HostEnvironment property
     baseAddress = environment.IsDevelopment()
         ? "https://localhost:7150/"
-        : "https://wiseupdude.com/";
+        : "https://www.wiseupdude.com/";
 }
 
 // Log the base address being used
 Console.WriteLine($"HttpClient BaseAddress set to: {baseAddress}");
+System.Diagnostics.Debug.WriteLine($"[DEBUG] HttpClient BaseAddress set to: {baseAddress}");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddress) });
 

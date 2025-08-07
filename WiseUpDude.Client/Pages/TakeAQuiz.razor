@@ -523,61 +523,29 @@ else
         return "F";
     }
 
-    private Quiz CreateQuizCopy(Quiz originalQuiz)
-    {
-        return new Quiz
-        {
-            Name = originalQuiz.Name,
-            UserName = originalQuiz.UserName,
-            UserId = originalQuiz.UserId,
-            Type = originalQuiz.Type,
-            Topic = originalQuiz.Topic,
-            Prompt = originalQuiz.Prompt,
-            Description = originalQuiz.Description,
-            Url = originalQuiz.Url,
-            Difficulty = originalQuiz.Difficulty,
-            TopicId = originalQuiz.TopicId,
-            CreationDate = DateTime.UtcNow,
-            LearnMode = false,
-            IsQuizOfTheDay = false,
-            QuizOfTheDayDate = null,
-            Questions = originalQuiz.Questions.Select(q => new QuizQuestion
-            {
-                Question = q.Question,
-                QuestionType = q.QuestionType,
-                Options = q.Options != null ? new List<string>(q.Options) : new List<string>(),
-                Answer = q.Answer,
-                Explanation = q.Explanation,
-                Difficulty = q.Difficulty,
-                ContextSnippet = q.ContextSnippet,
-                Citation = q.Citation != null ? new List<CitationMeta>(q.Citation) : new List<CitationMeta>()
-            }).ToList()
-        };
-    }
-
     private SpecialQuizAssignment CreateSpecialAssignment(int quizId)
     {
-        return new SpecialQuizAssignment
+        try
         {
-            UserQuizId = quizId,
-            AssignedByUserId = CurrentUserId ?? "",
-            AssignmentTypeId = SelectedAssignmentTypeId,
-            StartDate = SpecialStartDate,
-            EndDate = SpecialEndDate,
-            Notes = SpecialNotes,
-            CreatedAt = DateTime.UtcNow
-        };
-    }
-
-    private async Task<Quiz?> InsertQuizAsync(Quiz quiz)
-    {
-        return await UserQuizApiService.CreateUserQuizAsync(quiz);
-    }
-
-    private async Task<bool> SubmitSpecialAssignmentAsync(SpecialQuizAssignment assignment)
-    {
-        var resp = await HttpClient.PostAsJsonAsync("/api/SpecialQuizAssignments", assignment);
-        return resp.IsSuccessStatusCode;
+            Logger.LogInformation("Creating SpecialQuizAssignment for QuizId={QuizId}", quizId);
+            var assignment = new SpecialQuizAssignment
+            {
+                UserQuizId = quizId, // will be replaced by the new quiz id
+                AssignedByUserId = CurrentUserId ?? "",
+                AssignmentTypeId = SelectedAssignmentTypeId,
+                StartDate = SpecialStartDate,
+                EndDate = SpecialEndDate,
+                Notes = SpecialNotes,
+                CreatedAt = DateTime.UtcNow
+            };
+            Logger.LogInformation("SpecialQuizAssignment created: {@Assignment}", assignment);
+            return assignment;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Exception while creating SpecialQuizAssignment.");
+            throw;
+        }
     }
 
     private async Task AssignSpecialQuizAsync()
@@ -589,24 +557,27 @@ else
             if (UserQuiz == null)
             {
                 SpecialAssignMessage = "No quiz loaded.";
+                Logger.LogWarning("AssignSpecialQuizAsync called with null UserQuiz.");
                 return;
             }
 
-            var copiedQuiz = CreateQuizCopy(UserQuiz);
-            var newQuiz = await InsertQuizAsync(copiedQuiz);
-            if (newQuiz == null)
+            var assignment = CreateSpecialAssignment(QuizId); // QuizId will be replaced in the service
+            var (success, newQuizId) = await UserQuizApiService.CreateSpecialAssignmentWithQuizCopyAsync(QuizId, assignment);
+            if (success)
             {
-                SpecialAssignMessage = "Failed to create a copy of the quiz.";
-                return;
+                SpecialAssignMessage = "Special assignment saved!";
+                Logger.LogInformation("Special assignment created for new quiz {QuizId}", newQuizId);
             }
-
-            var assignment = CreateSpecialAssignment(newQuiz.Id);
-            var success = await SubmitSpecialAssignmentAsync(assignment);
-            SpecialAssignMessage = success ? "Special assignment saved!" : "Failed to save special assignment.";
+            else
+            {
+                SpecialAssignMessage = "Failed to save special assignment.";
+                Logger.LogError("Failed to create special assignment for quiz {QuizId}", QuizId);
+            }
         }
         catch (Exception ex)
         {
             SpecialAssignMessage = $"Error: {ex.Message}";
+            Logger.LogError(ex, "Exception in AssignSpecialQuizAsync.");
         }
         finally
         {

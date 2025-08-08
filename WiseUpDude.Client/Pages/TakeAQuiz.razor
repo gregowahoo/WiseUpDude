@@ -276,8 +276,16 @@ else
             }
             try
             {
+                Logger.LogInformation($"Attempting to load assignment types. IsBrowser: {OperatingSystem.IsBrowser()}");
+                Logger.LogInformation($"HttpClient BaseAddress: {HttpClient?.BaseAddress}");
+                
                 AssignmentTypes = await AssignmentTypeService.GetAllAsync();
                 Logger.LogInformation($"Loaded {AssignmentTypes.Count} assignment types successfully in TakeAQuiz.razor.");
+            }
+            catch (HttpRequestException httpEx)
+            {
+                Logger.LogError(httpEx, "HTTP error loading assignment types. Status: {StatusCode}", httpEx.StatusCode);
+                SpecialAssignMessage = $"HTTP error loading assignment types: {httpEx.Message}";
             }
             catch (Exception ex)
             {

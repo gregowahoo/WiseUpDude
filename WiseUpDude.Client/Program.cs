@@ -45,6 +45,11 @@ builder.Services.AddScoped<QuizState>();
 builder.Services.AddScoped<IUserQuizAttemptApiService, UserQuizAttemptApiService>();
 builder.Services.AddScoped<WiseUpDude.Shared.Services.UrlMetaClient>();
 builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddScoped<IAssignmentTypeService, WiseUpDude.Shared.Services.AssignmentTypeApiService>();
+
+// Add this registration for the HttpClient used by AssignmentTypeApiService
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+
+// Register the service
+builder.Services.AddScoped<IAssignmentTypeService, AssignmentTypeApiService>();
 
 await builder.Build().RunAsync();

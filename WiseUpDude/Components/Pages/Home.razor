@@ -27,7 +27,10 @@
 
 @attribute [Authorize(Roles = "FreeSubscriber,PaidSubscriber,Admin,EnterpriseSubscriber")]
 
-<h1 class="text-center mb-4">Welcome to Wise Up Dude!</h1>
+<div class="hero-header text-center mb-5">
+    <h1 class="dynamic-title mb-3">@GetDynamicTitle()</h1>
+    <p class="hero-subtitle text-muted">@GetDynamicSubtitle()</p>
+</div>
 
 <div class="container">
     <!-- Dashboard Summary -->
@@ -597,5 +600,30 @@
         {
             IsGenerating = false;
         }
+    }
+
+    private string GetDynamicTitle()
+    {
+        // Example logic for dynamic title
+        if (Summary != null)
+        {
+            if (Summary.TotalQuizzesTaken == 0)
+                return "Start Your First Quiz Today!";
+            else if (Summary.AverageScore < 50)
+                return "Keep Going! Improve Your Score!";
+            else
+                return "Great Job! You're Doing Well!";
+        }
+        return "Welcome to Wise Up Dude!";
+    }
+
+    private string GetDynamicSubtitle()
+    {
+        // Example logic for dynamic subtitle
+        if (Summary != null)
+        {
+            return $"You have taken {Summary.TotalQuizzesTaken} quizzes with an average score of {Summary.AverageScore:F0}%.";
+        }
+        return "Track your progress and improve your skills.";
     }
 }

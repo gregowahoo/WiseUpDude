@@ -252,19 +252,57 @@ h1 {
     color: #2563eb;
 }
 
-@media (max-width: 600px) {
-    .quiz-filter-pills {
-        width: 100%;
-        padding: 0.5rem 0.2rem;
-        justify-content: flex-start;
-        font-size: 0.95em;
+/* Enhanced Hero Section Typography */
+.hero-header {
+    padding: 2rem 0;
+}
+
+.dynamic-title {
+    font-size: 2.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.02em;
+}
+
+.hero-subtitle {
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: #6b7280;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* Responsive typography */
+@media (max-width: 768px) {
+    .dynamic-title {
+        font-size: 2rem;
+        line-height: 1.2;
     }
-    .quiz-filter-pill {
-        flex: 1 1 45%;
-        min-width: 120px;
-        justify-content: center;
-        font-size: 1em;
-        padding: 0.5rem 0.5rem;
-        margin-bottom: 0.5rem;
+    
+    .hero-subtitle {
+        font-size: 1rem;
+        padding: 0 1rem;
+    }
+    
+    .hero-header {
+        padding: 1.5rem 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .dynamic-title {
+        font-size: 1.75rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 0.95rem;
     }
 }

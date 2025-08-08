@@ -29,7 +29,7 @@
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-@if (OperatingSystem.IsBrowser())
+@* @if (OperatingSystem.IsBrowser())
 {
     <div class="alert alert-success">
         <strong>WASM Mode:</strong> This page is running in WebAssembly mode.
@@ -43,7 +43,7 @@ else
 }
 
 <p>Running on: @(OperatingSystem.IsBrowser() ? "WASM" : "Server")</p>
-
+ *@
 
 
 <div class="card">

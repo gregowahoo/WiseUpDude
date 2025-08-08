@@ -1,45 +1,47 @@
 @using WiseUpDude.Shared
 @using WiseUpDude.Model
 
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card shadow-sm border-primary">
-            <div class="card-header bg-primary text-white py-2 px-3">
-                <h6 class="mb-0">? Special Picks</h6>
-            </div>
-            <div class="card-body p-2">
-                @if (FeaturedQuizzes != null && FeaturedQuizzes.Any())
+<div class="featured-carousel-container">
+    <div class="featured-carousel-header">
+        <h6 class="featured-carousel-title">
+            <i class="bi bi-lightbulb-fill me-2"></i>Special Picks
+        </h6>
+    </div>
+    
+    @if (FeaturedQuizzes != null && FeaturedQuizzes.Any())
+    {
+        <div class="featured-carousel-content">
+            <div class="featured-quizzes-scroll">
+                @foreach (var featured in FeaturedQuizzes)
                 {
-                    <div class="featured-quizzes-scroll">
-                        @foreach (var featured in FeaturedQuizzes)
-                        {
-                            var quiz = featured.Quiz;
-                            var type = featured.AssignmentType;
-                            <div class="card h-100 shadow-sm featured-quiz-card">
-                                <div class="card-header d-flex justify-content-between align-items-center py-1 px-2">
-                                    <span class="badge bg-info" style="font-size:0.85em;">@type.Name</span>
-                                    <span class="text-muted small">@quiz.Difficulty</span>
-                                </div>
-                                <div class="card-body py-2 px-2">
-                                    <div class="fw-semibold text-truncate" title="@quiz.Name" style="font-size:1em;">@quiz.Name</div>
-                                    <div class="text-muted small text-truncate-2" title="@quiz.Description">@quiz.Description</div>
-                                </div>
-                                <div class="card-footer text-end py-1 px-2 bg-white border-0">
-                                    <button class="btn btn-primary btn-sm" style="font-size:0.95em;" @onclick="() => OnTakeQuiz.InvokeAsync(quiz.Id)">
-                                        <i class="bi bi-play-fill"></i> Take
-                                    </button>
-                                </div>
-                            </div>
-                        }
+                    var quiz = featured.Quiz;
+                    var type = featured.AssignmentType;
+                    <div class="featured-quiz-card">
+                        <div class="featured-quiz-badge">
+                            @type.Name
+                        </div>
+                        <div class="featured-quiz-content">
+                            <div class="featured-quiz-difficulty">@quiz.Difficulty</div>
+                            <h6 class="featured-quiz-title" title="@quiz.Name">@quiz.Name</h6>
+                            <p class="featured-quiz-description" title="@quiz.Description">@quiz.Description</p>
+                            <button class="featured-quiz-btn" @onclick="() => OnTakeQuiz.InvokeAsync(quiz.Id)">
+                                <i class="bi bi-play-fill"></i> Take
+                            </button>
+                        </div>
                     </div>
-                }
-                else
-                {
-                    <div class="text-muted">No special quizzes are currently active.</div>
                 }
             </div>
         </div>
-    </div>
+    }
+    else
+    {
+        <div class="featured-carousel-content">
+            <div class="featured-empty-state">
+                <i class="bi bi-stars text-muted mb-2"></i>
+                <p class="text-muted mb-0">No special quizzes are currently active.</p>
+            </div>
+        </div>
+    }
 </div>
 
 @code {

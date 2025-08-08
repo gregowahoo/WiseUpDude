@@ -91,8 +91,8 @@
 
     <!-- Quiz Filter -->
     <div class="mb-4">
-        <h5>Filter Quizzes</h5>
-        <div class="quiz-filter-pills shadow-sm">
+        <h5 class="mb-3">Filter Quizzes</h5>
+        <div class="quiz-filter-pills">
             <input type="radio" class="btn-check" name="quizFilter" id="filterToday" autocomplete="off"
                    checked="@(selectedFilter == QuizFilterPeriod.Today)"
                    @onchange="() => OnFilterChanged(QuizFilterPeriod.Today)">
@@ -111,7 +111,7 @@
                    checked="@(selectedFilter == QuizFilterPeriod.ThisMonth)"
                    @onchange="() => OnFilterChanged(QuizFilterPeriod.ThisMonth)">
             <label class="quiz-filter-pill @(selectedFilter == QuizFilterPeriod.ThisMonth ? "active" : null)" for="filterThisMonth">
-                This Month <span class="quiz-count-badge">@GetQuizCount(QuizFilterPeriod.Last3Months)</span>
+                This Month <span class="quiz-count-badge">@GetQuizCount(QuizFilterPeriod.ThisMonth)</span>
             </label>
 
             <input type="radio" class="btn-check" name="quizFilter" id="filterLast3Months" autocomplete="off"

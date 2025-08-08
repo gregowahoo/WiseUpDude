@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using WiseUpDude.Model;
-using WiseUpDude.Shared.Services;
+using WiseUpDude.Shared.Services.Interfaces;
 
 namespace WiseUpDude.Shared.Services
 {
@@ -16,11 +16,11 @@ namespace WiseUpDude.Shared.Services
         }
         public async Task<List<AssignmentType>> GetAllAsync()
         {
-            return await _httpClient.GetFromJsonAsync<List<AssignmentType>>("api/SpecialQuizAssignments/types") ?? new List<AssignmentType>();
+            return await _httpClient.GetFromJsonAsync<List<AssignmentType>>("api/assignmenttypes");
         }
         public async Task<AssignmentType> GetByIdAsync(int id)
         {
-            return await _httpClient.GetFromJsonAsync<AssignmentType>($"api/SpecialQuizAssignments/types/{id}");
+            return await _httpClient.GetFromJsonAsync<AssignmentType>($"api/assignmenttypes/{id}");
         }
     }
 }

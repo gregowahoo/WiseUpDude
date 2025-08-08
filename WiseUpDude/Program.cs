@@ -22,6 +22,7 @@ using WiseUpDude.Model;
 using WiseUpDude.Services;
 using WiseUpDude.Services.Interfaces;
 using WiseUpDude.Shared.Services;
+using WiseUpDude.Shared.Services.Interfaces;
 using WiseUpDude.Shared.State;
 
 // Enable Serilog's self-diagnostics to see if there are any issues with Serilog itself

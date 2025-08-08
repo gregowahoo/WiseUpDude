@@ -1,7 +1,9 @@
 // File: WiseUpDude.Shared\Services\IUserQuizAttemptApiService.cs
+
+// File: WiseUpDude.Shared\Services\IUserQuizAttemptApiService.cs
 using WiseUpDude.Model;
 
-namespace WiseUpDude.Shared.Services
+namespace WiseUpDude.Shared.Services.Interfaces
 {
     public interface IUserQuizAttemptApiService
     {

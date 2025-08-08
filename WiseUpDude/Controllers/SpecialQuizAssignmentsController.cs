@@ -5,6 +5,7 @@ using WiseUpDude.Model;
 using WiseUpDude.Services;
 using WiseUpDude.Shared.Services;
 using Microsoft.Extensions.Logging;
+using WiseUpDude.Shared.Services.Interfaces;
 
 namespace WiseUpDude.Controllers
 {

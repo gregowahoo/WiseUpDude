@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using WiseUpDude.Model;
+using WiseUpDude.Shared.Services.Interfaces;
 
 namespace WiseUpDude.Shared.Services
 {

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using WiseUpDude.Shared.Services;
 using WiseUpDude.Model;
 using WiseUpDude.Data.Repositories;
+using WiseUpDude.Shared.Services.Interfaces;
 
 namespace WiseUpDude.Services
 {

@@ -1,6 +1,6 @@
 ﻿using Moq;
 using WiseUpDude.Model;
-using WiseUpDude.Shared.Services;
+using WiseUpDude.Shared.Services.Interfaces;
 
 namespace WiseUpDude.Test.Shared;
 

@@ -1,4 +1,4 @@
-namespace WiseUpDude.Data.Entities
+﻿namespace WiseUpDude.Data.Entities
 {
     public class AssignmentType
     {

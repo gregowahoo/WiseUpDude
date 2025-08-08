@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using WiseUpDude.Shared.Services;
 using WiseUpDude.Shared.State;
 using Blazored.LocalStorage;
+using WiseUpDude.Shared.Services.Interfaces;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 

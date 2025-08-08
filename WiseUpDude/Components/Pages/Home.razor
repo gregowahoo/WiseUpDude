@@ -229,9 +229,6 @@
             </div>
         </div>
     }
-
-    <!-- Test Button for Diagnostics -->
-    <button class="btn btn-warning mb-3" @onclick="TestButtonClick">Test Button (diagnostics)</button>
 </div>
 
 @code {
@@ -570,10 +567,5 @@
         {
             IsGenerating = false;
         }
-    }
-
-    private void TestButtonClick()
-    {
-        Logger.LogInformation("TestButtonClick was triggered.");
     }
 }

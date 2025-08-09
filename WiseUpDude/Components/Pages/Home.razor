@@ -148,89 +148,91 @@
             {
                 <div class="row">
                     @foreach (var quiz in filteredQuizzes)
-                {
-                    var scoreClass = quiz.Score switch
                     {
-                        >= 90 => "score-high",
-                        >= 75 => "score-low",
-                        >= 50 => "score-mid",
-                        _ => "score-bad"
-                    };
+                        var scoreClass = quiz.Score switch
+                        {
+                            >= 90 => "score-high",
+                            >= 75 => "score-low",
+                            >= 50 => "score-mid",
+                            _ => "score-bad"
+                        };
 
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card shadow-sm h-100">
-                            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                                @if (editingQuizId == quiz.Id)
-                                {
-                                    <input type="text" class="form-control form-control-sm w-75" @bind="quiz.Name" />
-                                    <div class="d-flex gap-2">
-                                        <button class="btn btn-sm btn-light" @onclick="() => SaveQuizName(quiz.Id, quiz.Name)">Save</button>
-                                        <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="d-flex align-items-center justify-content-between w-100">
-                                        <h5 class="mb-0 text-truncate">@quiz.Name</h5>
-                                        <span class="badge rounded-pill @scoreClass ms-2" title="@($"{quiz.Score:F0}% Complete")">
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card quiz-card-modern h-100">
+                                <div class="quiz-card-header d-flex justify-content-between align-items-center">
+                                    @if (editingQuizId == quiz.Id)
+                                    {
+                                        <input type="text" class="quiz-edit-input flex-grow-1 me-2" @bind="quiz.Name" placeholder="Enter quiz name..." />
+                                        <div class="quiz-edit-buttons">
+                                            <button class="btn btn-sm btn-light" @onclick="() => SaveQuizName(quiz.Id, quiz.Name)">Save</button>
+                                            <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <h5 class="quiz-card-title text-truncate" title="@quiz.Name">@quiz.Name</h5>
+                                        <span class="quiz-score-badge @scoreClass" title="@($"{quiz.Score:F0}% Complete")">
                                             @($"{quiz.Score:F0}%")
                                         </span>
-                                    </div>
-                                }
-                            </div>
-                            <div class="card-body">
-                                @if (quiz.Type == "Prompt")
-                                {
-                                    <p><span class="badge bg-warning">Prompt:</span> @quiz.Prompt</p>
-                                }
-                                else if (quiz.Type == "Topic")
-                                {
-                                    <p><span class="badge bg-info">Topic:</span> @quiz.Topic</p>
-                                }
-                                else if (quiz.Type == "Url")
-                                {
-                                    <p>
-                                        <span class="badge bg-primary">URL</span>
+                                    }
+                                </div>
+                                <div class="quiz-card-body">
+                                    @if (quiz.Type == "Prompt")
+                                    {
+                                        <div class="quiz-type-badge badge-prompt">Prompt</div>
+                                        <p class="quiz-description">@quiz.Prompt</p>
+                                    }
+                                    else if (quiz.Type == "Topic")
+                                    {
+                                        <div class="quiz-type-badge badge-topic">Topic</div>
+                                        <p class="quiz-description">@quiz.Topic</p>
+                                    }
+                                    else if (quiz.Type == "Url")
+                                    {
+                                        <div class="quiz-type-badge badge-url">URL</div>
                                         @if (!string.IsNullOrWhiteSpace(quiz.Url))
                                         {
-                                            <a href="@quiz.Url" target="_blank" class="ms-1 text-decoration-underline text-primary">@quiz.Url</a>
+                                            <p class="quiz-description">
+                                                <a href="@quiz.Url" target="_blank" class="text-decoration-none text-primary">@quiz.Url</a>
+                                            </p>
                                         }
-                                    </p>
-                                }
-                                @if (!string.IsNullOrWhiteSpace(quiz.Description))
-                                {
-                                    <p class="text-muted small">@quiz.Description</p>
-                                }
-                            </div> <!-- end card-body -->
-                            <div class="card-footer p-0">
-                                <nav class="navbar navbar-expand bg-light">
-                                    <div class="container-fluid justify-content-around">
-                                        <a class="text-primary mx-2" title="Resume Quiz" @onclick="() => ResumeQuiz(quiz.Id)">
-                                            <i class="bi bi-play-fill fs-5"></i>
-                                        </a>
-                                        <a class="text-success mx-2" title="Start Over" @onclick="() => StartOver(quiz.Id)">
-                                            <i class="bi bi-arrow-clockwise fs-5"></i>
-                                        </a>
-                                        <a class="text-danger mx-2" title="Delete Quiz" @onclick="() => ConfirmDelete(quiz.Id)">
-                                            <i class="bi bi-trash fs-5"></i>
-                                        </a>
-                                        <a class="text-secondary mx-2" title="Edit Quiz Name" @onclick="() => EditQuizName(quiz.Id)">
-                                            <i class="bi bi-pencil fs-5"></i>
-                                        </a>
-                                        <button type="button"
-                                                class="btn btn-link p-0 @GetLearnModeIconClass(quiz.LearnMode) mx-2"
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(quiz.Description))
+                                    {
+                                        <p class="quiz-description mt-2">@quiz.Description</p>
+                                    }
+                                </div>
+                                <div class="quiz-card-actions">
+                                    <div class="quiz-action-buttons">
+                                        <button class="quiz-action-btn action-play" title="Resume Quiz" @onclick="() => ResumeQuiz(quiz.Id)">
+                                            <i class="bi bi-play-fill"></i>
+                                            <span>Play</span>
+                                        </button>
+                                        <button class="quiz-action-btn action-restart" title="Start Over" @onclick="() => StartOver(quiz.Id)">
+                                            <i class="bi bi-arrow-clockwise"></i>
+                                            <span>Restart</span>
+                                        </button>
+                                        <button class="quiz-action-btn action-delete" title="Delete Quiz" @onclick="() => ConfirmDelete(quiz.Id)">
+                                            <i class="bi bi-trash"></i>
+                                            <span>Delete</span>
+                                        </button>
+                                        <button class="quiz-action-btn action-edit" title="Edit Quiz Name" @onclick="() => EditQuizName(quiz.Id)">
+                                            <i class="bi bi-pencil"></i>
+                                            <span>Edit</span>
+                                        </button>
+                                        <button class="quiz-action-btn action-learn @GetLearnModeIconClass(quiz.LearnMode)"
                                                 title="@GetLearnModeTooltip(quiz.LearnMode, quiz.Id)"
                                                 @onclick="() => ToggleLearnMode(quiz.Id)"
                                                 disabled="@(quizzesWithAnswers.Contains(quiz.Id))">
-                                            <i class="@GetLearnModeIconType(quiz.LearnMode) fs-5"></i>
+                                            <i class="@GetLearnModeIconType(quiz.LearnMode)"></i>
+                                            <span>Learn</span>
                                         </button>
                                     </div>
-                                </nav>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                }
-            </div>
+                    }
+                </div>
             }
             else
             {

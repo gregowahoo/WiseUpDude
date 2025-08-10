@@ -25,9 +25,6 @@ namespace WiseUpDude.Data.Entities
         [MaxLength(50)]
         public string Type { get; set; } // "Topic" or "Prompt"
 
-        //[MaxLength(100)]
-        //public string? Topic { get; set; }
-
         public string? Prompt { get; set; }
 
         [MaxLength(500)]
@@ -44,11 +41,6 @@ namespace WiseUpDude.Data.Entities
         public Topic? Topic { get; set; } // Now nullable
 
         public DateTime CreationDate { get; set; }
-
-        // Quiz of the Day fields
-        public bool IsQuizOfTheDay { get; set; } = false;
-        
-        public DateTime? QuizOfTheDayDate { get; set; }
     }
 }
 

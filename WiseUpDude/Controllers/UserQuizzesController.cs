@@ -125,8 +125,6 @@ namespace WiseUpDude.API.Controllers
                 TopicId = originalQuiz.TopicId,
                 CreationDate = DateTime.UtcNow,
                 LearnMode = false,
-                IsQuizOfTheDay = false,
-                QuizOfTheDayDate = null,
                 Questions = originalQuiz.Questions?.Select(q => new QuizQuestion
                 {
                     Question = q.Question,
@@ -146,6 +144,8 @@ namespace WiseUpDude.API.Controllers
         }
     }
 }
+
+
 
 
 

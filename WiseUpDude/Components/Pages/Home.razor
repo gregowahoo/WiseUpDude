@@ -283,7 +283,6 @@
     private int? quizToDeleteId = null;
     private HashSet<int> quizzesWithAnswers = new HashSet<int>();
     private QuizFilterPeriod selectedFilter = QuizFilterPeriod.Today;
-    private List<Quiz> TodaysQuizzesOfTheDay = new();
 
     private void EditQuizName(int quizId) => editingQuizId = quizId;
     private void CancelEdit() => editingQuizId = null;
@@ -542,66 +541,6 @@
     {
         Logger.LogInformation("TakeFeaturedQuiz called with quizId: {QuizId}", quizId);
         NavManager.NavigateTo($"/TakeAQuiz/{quizId}");
-    }
-
-    private async Task TakeTodaysQuiz(int quizId)
-    {
-        IsGenerating = true;
-        try
-        {
-            // Get current user ID
-            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-            var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                       ?? user.FindFirst("sub")?.Value;
-
-            // Find the quiz in today's quizzes
-            var quizToTake = TodaysQuizzesOfTheDay.FirstOrDefault(q => q.Id == quizId);
-            if (quizToTake != null && !string.IsNullOrEmpty(userId))
-            {
-                // Clone quiz for user
-                var userQuiz = new Quiz
-                {
-                    Name = quizToTake.Name,
-                    UserId = userId,
-                    Type = quizToTake.Type,
-                    Topic = quizToTake.Topic,
-                    Prompt = quizToTake.Prompt,
-                    Description = quizToTake.Description,
-                    Difficulty = quizToTake.Difficulty,
-                    LearnMode = quizToTake.LearnMode,
-                    Questions = quizToTake.Questions?.Select(q => new QuizQuestion
-                    {
-                        Question = q.Question,
-                        QuestionType = q.QuestionType,
-                        Options = q.Options?.ToList(),
-                        Answer = q.Answer,
-                        Explanation = q.Explanation,
-                        Difficulty = q.Difficulty
-                    }).ToList() ?? new List<QuizQuestion>(),
-                    CreationDate = DateTime.UtcNow,
-                    IsQuizOfTheDay = quizToTake.IsQuizOfTheDay,
-                    QuizOfTheDayDate = quizToTake.QuizOfTheDayDate
-                };
-
-                // Save the user quiz and get the new Id
-                var userQuizId = await UserQuizRepository.AddAsyncGetId(userQuiz);
-                QuizState.CurrentQuiz = userQuiz;
-                NavManager.NavigateTo($"/TakeAQuiz/{userQuizId}");
-            }
-            else
-            {
-                Console.WriteLine("Quiz not found or user not authenticated.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error taking today's quiz: {ex.Message}");
-        }
-        finally
-        {
-            IsGenerating = false;
-        }
     }
 
     private string GetDynamicTitle()

@@ -225,8 +225,6 @@ builder.Services.AddScoped<AnswerRandomizerService>();
 builder.Services.AddScoped<IRepository<Quiz>, QuizRepository>();
 builder.Services.AddScoped<QuizRepository>();
 
-builder.Services.AddScoped<IQuizOfTheDayService, QuizOfTheDayService>();
-
 builder.Services.AddScoped<UserQuizRepository>();
 
 builder.Services.AddScoped<IQuizQuestionRepository<QuizQuestion>, QuizQuestionRepository>();

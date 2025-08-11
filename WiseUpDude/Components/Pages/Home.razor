@@ -206,26 +206,26 @@
                                     <div class="quiz-action-buttons">
                                         <button class="quiz-action-btn action-play" title="Resume Quiz" @onclick="() => ResumeQuiz(quiz.Id)">
                                             <i class="bi bi-play-fill"></i>
-                                            <span>Play</span>
+                                            @* <span>Play</span> *@
                                         </button>
                                         <button class="quiz-action-btn action-restart" title="Start Over" @onclick="() => StartOver(quiz.Id)">
                                             <i class="bi bi-arrow-clockwise"></i>
-                                            <span>Restart</span>
+                                            @* <span>Restart</span> *@
                                         </button>
                                         <button class="quiz-action-btn action-delete" title="Delete Quiz" @onclick="() => ConfirmDelete(quiz.Id)">
                                             <i class="bi bi-trash"></i>
-                                            <span>Delete</span>
+                                            @* <span>Delete</span> *@
                                         </button>
                                         <button class="quiz-action-btn action-edit" title="Edit Quiz Name" @onclick="() => EditQuizName(quiz.Id)">
                                             <i class="bi bi-pencil"></i>
-                                            <span>Edit</span>
+                                            @* <span>Edit</span> *@
                                         </button>
                                         <button class="quiz-action-btn action-learn @GetLearnModeIconClass(quiz.LearnMode)"
                                                 title="@GetLearnModeTooltip(quiz.LearnMode, quiz.Id)"
                                                 @onclick="() => ToggleLearnMode(quiz.Id)"
                                                 disabled="@(quizzesWithAnswers.Contains(quiz.Id))">
                                             <i class="@GetLearnModeIconType(quiz.LearnMode)"></i>
-                                            <span>Learn</span>
+                                            @* <span>Learn</span> *@
                                         </button>
                                     </div>
                                 </div>

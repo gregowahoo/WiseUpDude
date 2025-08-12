@@ -1,0 +1,118 @@
+@page "/specialpicks"
+@using WiseUpDude.Model
+@using WiseUpDude.Services.Interfaces
+@using WiseUpDude.Services
+@inject AssignmentTypeDbService AssignmentTypeService
+@inject SpecialQuizAssignmentService SpecialQuizAssignmentService
+@inject IUserQuizRepository<Quiz> UserQuizRepository
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Special Picks</PageTitle>
+
+<div class="container py-4">
+    <h2 class="mb-4"><i class="bi bi-lightbulb-fill me-2"></i>Special Picks</h2>
+    @if (assignmentTypes == null)
+    {
+        <div>Loading assignment types...</div>
+    }
+    else if (!assignmentTypes.Any())
+    {
+        <div>No assignment types found.</div>
+    }
+    else
+    {
+        <ul class="nav nav-tabs mb-3">
+            @for (int i = 0; i < assignmentTypes.Count; i++)
+            {
+                <li class="nav-item">
+                    <button class="nav-link @(selectedTab == i ? "active" : null)" @onclick="() => SelectTab(i)">@assignmentTypes[i].Name</button>
+                </li>
+            }
+        </ul>
+        <div>
+            @if (isLoading)
+            {
+                <div>Loading quizzes...</div>
+            }
+            else if (featuredQuizzesForTab == null || !featuredQuizzesForTab.Any())
+            {
+                <div class="featured-empty-state">
+                    <i class="bi bi-stars text-muted mb-2"></i>
+                    <p class="text-muted mb-0">No special quizzes for this category.</p>
+                </div>
+            }
+            else
+            {
+                <div class="row g-4">
+                    @foreach (var featured in featuredQuizzesForTab)
+                    {
+                        var quiz = featured.Quiz;
+                        var type = featured.AssignmentType;
+                        <div class="col-md-6 col-lg-4">
+                            <div class="featured-quiz-card">
+                                <div class="featured-quiz-badge">@type.Name</div>
+                                <div class="featured-quiz-content">
+                                    <div class="featured-quiz-difficulty">@quiz.Difficulty</div>
+                                    <h6 class="featured-quiz-title" title="@quiz.Name">@quiz.Name</h6>
+                                    <p class="featured-quiz-description" title="@quiz.Description">@quiz.Description</p>
+                                    <button class="featured-quiz-btn" @onclick="() => TakeQuiz(quiz.Id)"><i class="bi bi-play-fill"></i> Take</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<AssignmentType>? assignmentTypes;
+    private int selectedTab = 0;
+    private List<FeaturedQuizDisplay>? featuredQuizzesForTab;
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        assignmentTypes = await AssignmentTypeService.GetAllAsync();
+        if (assignmentTypes != null && assignmentTypes.Any())
+        {
+            await LoadQuizzesForTab(0);
+        }
+    }
+
+    private async Task LoadQuizzesForTab(int tabIndex)
+    {
+        isLoading = true;
+        StateHasChanged();
+        var type = assignmentTypes![tabIndex];
+        var now = DateTime.UtcNow;
+        var assignments = await SpecialQuizAssignmentService.GetAllAsync();
+        var quizzes = (await UserQuizRepository.GetAllAsync()).ToList();
+        featuredQuizzesForTab = assignments
+            .Where(a => a.AssignmentTypeId == type.Id && a.StartDate <= now && a.EndDate >= now)
+            .Select(a => new FeaturedQuizDisplay
+            {
+                Quiz = quizzes.FirstOrDefault(q => q.Id == a.UserQuizId),
+                AssignmentType = type,
+                Assignment = a
+            })
+            .Where(fq => fq.Quiz != null)
+            .ToList();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private void SelectTab(int i)
+    {
+        selectedTab = i;
+        _ = LoadQuizzesForTab(i);
+    }
+
+    private void TakeQuiz(int quizId)
+    {
+        NavigationManager.NavigateTo($"/TakeAQuiz/{quizId}");
+    }
+}

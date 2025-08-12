@@ -124,4 +124,9 @@ public class UserQuizApiService
             return (false, null);
         }
     }
+
+    public async Task<List<Quiz>> GetAllAsync()
+    {
+        return await _httpClient.GetFromJsonAsync<List<Quiz>>("api/UserQuizzes");
+    }
 }

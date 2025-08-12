@@ -35,6 +35,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddr
 
 builder.Services.AddScoped<QuizApiService>();
 builder.Services.AddScoped<UserQuizApiService>();
+//builder.Services.AddScoped<SpecialQuizAssignmentApiService>();
 
 builder.Services.AddScoped<LearningTrackQuizApiService>();
 builder.Services.AddScoped<LearningTrackQuizAttemptApiService>();

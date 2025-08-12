@@ -31,14 +31,22 @@ Serilog.Debugging.SelfLog.Enable(msg => Console.WriteLine($"[Serilog SelfLog] {m
 var builder = WebApplication.CreateBuilder(args);
 
 // First configure Application Insights - this must come before Serilog configuration
-builder.Services.AddApplicationInsightsTelemetry(options => {
-    // Force reinitialize with environment variable if available
-    var envConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
-    if (!string.IsNullOrEmpty(envConnectionString)) {
-        options.ConnectionString = envConnectionString;
-        Console.WriteLine($"[Startup] Using APPLICATIONINSIGHTS_CONNECTION_STRING from environment variables with length {envConnectionString.Length}");
-    }
-});
+// Only enable Application Insights in non-development environments
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddApplicationInsightsTelemetry(options => {
+        // Force reinitialize with environment variable if available
+        var envConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
+        if (!string.IsNullOrEmpty(envConnectionString)) {
+            options.ConnectionString = envConnectionString;
+            Console.WriteLine($"[Startup] Using APPLICATIONINSIGHTS_CONNECTION_STRING from environment variables with length {envConnectionString.Length}");
+        }
+    });
+}
+else
+{
+    Console.WriteLine("[Startup] Application Insights disabled in Development environment");
+}
 
 #region Logging Configuration
 
@@ -62,15 +70,23 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .Enrich.WithProperty("Application", "WiseUpDude")
         .WriteTo.Console();
 
-    // Get the TelemetryConfiguration from the DI container
-    var telemetryConfiguration = services.GetRequiredService<TelemetryConfiguration>();
-    
-    // Use the TelemetryConfiguration directly - this is the most reliable method
-    loggerConfig.WriteTo.ApplicationInsights(
-        telemetryConfiguration,
-        TelemetryConverter.Traces);
-    
-    Console.WriteLine("[Startup] Configured ApplicationInsights sink with TelemetryConfiguration from DI");
+    // Only configure Application Insights sink if not in development
+    if (!builder.Environment.IsDevelopment())
+    {
+        // Get the TelemetryConfiguration from the DI container
+        var telemetryConfiguration = services.GetRequiredService<TelemetryConfiguration>();
+        
+        // Use the TelemetryConfiguration directly - this is the most reliable method
+        loggerConfig.WriteTo.ApplicationInsights(
+            telemetryConfiguration,
+            TelemetryConverter.Traces);
+        
+        Console.WriteLine("[Startup] Configured ApplicationInsights sink with TelemetryConfiguration from DI");
+    }
+    else
+    {
+        Console.WriteLine("[Startup] Application Insights sink disabled in Development environment");
+    }
 
     if (shouldUseFileLogging || isAzure)
     {
@@ -296,6 +312,7 @@ builder.Services.AddScoped<IAssignmentTypeService, WiseUpDude.Services.Assignmen
 builder.Services.AddScoped<SpecialQuizAssignmentService>();
 builder.Services.AddScoped<AssignmentTypeRepository>();
 builder.Services.AddScoped<SpecialQuizAssignmentRepository>();
+builder.Services.AddScoped<AssignmentTypeDbService>();
 #endregion
 
 
@@ -408,51 +425,66 @@ var appInsightsTelemetryClient = builder.Services.BuildServiceProvider().GetServ
 
 app.Lifetime.ApplicationStarted.Register(() =>
 {
-    // Log the Application Insights connection string length (securely)
-    var connectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
-    Log.Information("ApplicationInsights connection string length: {Length}", 
-                   connectionString?.Length ?? 0);
-
-    // Send structured logs with emoji and properties for easier querying
-    var properties = new Dictionary<string, string>
+    // Only log Application Insights info if not in development
+    if (!app.Environment.IsDevelopment())
     {
-        ["Environment"] = app.Environment.EnvironmentName,
-        ["IsAzure"] = isAzure.ToString(),
-        ["ApplicationName"] = "WiseUpDude"
-    };
+        // Log the Application Insights connection string length (securely)
+        var connectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
+        Log.Information("ApplicationInsights connection string length: {Length}", 
+                       connectionString?.Length ?? 0);
 
-    // Track events directly with TelemetryClient as well
-    appInsightsTelemetryClient?.TrackEvent("ApplicationStarted", properties);
+        // Send structured logs with emoji and properties for easier querying
+        var properties = new Dictionary<string, string>
+        {
+            ["Environment"] = app.Environment.EnvironmentName,
+            ["IsAzure"] = isAzure.ToString(),
+            ["ApplicationName"] = "WiseUpDude"
+        };
 
-    // Log to Serilog as well (these should appear in App Insights)
-    Log.Information("🔥 WiseUpDude application started successfully. {@Properties}", properties);
-    Log.Information("🔥 Test log from Azure to Application Insights. {@Properties}", properties);
-    Log.Information("🔥 Test log from Azure to File. {@Properties}", properties);
-    Log.Information("🔥 Test log from Azure to Console. {@Properties}", properties);
-    
-    // Add a specific event for testing Application Insights
-    Log.Information("Application started in environment: {Environment} with isAzure: {IsAzure}", 
-                    app.Environment.EnvironmentName, isAzure);
+        // Track events directly with TelemetryClient as well
+        appInsightsTelemetryClient?.TrackEvent("ApplicationStarted", properties);
+
+        // Log to Serilog as well (these should appear in App Insights)
+        Log.Information("🔥 WiseUpDude application started successfully. {@Properties}", properties);
+        Log.Information("🔥 Test log from Azure to Application Insights. {@Properties}", properties);
+        Log.Information("🔥 Test log from Azure to File. {@Properties}", properties);
+        Log.Information("🔥 Test log from Azure to Console. {@Properties}", properties);
+        
+        // Add a specific event for testing Application Insights
+        Log.Information("Application started in environment: {Environment} with isAzure: {IsAzure}", 
+                        app.Environment.EnvironmentName, isAzure);
+    }
+    else
+    {
+        Log.Information("🚀 WiseUpDude application started in Development mode (Application Insights disabled)");
+    }
 });
 
 // Register a background task to flush App Insights telemetry periodically
 // This ensures telemetry is sent even if the app is idle
-var timer = new System.Threading.Timer(_ => {
-    appInsightsTelemetryClient?.Flush();
-}, null, TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(15));
+System.Threading.Timer? timer = null;
+if (!app.Environment.IsDevelopment())
+{
+    timer = new System.Threading.Timer(_ => {
+        appInsightsTelemetryClient?.Flush();
+    }, null, TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(15));
+}
 
 app.Lifetime.ApplicationStopping.Register(() => 
 {
     Log.Information("Application is stopping");
     
-    // Ensure any pending telemetry is sent before the app stops
-    appInsightsTelemetryClient?.Flush();
-    
-    // Important: Wait for telemetry to be sent before closing
-    System.Threading.Thread.Sleep(1000);
+    if (!app.Environment.IsDevelopment())
+    {
+        // Ensure any pending telemetry is sent before the app stops
+        appInsightsTelemetryClient?.Flush();
+        
+        // Important: Wait for telemetry to be sent before closing
+        System.Threading.Thread.Sleep(1000);
+    }
     
     // Dispose the timer
-    timer.Dispose();
+    timer?.Dispose();
     
     // Close Serilog
     Log.CloseAndFlush();

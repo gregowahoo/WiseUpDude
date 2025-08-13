@@ -1,0 +1,52 @@
+﻿@using WiseUpDude.Shared
+@using WiseUpDude.Model
+
+<div class="featured-carousel-container">
+    <div class="featured-carousel-header">
+        <h6 class="featured-carousel-title">
+            <i class="bi bi-lightbulb-fill me-2"></i>Special Picks
+        </h6>
+    </div>
+
+    @if (FeaturedQuizzes != null && FeaturedQuizzes.Any())
+    {
+        <div class="featured-carousel-content">
+            <div class="featured-quizzes-scroll">
+                @foreach (var featured in FeaturedQuizzes)
+                {
+                    var quiz = featured.Quiz;
+                    var type = featured.AssignmentType;
+                    <div class="featured-quiz-card">
+                        <div class="featured-quiz-badge">
+                            @type.Name
+                        </div>
+                        <div class="featured-quiz-content">
+                            <div class="featured-quiz-difficulty">@quiz.Difficulty</div>
+                            <h6 class="featured-quiz-title" title="@quiz.Name">@quiz.Name</h6>
+                            <p class="featured-quiz-description" title="@quiz.Description">@quiz.Description</p>
+                            <button class="featured-quiz-btn" @onclick="() => OnTakeQuiz.InvokeAsync(quiz.Id)">
+                                <i class="bi bi-play-fill"></i> Take
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="featured-carousel-content">
+            <div class="featured-empty-state">
+                <i class="bi bi-stars text-muted mb-2"></i>
+                <p class="text-muted mb-0">No special quizzes are currently active.</p>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public List<Model.FeaturedQuizDisplay> FeaturedQuizzes { get; set; } = new();
+    [Parameter]
+    public EventCallback<int> OnTakeQuiz { get; set; }
+}

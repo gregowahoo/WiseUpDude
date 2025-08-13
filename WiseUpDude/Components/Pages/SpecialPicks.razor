@@ -6,13 +6,18 @@
 @inject SpecialQuizAssignmentService SpecialQuizAssignmentService
 @inject IUserQuizRepository<Quiz> UserQuizRepository
 @inject NavigationManager NavigationManager
+@inject ILogger<SpecialPicks> Logger
 
 @rendermode InteractiveServer
 
 <PageTitle>Special Picks</PageTitle>
 
-<div class="container py-4">
-    <h2 class="mb-4"><i class="bi bi-lightbulb-fill me-2"></i>Special Picks</h2>
+<div class="featured-carousel-container">
+    <div class="featured-carousel-header">
+        <h6 class="featured-carousel-title">
+            <i class="bi bi-lightbulb-fill me-2"></i>Special Picks
+        </h6>
+    </div>
     @if (assignmentTypes == null)
     {
         <div>Loading assignment types...</div>
@@ -31,7 +36,7 @@
                 </li>
             }
         </ul>
-        <div>
+        <div class="featured-carousel-content">
             @if (isLoading)
             {
                 <div>Loading quizzes...</div>
@@ -45,20 +50,18 @@
             }
             else
             {
-                <div class="row g-4">
+                <div class="featured-quizzes-scroll">
                     @foreach (var featured in featuredQuizzesForTab)
                     {
                         var quiz = featured.Quiz;
                         var type = featured.AssignmentType;
-                        <div class="col-md-6 col-lg-4">
-                            <div class="featured-quiz-card">
-                                <div class="featured-quiz-badge">@type.Name</div>
-                                <div class="featured-quiz-content">
-                                    <div class="featured-quiz-difficulty">@quiz.Difficulty</div>
-                                    <h6 class="featured-quiz-title" title="@quiz.Name">@quiz.Name</h6>
-                                    <p class="featured-quiz-description" title="@quiz.Description">@quiz.Description</p>
-                                    <button class="featured-quiz-btn" @onclick="() => TakeQuiz(quiz.Id)"><i class="bi bi-play-fill"></i> Take</button>
-                                </div>
+                        <div class="featured-quiz-card">
+                            <div class="featured-quiz-badge">@type.Name</div>
+                            <div class="featured-quiz-content">
+                                <div class="featured-quiz-difficulty">@quiz.Difficulty</div>
+                                <h6 class="featured-quiz-title" title="@quiz.Name">@quiz.Name</h6>
+                                <p class="featured-quiz-description" title="@quiz.Description">@quiz.Description</p>
+                                <button class="featured-quiz-btn" @onclick="() => TakeQuiz(quiz.Id)"><i class="bi bi-play-fill"></i> Take</button>
                             </div>
                         </div>
                     }
@@ -76,43 +79,63 @@
 
     protected override async Task OnInitializedAsync()
     {
-        assignmentTypes = await AssignmentTypeService.GetAllAsync();
-        if (assignmentTypes != null && assignmentTypes.Any())
+        Logger.LogInformation("Initializing SpecialPicks page");
+        try
         {
-            await LoadQuizzesForTab(0);
+            assignmentTypes = await AssignmentTypeService.GetAllAsync();
+            Logger.LogInformation("Loaded {Count} assignment types", assignmentTypes?.Count ?? 0);
+            if (assignmentTypes != null && assignmentTypes.Any())
+            {
+                await LoadQuizzesForTab(0);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error during initialization");
         }
     }
 
     private async Task LoadQuizzesForTab(int tabIndex)
     {
+        Logger.LogInformation("Loading quizzes for tab {TabIndex} ({TypeName})", tabIndex, assignmentTypes?[tabIndex]?.Name);
         isLoading = true;
         StateHasChanged();
-        var type = assignmentTypes![tabIndex];
-        var now = DateTime.UtcNow;
-        var assignments = await SpecialQuizAssignmentService.GetAllAsync();
-        var quizzes = (await UserQuizRepository.GetAllAsync()).ToList();
-        featuredQuizzesForTab = assignments
-            .Where(a => a.AssignmentTypeId == type.Id && a.StartDate <= now && a.EndDate >= now)
-            .Select(a => new FeaturedQuizDisplay
-            {
-                Quiz = quizzes.FirstOrDefault(q => q.Id == a.UserQuizId),
-                AssignmentType = type,
-                Assignment = a
-            })
-            .Where(fq => fq.Quiz != null)
-            .ToList();
+        try
+        {
+            var type = assignmentTypes![tabIndex];
+            var now = DateTime.UtcNow;
+            var assignments = await SpecialQuizAssignmentService.GetAllAsync();
+            var quizzes = (await UserQuizRepository.GetAllAsync()).ToList();
+            featuredQuizzesForTab = assignments
+                .Where(a => a.AssignmentTypeId == type.Id && a.StartDate <= now && a.EndDate >= now)
+                .Select(a => new FeaturedQuizDisplay
+                {
+                    Quiz = quizzes.FirstOrDefault(q => q.Id == a.UserQuizId),
+                    AssignmentType = type,
+                    Assignment = a
+                })
+                .Where(fq => fq.Quiz != null)
+                .ToList();
+            Logger.LogInformation("Loaded {Count} featured quizzes for tab {TabIndex}", featuredQuizzesForTab.Count, tabIndex);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading quizzes for tab {TabIndex}", tabIndex);
+        }
         isLoading = false;
         StateHasChanged();
     }
 
     private void SelectTab(int i)
     {
+        Logger.LogInformation("Tab selected: {TabIndex} ({TypeName})", i, assignmentTypes?[i]?.Name);
         selectedTab = i;
         _ = LoadQuizzesForTab(i);
     }
 
     private void TakeQuiz(int quizId)
     {
+        Logger.LogInformation("TakeQuiz called for quizId: {QuizId}", quizId);
         NavigationManager.NavigateTo($"/TakeAQuiz/{quizId}");
     }
 }

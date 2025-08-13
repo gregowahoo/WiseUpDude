@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using WiseUpDude.Data.Entities;
 using WiseUpDude.Data.Repositories.Interfaces;
 using WiseUpDude.Model;
@@ -11,19 +12,24 @@ namespace WiseUpDude.Data.Repositories
     public class UserQuizRepository : IUserQuizRepository<WiseUpDude.Model.Quiz>
     {
         private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
+        private readonly ILogger<UserQuizRepository> _logger;
 
-        public UserQuizRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
+        public UserQuizRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory, ILogger<UserQuizRepository> logger)
         {
             _dbContextFactory = dbContextFactory;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<WiseUpDude.Model.Quiz>> GetAllAsync()
         {
+            _logger.LogInformation("Getting all user quizzes");
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var userQuizzes = await context.UserQuizzes
                 .Include(uq => uq.Questions)
                 .Include(uq => uq.User)
                 .ToListAsync();
+
+            _logger.LogInformation("Loaded {Count} user quizzes", userQuizzes.Count);
 
             return userQuizzes.Select(uq => new WiseUpDude.Model.Quiz
             {
@@ -56,6 +62,7 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task<WiseUpDude.Model.Quiz> GetByIdAsync(int id)
         {
+            _logger.LogInformation("Getting user quiz by Id: {Id}", id);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var userQuiz = await context.UserQuizzes
                 .Include(uq => uq.Questions)
@@ -63,7 +70,10 @@ namespace WiseUpDude.Data.Repositories
                 .FirstOrDefaultAsync(uq => uq.Id == id);
 
             if (userQuiz == null)
+            {
+                _logger.LogWarning("UserQuiz with Id {Id} not found", id);
                 throw new KeyNotFoundException($"UserQuiz with Id {id} not found.");
+            }
 
             return new WiseUpDude.Model.Quiz
             {
@@ -96,6 +106,7 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task AddAsync(WiseUpDude.Model.Quiz quiz)
         {
+            _logger.LogInformation("Adding new user quiz: {Name}", quiz.Name);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var userQuiz = new UserQuiz
             {
@@ -131,10 +142,12 @@ namespace WiseUpDude.Data.Repositories
 
             context.UserQuizzes.Add(userQuiz);
             await context.SaveChangesAsync();
+            _logger.LogInformation("User quiz added with Id: {Id}", userQuiz.Id);
         }
 
         public async Task<int> AddAsyncGetId(Model.Quiz quiz)
         {
+            _logger.LogInformation("Adding new user quiz and returning Id: {Name}", quiz.Name);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var userQuiz = new UserQuiz
             {
@@ -172,10 +185,11 @@ namespace WiseUpDude.Data.Repositories
             try
             {
                 await context.SaveChangesAsync();
+                _logger.LogInformation("User quiz added with Id: {Id}", userQuiz.Id);
             }
             catch (Exception ex)
             {
-                // Log or rethrow for debugging
+                _logger.LogError(ex, "Failed to save UserQuiz and UserQuizQuestions");
                 throw new InvalidOperationException("Failed to save UserQuiz and UserQuizQuestions", ex);
             }
 
@@ -184,13 +198,17 @@ namespace WiseUpDude.Data.Repositories
 
         public async Task UpdateAsync(WiseUpDude.Model.Quiz quiz)
         {
+            _logger.LogInformation("Updating user quiz: {Id}", quiz.Id);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var userQuiz = await context.UserQuizzes
                 .Include(uq => uq.Questions)
                 .FirstOrDefaultAsync(uq => uq.Id == quiz.Id);
 
             if (userQuiz == null)
+            {
+                _logger.LogWarning("UserQuiz with Id {Id} not found for update", quiz.Id);
                 throw new KeyNotFoundException($"UserQuiz with Id {quiz.Id} not found.");
+            }
 
             userQuiz.Name = quiz.Name;
             userQuiz.Type = quiz.Type;
@@ -219,50 +237,67 @@ namespace WiseUpDude.Data.Repositories
 
             context.UserQuizzes.Update(userQuiz);
             await context.SaveChangesAsync();
+            _logger.LogInformation("User quiz updated: {Id}", quiz.Id);
         }
 
         public async Task UpdateQuizNameAsync(int id, string newName)
         {
+            _logger.LogInformation("Updating quiz name for Id: {Id}", id);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             // Find the UserQuiz by ID
             var userQuiz = await context.UserQuizzes.FirstOrDefaultAsync(uq => uq.Id == id);
 
             if (userQuiz == null)
+            {
+                _logger.LogWarning("UserQuiz with Id {Id} not found for name update", id);
                 throw new KeyNotFoundException($"UserQuiz with Id {id} not found.");
+            }
 
             // Update the name
             userQuiz.Name = newName;
 
             // Save changes to the database
             await context.SaveChangesAsync();
+            _logger.LogInformation("Quiz name updated for Id: {Id}", id);
         }
 
         public async Task UpdateLearnModeAsync(int id, bool learnMode)
         {
+            _logger.LogInformation("Updating LearnMode for quiz Id: {Id}", id);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var userQuiz = await context.UserQuizzes.FirstOrDefaultAsync(uq => uq.Id == id);
 
             if (userQuiz == null)
+            {
+                _logger.LogWarning("UserQuiz with Id {Id} not found for LearnMode update", id);
                 throw new KeyNotFoundException($"UserQuiz with Id {id} not found.");
+            }
 
             userQuiz.LearnMode = learnMode;
 
             await context.SaveChangesAsync();
+            _logger.LogInformation("LearnMode updated for quiz Id: {Id}", id);
         }
 
         public async Task DeleteAsync(int id)
         {
+            _logger.LogInformation("Deleting user quiz with Id: {Id}", id);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var userQuiz = await context.UserQuizzes.FindAsync(id);
             if (userQuiz == null)
+            {
+                _logger.LogWarning("UserQuiz with Id {Id} not found for delete", id);
                 throw new KeyNotFoundException($"UserQuiz with Id {id} not found.");
+            }
 
             context.UserQuizzes.Remove(userQuiz);
             await context.SaveChangesAsync();
+            _logger.LogInformation("User quiz deleted: {Id}", id);
         }
 
         public async Task<List<WiseUpDude.Model.Quiz>> GetUserQuizzesAsync(string userId)
         {
+            _logger.LogInformation("Getting quizzes for user: {UserId}", userId);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var userQuizzes = await context.UserQuizzes
                 .Include(q => q.Questions)
@@ -270,6 +305,8 @@ namespace WiseUpDude.Data.Repositories
                 .Where(q => q.UserId == userId)
                 .OrderByDescending(q => q.CreationDate)
                 .ToListAsync();
+
+            _logger.LogInformation("Loaded {Count} quizzes for user {UserId}", userQuizzes.Count, userId);
 
             return userQuizzes.Select(uq => new WiseUpDude.Model.Quiz
             {
@@ -300,15 +337,13 @@ namespace WiseUpDude.Data.Repositories
                 Difficulty = uq.Difficulty,
                 LearnMode = uq.LearnMode, // Include LearnMode
                 CreationDate = uq.CreationDate, // Include CreationDate for filtering
-                                          //TopicId = uq.TopicId // Assuming TopicId exists in the entity
                 UserId = uq.User?.Id ?? "Unknown User Id",
             }).ToList();
         }
 
-
-        // Helper to get recent quizzes (e.g., last 5)
         public async Task<List<RecentQuizDto>> GetRecentUserQuizzesAsync(string userId, int count = 5)
         {
+            _logger.LogInformation("Getting recent quizzes for user: {UserId}, count: {Count}", userId, count);
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var userQuizzes = await context.UserQuizzes
                 .Include(q => q.Questions)
@@ -316,6 +351,8 @@ namespace WiseUpDude.Data.Repositories
                 .OrderByDescending(q => q.CreationDate)
                 .Take(count)
                 .ToListAsync();
+
+            _logger.LogInformation("Loaded {Count} recent quizzes for user {UserId}", userQuizzes.Count, userId);
 
             return userQuizzes.Select(uq => new RecentQuizDto
             {
@@ -346,9 +383,9 @@ namespace WiseUpDude.Data.Repositories
             {
                 return System.Text.Json.JsonSerializer.Deserialize<List<Model.CitationMeta>>(json) ?? new List<Model.CitationMeta>();
             }
-            catch
+            catch (Exception ex)
             {
-                // Optionally log the bad JSON here for diagnostics
+                _logger.LogError(ex, "Failed to deserialize citation JSON");
                 return new List<Model.CitationMeta>();
             }
         }

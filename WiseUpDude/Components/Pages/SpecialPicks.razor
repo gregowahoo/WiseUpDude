@@ -40,9 +40,9 @@
                 @foreach (var t in assignmentTypes)
                 {
                     var count = GetCount(t.Id);
+                    var thumb = GetCategoryImageUrl(t);
                     <button class="type-card" @onclick="() => SelectType(t)">
-                        <div class="type-card-header">
-                            <div class="type-icon"><i class="bi bi-collection-play-fill"></i></div>
+                        <div class="type-thumb" style="background-image:url('@thumb')">
                             <span class="type-count" title="Quizzes in this category">@count</span>
                         </div>
                         <div class="type-card-body">
@@ -140,6 +140,26 @@
     // Per-type counts
     private Dictionary<int, int> typeCounts = new();
 
+    // Curated keywords per category for better image accuracy
+    private static readonly Dictionary<string, string> CategoryImageKeywords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Featured"] = "spotlight, star, highlight",
+        ["Seniors Need To Know"] = "senior adults, wellness, active lifestyle",
+        ["Fun Facts"] = "trivia, lightbulb, playful",
+        ["Wow"] = "awe, amazing, stunning nature",
+        ["Brain Boosters"] = "brain, puzzle, logic, memory",
+        ["History Mysteries"] = "history, archives, artifacts",
+        ["Tech Trends"] = "technology, gadgets, ai",
+        ["Pop Culture Picks"] = "pop culture, movies, music, celebrities",
+        ["Travel Treasures"] = "travel, landmarks, world",
+        ["Health Wellness"] = "health, wellness, fitness",
+        ["Financial Smarts"] = "finance, investing, money",
+        ["Science Wonders"] = "science, space, laboratory",
+        ["Literary Legends"] = "books, library, literature",
+        ["Everyday Hacks"] = "life hacks, tips, tools",
+        ["Local Legends"] = "local, community, landmarks"
+    };
+
     protected override async Task OnInitializedAsync()
     {
         Logger.LogInformation("Initializing SpecialPicks page");
@@ -173,6 +193,28 @@
     }
 
     private int GetCount(int typeId) => typeCounts.TryGetValue(typeId, out var c) ? c : 0;
+
+    private string GetCategoryImageUrl(AssignmentType t)
+    {
+        // Prefer curated keyword queries for Unsplash Source (no API key, but subject to Unsplash terms)
+        var key = t?.Name ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(key) && CategoryImageKeywords.TryGetValue(key, out var query))
+        {
+            var q = System.Net.WebUtility.UrlEncode(query);
+            return $"https://source.unsplash.com/600x360/?{q}";
+        }
+
+        // Fallback to name-based query
+        if (!string.IsNullOrWhiteSpace(t?.Name))
+        {
+            var q = System.Net.WebUtility.UrlEncode(t!.Name + ", learning");
+            return $"https://source.unsplash.com/600x360/?{q}";
+        }
+
+        // Final fallback: deterministic placeholder without keys
+        var seed = Uri.EscapeDataString((t?.Name ?? "favorites") + "-wud");
+        return $"https://picsum.photos/seed/{seed}/600/360";
+    }
 
     private void ClearSelection()
     {

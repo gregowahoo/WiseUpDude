@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.Extensions.Logging;
 using WiseUpDude.Model;
 using WiseUpDude.Data.Repositories.Interfaces;
 
@@ -11,17 +11,21 @@ namespace WiseUpDude.API.Controllers
     public class UserQuizzesController : ControllerBase
     {
         private readonly IUserQuizRepository<Quiz> _userQuizRepository;
+        private readonly ILogger<UserQuizzesController> _logger;
 
-        public UserQuizzesController(IUserQuizRepository<Quiz> userQuizRepository)
+        public UserQuizzesController(IUserQuizRepository<Quiz> userQuizRepository, ILogger<UserQuizzesController> logger)
         {
             _userQuizRepository = userQuizRepository;
+            _logger = logger;
         }
 
         // GET: api/UserQuizzes
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Quiz>>> GetAll()
         {
+            _logger.LogInformation("UserQuizzes/GetAll called");
             var quizzes = await _userQuizRepository.GetAllAsync();
+            _logger.LogInformation("UserQuizzes/GetAll returning {Count} quizzes", quizzes?.Count() ?? 0);
             return Ok(quizzes);
         }
 
@@ -29,14 +33,27 @@ namespace WiseUpDude.API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Quiz>> GetById(int id)
         {
+            _logger.LogInformation("UserQuizzes/GetById called with id={Id}", id);
             try
             {
                 var quiz = await _userQuizRepository.GetByIdAsync(id);
+                if (quiz == null)
+                {
+                    _logger.LogWarning("UserQuizzes/GetById not found for id={Id}", id);
+                    return NotFound();
+                }
+                _logger.LogInformation("UserQuizzes/GetById found quiz id={Id} with {QCount} questions", id, quiz.Questions?.Count ?? 0);
                 return Ok(quiz);
             }
             catch (KeyNotFoundException)
             {
+                _logger.LogWarning("UserQuizzes/GetById repository threw KeyNotFound for id={Id}", id);
                 return NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UserQuizzes/GetById unexpected error for id={Id}");
+                throw;
             }
         }
 
@@ -44,7 +61,9 @@ namespace WiseUpDude.API.Controllers
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<IEnumerable<Quiz>>> GetByUserId(string userId)
         {
+            _logger.LogInformation("UserQuizzes/GetByUserId called for userId={UserId}", userId);
             var quizzes = await _userQuizRepository.GetUserQuizzesAsync(userId);
+            _logger.LogInformation("UserQuizzes/GetByUserId returning {Count} quizzes for userId={UserId}", quizzes?.Count() ?? 0, userId);
             return Ok(quizzes);
         }
 
@@ -52,7 +71,9 @@ namespace WiseUpDude.API.Controllers
         [HttpPost]
         public async Task<ActionResult> Create([FromBody] Quiz quiz)
         {
+            _logger.LogInformation("UserQuizzes/Create called. Name={Name} UserId={UserId}", quiz?.Name, quiz?.UserId);
             await _userQuizRepository.AddAsync(quiz);
+            _logger.LogInformation("UserQuizzes/Create created quiz with Id={Id}", quiz.Id);
             return CreatedAtAction(nameof(GetById), new { id = quiz.Id }, quiz);
         }
 
@@ -60,7 +81,9 @@ namespace WiseUpDude.API.Controllers
         [HttpGet("user/{userId}/recent")]
         public async Task<ActionResult<IEnumerable<RecentQuizDto>>> GetRecentUserQuizzes(string userId, [FromQuery] int count = 5)
         {
+            _logger.LogInformation("UserQuizzes/GetRecentUserQuizzes called. userId={UserId} count={Count}", userId, count);
             var recent = await _userQuizRepository.GetRecentUserQuizzesAsync(userId, count);
+            _logger.LogInformation("UserQuizzes/GetRecentUserQuizzes returning {Count} items for userId={UserId}", recent?.Count() ?? 0, userId);
             return Ok(recent);
         }
 
@@ -69,8 +92,12 @@ namespace WiseUpDude.API.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] Quiz quiz)
         {
             if (id != quiz.Id)
+            {
+                _logger.LogWarning("UserQuizzes/Update bad request: route id {RouteId} != payload id {PayloadId}", id, quiz.Id);
                 return BadRequest();
+            }
 
+            _logger.LogInformation("UserQuizzes/Update updating quiz id={Id}", id);
             await _userQuizRepository.UpdateAsync(quiz);
             return NoContent();
         }
@@ -79,6 +106,7 @@ namespace WiseUpDude.API.Controllers
         [HttpPatch("{id}/name")]
         public async Task<IActionResult> UpdateQuizName(int id, [FromBody] string newName)
         {
+            _logger.LogInformation("UserQuizzes/UpdateQuizName updating quiz id={Id} name={Name}", id, newName);
             await _userQuizRepository.UpdateQuizNameAsync(id, newName);
             return NoContent();
         }
@@ -87,6 +115,7 @@ namespace WiseUpDude.API.Controllers
         [HttpPut("{id}/learnmode")]
         public async Task<IActionResult> UpdateLearnMode(int id, [FromBody] bool learnMode)
         {
+            _logger.LogInformation("UserQuizzes/UpdateLearnMode id={Id} learnMode={LearnMode}", id, learnMode);
             await _userQuizRepository.UpdateLearnModeAsync(id, learnMode);
             return NoContent();
         }
@@ -95,6 +124,7 @@ namespace WiseUpDude.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
+            _logger.LogInformation("UserQuizzes/Delete id={Id}", id);
             await _userQuizRepository.DeleteAsync(id);
             return NoContent();
         }
@@ -103,10 +133,12 @@ namespace WiseUpDude.API.Controllers
         [HttpPost("{id}/copy")]
         public async Task<ActionResult<int>> CopyQuiz(int id)
         {
+            _logger.LogInformation("UserQuizzes/CopyQuiz called for id={Id}", id);
             // Get the original quiz
             var originalQuiz = await _userQuizRepository.GetByIdAsync(id);
             if (originalQuiz == null)
             {
+                _logger.LogWarning("UserQuizzes/CopyQuiz not found for id={Id}", id);
                 return NotFound();
             }
 
@@ -140,6 +172,7 @@ namespace WiseUpDude.API.Controllers
 
             // Use AddAsyncGetId to get the new quiz Id
             var newQuizId = await _userQuizRepository.AddAsyncGetId(copy);
+            _logger.LogInformation("UserQuizzes/CopyQuiz created new quiz id={NewId} from id={OldId}", newQuizId, id);
             return Ok(newQuizId);
         }
     }

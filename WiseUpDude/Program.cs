@@ -333,6 +333,9 @@ app.UseAuthorization();
 
 app.UseAntiforgery();
 
+// Map API controllers (fixes 404 for /api/* endpoints)
+app.MapControllers();
+
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()

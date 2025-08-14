@@ -13,92 +13,132 @@
 <PageTitle>Special Picks</PageTitle>
 
 <div class="specialpicks-container">
-    <div class="specialpicks-hero">
-        <h1 class="specialpicks-title">
-            <i class="bi bi-lightbulb-fill me-2"></i>Special Picks
-        </h1>
-        <p class="specialpicks-subtitle">Curated quizzes for every category. Try something new today!</p>
-    </div>
-
-    @if (assignmentTypes == null)
-    {
-        <div class="specialpicks-loading">
-            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
-        </div>
-    }
-    else if (!assignmentTypes.Any())
-    {
-        <div class="specialpicks-empty">
-            <div class="alert alert-warning text-center">No special categories found.</div>
-        </div>
-    }
-    else
-    {
-        <div class="specialpicks-tabs-container">
-            <div class="specialpicks-tabs" style="--tab-count: @assignmentTypes.Count">
-                @for (int i = 0; i < assignmentTypes.Count; i++)
-                {
-                    int tabIndex = i;
-                    <button class="specialpicks-tab-btn @(selectedTab == i ? "active" : "")" 
-                            @onclick="async () => await SelectTabAsync(tabIndex)">
-                        <i class="bi bi-stars me-1"></i> @assignmentTypes[i].Name
-                    </button>
-                }
-                <div class="specialpicks-tab-indicator" style="left: @(selectedTab * (100.0 / assignmentTypes.Count))%"></div>
-            </div>
+    <div class="specialpicks-shell">
+        <div class="specialpicks-hero">
+            <h1 class="specialpicks-title">
+                <i class="bi bi-lightbulb-fill me-2"></i>Special Picks
+            </h1>
+            <p class="specialpicks-subtitle">Curated favorites grouped by category. Pick a category to explore its quizzes.</p>
         </div>
 
-        @if (isLoading)
+        @if (assignmentTypes == null)
         {
             <div class="specialpicks-loading">
                 <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
             </div>
         }
-        else if (featuredQuizzesForTab == null || !featuredQuizzesForTab.Any())
+        else if (!assignmentTypes.Any())
         {
-            <div class="specialpicks-content">
-                <div class="specialpicks-empty-state">
-                    <i class="bi bi-stars text-muted mb-2"></i>
-                    <p class="text-muted mb-0">No special quizzes for this category.</p>
-                </div>
+            <div class="specialpicks-empty">
+                <div class="alert alert-warning text-center">No favorite categories found.</div>
+            </div>
+        }
+        else if (selectedType == null)
+        {
+            <!-- Category grid -->
+            <div class="type-grid">
+                @foreach (var t in assignmentTypes)
+                {
+                    var count = GetCount(t.Id);
+                    <button class="type-card" @onclick="() => SelectType(t)">
+                        <div class="type-card-header">
+                            <div class="type-icon"><i class="bi bi-collection-play-fill"></i></div>
+                            <span class="type-count" title="Quizzes in this category">@count</span>
+                        </div>
+                        <div class="type-card-body">
+                            <h5 class="type-title text-truncate" title="@t.Name">@t.Name</h5>
+                            @if (!string.IsNullOrWhiteSpace(t.Description))
+                            {
+                                <p class="type-desc" title="@t.Description">@t.Description</p>
+                            }
+                        </div>
+                    </button>
+                }
             </div>
         }
         else
         {
-            <div class="specialpicks-content">
-                <div class="specialpicks-quizzes-scroll">
-                    @foreach (var featured in featuredQuizzesForTab)
-                    {
-                        var quiz = featured.Quiz;
-                        var type = featured.AssignmentType;
-                        <div class="featured-quiz-card">
-                            <div class="featured-quiz-badge">
-                                @type.Name
-                            </div>
-                            <div class="featured-quiz-content">
-                                <div class="featured-quiz-difficulty">@quiz.Difficulty</div>
-                                <h6 class="featured-quiz-title" title="@quiz.Name">@quiz.Name</h6>
-                                @if (!string.IsNullOrWhiteSpace(quiz.Description))
-                                {
-                                    <p class="featured-quiz-description" title="@quiz.Description">@quiz.Description</p>
-                                }
-                                <button class="featured-quiz-btn" @onclick="() => TakeQuiz(quiz.Id)">
-                                    <i class="bi bi-play-fill"></i> Take
-                                </button>
-                            </div>
-                        </div>
-                    }
+            <!-- Selected category header + tools -->
+            <div class="selected-type-bar">
+                <button class="back-btn" @onclick="ClearSelection"><i class="bi bi-arrow-left"></i> All Categories</button>
+                <div class="selected-type-meta">
+                    <h3 class="mb-0">@selectedType.Name</h3>
+                    <span class="count-pill">@GetCount(selectedType.Id) quizzes</span>
+                </div>
+                <div class="tools">
+                    <div class="search-input">
+                        <i class="bi bi-search"></i>
+                        <input type="text" class="form-control" placeholder="Search within @selectedType.Name..."
+                               @bind="searchText" @bind:event="oninput" />
+                    </div>
+                    <select class="form-select sort-select" @bind="sortBy">
+                        <option value="Newest">Newest</option>
+                        <option value="Name">Name</option>
+                        <option value="Difficulty">Difficulty</option>
+                    </select>
                 </div>
             </div>
+
+            @if (isLoading)
+            {
+                <div class="specialpicks-loading">
+                    <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+                </div>
+            }
+            else if (featuredQuizzesForType == null || !featuredQuizzesForType.Any())
+            {
+                <div class="specialpicks-content">
+                    <div class="specialpicks-empty-state">
+                        <i class="bi bi-stars text-muted mb-2"></i>
+                        <p class="text-muted mb-0">No quizzes in this category right now.</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="specialpicks-content">
+                    <div class="specialpicks-grid">
+                        @foreach (var featured in GetDisplayedQuizzes())
+                        {
+                            var quiz = featured.Quiz;
+                            var type = featured.AssignmentType;
+                            <div class="featured-quiz-card">
+                                <div class="featured-quiz-badge">@type.Name</div>
+                                <div class="featured-quiz-content">
+                                    @if (!string.IsNullOrWhiteSpace(quiz.Difficulty))
+                                    {
+                                        <div class="featured-quiz-difficulty">@quiz.Difficulty</div>
+                                    }
+                                    <h6 class="featured-quiz-title" title="@quiz.Name">@quiz.Name</h6>
+                                    @if (!string.IsNullOrWhiteSpace(quiz.Description))
+                                    {
+                                        <p class="featured-quiz-description" title="@quiz.Description">@quiz.Description</p>
+                                    }
+                                    <button class="featured-quiz-btn" @onclick="() => TakeQuiz(quiz.Id)">
+                                        <i class="bi bi-play-fill"></i> Take
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
         }
-    }
+    </div>
 </div>
 
 @code {
     private List<AssignmentType>? assignmentTypes;
-    private int selectedTab = 0;
-    private List<FeaturedQuizDisplay>? featuredQuizzesForTab;
+    private AssignmentType? selectedType;
+    private List<FeaturedQuizDisplay>? featuredQuizzesForType;
     private bool isLoading = false;
+
+    // UI state (used when a type is selected)
+    private string searchText = string.Empty;
+    private string sortBy = "Newest";
+
+    // Per-type counts
+    private Dictionary<int, int> typeCounts = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -106,70 +146,103 @@
         try
         {
             assignmentTypes = await AssignmentTypeService.GetAllAsync();
-            Logger.LogInformation("Loaded {Count} assignment types", assignmentTypes?.Count ?? 0);
-            if (assignmentTypes != null && assignmentTypes.Any())
-            {
-                selectedTab = 0; // Ensure we start with first tab
-                await LoadQuizzesForTab(0);
-            }
-            else
-            {
-                selectedTab = 0; // Reset to 0 if no assignment types
-            }
+            await ComputeTypeCountsAsync();
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error during initialization");
-            selectedTab = 0; // Reset to safe value on error
         }
     }
 
-    private async Task LoadQuizzesForTab(int tabIndex)
+    private async Task ComputeTypeCountsAsync()
     {
-        if (assignmentTypes == null || tabIndex < 0 || tabIndex >= assignmentTypes.Count)
+        try
         {
-            featuredQuizzesForTab = new List<FeaturedQuizDisplay>();
-            return;
+            var now = DateTime.UtcNow;
+            var assignments = await SpecialQuizAssignmentService.GetAllAsync();
+            typeCounts = assignments
+                .Where(a => a.StartDate <= now && a.EndDate >= now)
+                .GroupBy(a => a.AssignmentTypeId)
+                .ToDictionary(g => g.Key, g => g.Count());
         }
-        Logger.LogInformation("Loading quizzes for tab {TabIndex} ({TypeName})", tabIndex, assignmentTypes[tabIndex].Name);
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed computing type counts");
+            typeCounts = new();
+        }
+    }
+
+    private int GetCount(int typeId) => typeCounts.TryGetValue(typeId, out var c) ? c : 0;
+
+    private void ClearSelection()
+    {
+        selectedType = null;
+        featuredQuizzesForType = null;
+        searchText = string.Empty;
+        sortBy = "Newest";
+    }
+
+    private async Task SelectType(AssignmentType t)
+    {
+        selectedType = t;
+        await LoadQuizzesForType(t.Id);
+    }
+
+    private async Task LoadQuizzesForType(int typeId)
+    {
         isLoading = true;
         StateHasChanged();
         try
         {
-            var type = assignmentTypes[tabIndex];
             var now = DateTime.UtcNow;
             var assignments = await SpecialQuizAssignmentService.GetAllAsync();
             var quizzes = (await UserQuizRepository.GetAllAsync()).ToList();
-            featuredQuizzesForTab = assignments
-                .Where(a => a.AssignmentTypeId == type.Id && a.StartDate <= now && a.EndDate >= now)
+
+            var type = assignmentTypes?.FirstOrDefault(x => x.Id == typeId);
+            featuredQuizzesForType = assignments
+                .Where(a => a.AssignmentTypeId == typeId && a.StartDate <= now && a.EndDate >= now)
                 .Select(a => new FeaturedQuizDisplay
                 {
                     Quiz = quizzes.FirstOrDefault(q => q.Id == a.UserQuizId),
-                    AssignmentType = type,
+                    AssignmentType = type!,
                     Assignment = a
                 })
                 .Where(fq => fq.Quiz != null)
                 .ToList();
-            Logger.LogInformation("Loaded {Count} featured quizzes for tab {TabIndex}", featuredQuizzesForTab.Count, tabIndex);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error loading quizzes for tab {TabIndex}", tabIndex);
+            Logger.LogError(ex, "Error loading quizzes for type {TypeId}", typeId);
+            featuredQuizzesForType = new List<FeaturedQuizDisplay>();
         }
-        isLoading = false;
-        StateHasChanged();
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
 
-    private async Task SelectTabAsync(int i)
+    private IEnumerable<FeaturedQuizDisplay> GetDisplayedQuizzes()
     {
-        if (assignmentTypes == null || i < 0 || i >= assignmentTypes.Count)
+        var list = featuredQuizzesForType ?? new List<FeaturedQuizDisplay>();
+
+        if (!string.IsNullOrWhiteSpace(searchText))
         {
-            Logger.LogWarning("SelectTabAsync called with invalid index {TabIndex}. AssignmentTypes count: {Count}", i, assignmentTypes?.Count ?? 0);
-            return;
+            var s = searchText.Trim();
+            list = list.Where(f =>
+                (f.Quiz?.Name?.Contains(s, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (f.Quiz?.Description?.Contains(s, StringComparison.OrdinalIgnoreCase) ?? false)
+            ).ToList();
         }
-        Logger.LogInformation("Tab selected: {TabIndex} ({TypeName})", i, assignmentTypes[i].Name);
-        selectedTab = i;
-        await LoadQuizzesForTab(i);
+
+        list = sortBy switch
+        {
+            "Name" => list.OrderBy(f => f.Quiz?.Name).ToList(),
+            "Difficulty" => list.OrderBy(f => f.Quiz?.Difficulty).ToList(),
+            _ => list.OrderByDescending(f => f.Quiz?.CreationDate).ToList()
+        };
+
+        return list;
     }
 
     private void TakeQuiz(int quizId)

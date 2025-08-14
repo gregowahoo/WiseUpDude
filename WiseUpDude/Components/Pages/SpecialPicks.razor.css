@@ -1,5 +1,8 @@
 /* SpecialPicks Page - Modern Design */
 
+/* Shared centered shell for the page */
+.specialpicks-shell{ max-width: 980px; margin: 0 auto; padding: 0 1rem; }
+
 /* Container and Layout */
 .specialpicks-container {
     min-height: 100vh;
@@ -10,7 +13,7 @@
 /* Hero Section */
 .specialpicks-hero {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: 1.25rem;
     padding: 2rem 0;
 }
 
@@ -38,11 +41,84 @@
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
+/* Toolbar */
+.specialpicks-toolbar {
+    max-width: 1200px;
+    margin: 0 auto 1rem auto;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.search-input {
+    position: relative;
+    min-width: 260px;
+}
+
+.search-input i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+}
+
+.search-input .form-control {
+    padding-left: 2rem;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.layout-toggle {
+    display: flex;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.toggle-btn {
+    background: transparent;
+    border: none;
+    padding: 0.5rem 0.75rem;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.toggle-btn.active {
+    background: #2563eb;
+    color: #fff;
+}
+
+.sort-select {
+    min-width: 140px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
 /* Tab Navigation */
 .specialpicks-tabs-container {
     display: flex;
     justify-content: center;
     margin-bottom: 2rem;
+    position: sticky;
+    top: 64px;
+    z-index: 5;
+    padding: 0 1rem;
 }
 
 .specialpicks-tabs {
@@ -72,6 +148,15 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+.specialpicks-tab-btn .chip-count {
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 0.75rem;
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    font-weight: 600;
 }
 
 .specialpicks-tab-btn:hover:not(.active) {
@@ -163,6 +248,71 @@
 
 .specialpicks-quizzes-scroll::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+}
+
+/* --- Responsive overhaul --- */
+/* Category grid uses auto-fill to flow nicely at any width */
+.type-grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem 2rem 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+/* Type cards scale without grid-column spans */
+.type-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1rem;
+    text-align: left;
+    background: #ffffff;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    cursor: pointer;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    display: flex;
+    flex-direction: column;
+    min-height: 140px;
+}
+
+/* Quizzes grid uses auto-fill too */
+.specialpicks-grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem 2rem 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+/* Selected bar wraps and stays readable */
+.selected-type-bar {
+    max-width: 1200px;
+    margin: 0 auto 1rem auto;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+/* Mobile tweaks */
+@media (max-width: 768px) {
+    .specialpicks-container { padding: 0.75rem 0.5rem; }
+    .type-card { padding: 1.1rem; }
+    .type-desc { display: none; } /* simplify cards on mobile */
+    .selected-type-bar { gap: 0.5rem; }
+    .tools { width: 100%; justify-content: space-between; }
+    .tools .search-input { flex: 1 1 auto; min-width: 0; }
+    .tools .sort-select { flex: 0 0 42%; }
+}
+
+@media (max-width: 420px) {
+    .specialpicks-grid { grid-template-columns: 1fr; }
+    .type-grid { grid-template-columns: 1fr; }
+    .search-input .form-control { padding-left: 2rem; font-size: 0.9rem; }
+    .type-title { font-size: 1rem; }
 }
 
 /* Featured Quiz Cards */
@@ -331,6 +481,54 @@
     font-size: 1rem;
 }
 
+/* Selected category header */
+.selected-type-bar {
+    max-width: 1200px;
+    margin: 0 auto 1rem auto;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.selected-type-meta {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+.count-pill {
+    background: #eef2ff;
+    color: #4338ca;
+    border-radius: 999px;
+    padding: .2rem .6rem;
+    font-weight: 700;
+    font-size: .85rem;
+}
+
+.back-btn {
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: .45rem .75rem;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+
+.back-btn:hover {
+    background: #f1f5f9;
+}
+
+.tools {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
     .specialpicks-quizzes-scroll {
@@ -464,6 +662,23 @@
         padding: 0.375rem 0.625rem;
         font-size: 0.75rem;
     }
+}
+
+/* Add breathing room between hero / tools / grids */
+.specialpicks-hero{ margin-bottom: 1.25rem; }
+.selected-type-bar{ margin-bottom: .75rem; }
+.type-grid{ margin-top: .5rem; }
+.specialpicks-grid{ margin-top: .5rem; }
+
+/* Tighten card vertical metrics slightly (smooched look) */
+.featured-quiz-card{ margin-bottom: .25rem; }
+.type-card{ margin-bottom: .25rem; }
+
+/* Keep mobile comfortable */
+@media (max-width: 768px){
+  .specialpicks-shell{ max-width: 640px; }
+  .specialpicks-hero{ margin-bottom: 1rem; }
+  .selected-type-bar{ margin-bottom: .5rem; }
 }
 
 /* Animations */

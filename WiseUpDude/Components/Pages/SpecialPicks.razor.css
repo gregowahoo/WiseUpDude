@@ -672,6 +672,28 @@
     }
 }
 
+/* Compact card sizing tuned to the screenshot */
+.type-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+.type-card { padding: .75rem; min-height: 120px; }
+.type-thumb { height: 120px; }
+.type-title { font-size: 1rem; }
+
+/* Transparent count pill overlay (no white background) */
+.type-thumb .type-count{
+  background: rgba(17, 24, 39, .35); /* translucent dark */
+  color: #fff;
+  border-radius: 999px;
+  padding: .15rem .45rem;
+  font-weight: 700;
+  font-size: .75rem;
+  backdrop-filter: blur(2px);
+}
+
+@media (max-width: 768px){
+  .type-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .75rem; }
+  .type-thumb { height: 110px; }
+}
+
 /* Add breathing room between hero / tools / grids */
 .specialpicks-hero{ margin-bottom: 1.25rem; }
 .selected-type-bar{ margin-bottom: .75rem; }

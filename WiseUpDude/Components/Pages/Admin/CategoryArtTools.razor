@@ -1,0 +1,95 @@
+@page "/admin/category-art"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+
+@using WiseUpDude.Services.CategoryArt
+
+<PageTitle>Admin - Category Art</PageTitle>
+
+<div class="container my-4">
+    <h2 class="mb-3">Category Art</h2>
+    <p class="text-muted">Generate branded, transparent PNG icons for each category. Images are saved to <code>/wwwroot/images/categories</code>. Click an icon to regenerate just that one.</p>
+
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <button class="btn btn-primary" onclick="seedCategoryArt()">
+            <i class="bi bi-magic"></i> Generate / Refresh All Icons
+        </button>
+        <span class="text-muted small">Requires Admin. This may take 10-30s.</span>
+    </div>
+
+    <div id="seedResult" class="mb-3 text-muted small"></div>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+        @foreach (var label in WiseUpDude.Services.CategoryArt.CategoryArtPrompts.Map.Keys)
+        {
+            var slug = Slug(label);
+            var path = $"/images/categories/{slug}.png";
+            <div class="col">
+                <button type="button" class="card h-100 shadow-sm category-card-btn w-100" title="@path" onclick="regenerateCard('@slug', this)">
+                    <div class="card-body d-flex align-items-center gap-2">
+                        <img src="@path" alt="@label icon" width="48" height="48" style="object-fit:contain;" onerror="this.src='/favicon.png'" />
+                        <div>
+                            <div class="fw-semibold">@label</div>
+                        </div>
+                    </div>
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private static string Slug(string s) =>
+        System.Text.RegularExpressions.Regex.Replace(s.Trim().ToLowerInvariant(), "[^a-z0-9]+", "-").Trim('-');
+}
+
+<script>
+  async function seedCategoryArt(){
+    const out = document.getElementById('seedResult');
+    out.textContent = 'Working...';
+    try{
+      const res = await fetch('/admin/seed-category-art', { method: 'POST', credentials: 'include' });
+      const text = await res.text();
+      let data; try{ data = JSON.parse(text); } catch { data = { raw: text }; }
+      if(res.ok){
+        const msg = `Generated: ${data.generated || 0}. Skipped (already exist): ${data.skipped || 0}. Failures: ${(data.failed||[]).length}.`;
+        out.innerHTML = msg + (data.failed && data.failed.length ? '<pre class="mt-2">'+JSON.stringify(data.failed,null,2)+'</pre>' : '');
+        location.reload();
+      } else { out.textContent = `Failed ${res.status}: ${text}`; }
+    }catch(err){ out.textContent = 'Error: ' + err; }
+  }
+
+  function regenerateCard(slug, card){
+    const img = card.querySelector('img');
+    if(img){
+      regenerateIcon(slug, img);
+    }
+  }
+
+  async function regenerateIcon(slug, img){
+    const out = document.getElementById('seedResult');
+    const prev = img.src;
+    img.style.opacity = '0.6';
+    img.title = 'Regenerating...';
+    try{
+      const res = await fetch(`/admin/category-art/${slug}/regenerate`, { method: 'POST', credentials: 'include' });
+      const text = await res.text();
+      let data; try{ data = JSON.parse(text); } catch { data = { raw: text }; }
+      if(res.ok){
+        // cache-bust
+        const v = (data && data.v) ? data.v : Date.now();
+        img.src = `/images/categories/${slug}.png?v=${v}`;
+        img.title = 'Click to regenerate';
+        out.textContent = `Regenerated ${data && data.label ? data.label : slug}.`;
+      } else {
+        img.src = prev; img.title = 'Click to regenerate';
+        out.textContent = `Failed to regenerate ${slug}: ${text}`;
+      }
+    }catch(err){
+      img.src = prev; img.title = 'Click to regenerate';
+      out.textContent = 'Error: ' + err;
+    } finally {
+      img.style.opacity = '1';
+    }
+  }
+</script>

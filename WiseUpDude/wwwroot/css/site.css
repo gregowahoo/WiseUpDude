@@ -1,0 +1,11 @@
+/* Category Art: make the card button look like a plain card */
+.category-card-btn{
+  border: 1px solid rgba(0,0,0,.125);
+  border-radius: .5rem;
+  background: #fff;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+}
+.category-card-btn:hover{ box-shadow: 0 .5rem 1rem rgba(0,0,0,.08); }
+.category-card-btn:disabled{ opacity:.6; cursor:not-allowed; }

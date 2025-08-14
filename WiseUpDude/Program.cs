@@ -3,6 +3,7 @@ using Blazored.LocalStorage;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.AspNetCore.Identity;
@@ -24,6 +25,7 @@ using WiseUpDude.Services.Interfaces;
 using WiseUpDude.Shared.Services;
 using WiseUpDude.Shared.Services.Interfaces;
 using WiseUpDude.Shared.State;
+using WiseUpDude.Services.CategoryArt;
 
 // Enable Serilog's self-diagnostics to see if there are any issues with Serilog itself
 Serilog.Debugging.SelfLog.Enable(msg => Console.WriteLine($"[Serilog SelfLog] {msg}"));
@@ -313,83 +315,21 @@ builder.Services.AddScoped<SpecialQuizAssignmentService>();
 builder.Services.AddScoped<AssignmentTypeRepository>();
 builder.Services.AddScoped<SpecialQuizAssignmentRepository>();
 builder.Services.AddScoped<AssignmentTypeDbService>();
+
+// Category art generation services
+builder.Services.Configure<OpenAiImageOptions>(builder.Configuration.GetSection("OpenAI"));
+builder.Services.AddSingleton<ICategoryArtService, CategoryArtService>();
 #endregion
-
-
-#region Api Support
-
-// Region Api Support
-
-string? configuredBaseAddress = builder.Configuration["ApiBaseAddress"];
-string baseAddress;
-
-if (Uri.TryCreate(configuredBaseAddress, UriKind.Absolute, out var uriResult) 
-    && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
-{
-    baseAddress = configuredBaseAddress!;
-    Serilog.Log.Information("[Startup] Using 'ApiBaseAddress' from configuration: {BaseAddress}", baseAddress);
-}
-else
-{
-    if (!string.IsNullOrWhiteSpace(configuredBaseAddress))
-    {
-        Serilog.Log.Warning("[Startup] Configured 'ApiBaseAddress' is invalid ('{ConfiguredBaseAddress}'). Falling back to default.", configuredBaseAddress);
-    }
-
-    baseAddress = builder.Environment.IsDevelopment()
-        ? "https://localhost:7150/"
-        : "https://wiseupdude.com/";
-    Serilog.Log.Information("[Startup] Using default baseAddress: {BaseAddress}", baseAddress);
-}
-
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddress) });
-
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowBlazorClient", policy =>
-        policy.WithOrigins("https://wiseupdude.com", "https://www.wiseupdude.com", "https://localhost:7150")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials()); // Allow credentials for authentication
-});
-
-#endregion
-
-builder.Services.AddBlazoredLocalStorage();
-
-//Build the pipline
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseWebAssemblyDebugging();
-    app.UseMigrationsEndPoint();
-}
-else
-{
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
+app.UseSerilogRequestLogging(); // Add this line to enable request logging
 
-//if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
-//{
-//app.UseSwagger();
-//app.UseSwaggerUI();
-//}
+app.UseRouting();
 
-app.UseHttpsRedirection();
-
-// CORS must be configured early in the pipeline, before authentication and authorization
-app.UseCors("AllowBlazorClient");
-
+// Enable authentication and authorization middleware
 app.UseAuthentication();
 app.UseAuthorization();
-
-app.MapControllers();
 
 app.UseAntiforgery();
 
@@ -402,6 +342,106 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
+// Seed generated category art (admin only)
+app.MapPost("/admin/seed-category-art", async (
+    IWebHostEnvironment env,
+    ICategoryArtService svc,
+    ILoggerFactory loggerFactory,
+    CancellationToken ct) =>
+{
+    var logger = loggerFactory.CreateLogger("CategoryArtSeed");
+    var dir = Path.Combine(env.WebRootPath, "images", "categories");
+    Directory.CreateDirectory(dir);
+
+    logger.LogInformation("Seeding category art start. Directory={Dir}", dir);
+
+    var generated = 0;
+    var skipped = 0;
+    var failed = new List<object>();
+
+    foreach (var label in WiseUpDude.Services.CategoryArt.CategoryArtPrompts.Map.Keys)
+    {
+        var file = Path.Combine(dir, Slug(label) + ".png");
+        if (System.IO.File.Exists(file))
+        {
+            skipped++;
+            logger.LogInformation("Skip existing icon. Label={Label} File={File}", label, file);
+            continue;
+        }
+        try
+        {
+            logger.LogInformation("Generating icon. Label={Label}", label);
+            var prompt = WiseUpDude.Services.CategoryArt.CategoryArtPrompts.BuildPrompt(label);
+            var bytes = await svc.GeneratePngAsync(prompt, ct);
+            await File.WriteAllBytesAsync(file, bytes, ct);
+            generated++;
+            logger.LogInformation("Icon saved. Label={Label} File={File} Bytes={Bytes}", label, file, bytes.Length);
+        }
+        catch (System.ClientModel.ClientResultException cre)
+        {
+            logger.LogError(cre, "ClientResult failure for label {Label}. Status={Status} Message={Message}", label, (int?)cre.Status, cre.Message);
+            failed.Add(new { label, error = "client_result", status = (int?)cre.Status, message = cre.Message });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected failure for label {Label}", label);
+            failed.Add(new { label, error = "exception", message = ex.Message });
+        }
+    }
+
+    logger.LogInformation("Seeding category art done. Generated={Generated} Skipped={Skipped} Failed={Failed}", generated, skipped, failed.Count);
+
+    return Results.Ok(new { generated, skipped, failed, path = "/images/categories" });
+
+    static string Slug(string s)
+    {
+        s = s.Trim().ToLowerInvariant();
+        return System.Text.RegularExpressions.Regex.Replace(s, @"[^a-z0-9]+", "-").Trim('-');
+    }
+}).RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
+
+// Regenerate a single category icon (admin only)
+app.MapPost("/admin/category-art/{slug}/regenerate", async (
+    string slug,
+    IWebHostEnvironment env,
+    ICategoryArtService svc,
+    ILoggerFactory loggerFactory,
+    CancellationToken ct) =>
+{
+    var logger = loggerFactory.CreateLogger("CategoryArtRegenerate");
+    string? label = WiseUpDude.Services.CategoryArt.CategoryArtPrompts.Map.Keys
+        .FirstOrDefault(k => System.Text.RegularExpressions.Regex.Replace(k.Trim().ToLowerInvariant(), "[^a-z0-9]+", "-").Trim('-') == slug);
+
+    if (string.IsNullOrWhiteSpace(label))
+    {
+        logger.LogWarning("Regenerate called with unknown slug: {Slug}", slug);
+        return Results.NotFound(new { error = "unknown_slug", slug });
+    }
+
+    var dir = Path.Combine(env.WebRootPath, "images", "categories");
+    Directory.CreateDirectory(dir);
+    var file = Path.Combine(dir, slug + ".png");
+
+    try
+    {
+        logger.LogInformation("Regenerating icon. Label={Label} File={File}", label, file);
+        var prompt = WiseUpDude.Services.CategoryArt.CategoryArtPrompts.BuildPrompt(label);
+        var bytes = await svc.GeneratePngAsync(prompt, ct);
+        await File.WriteAllBytesAsync(file, bytes, ct);
+        logger.LogInformation("Icon regenerated. Label={Label} Bytes={Bytes}", label, bytes.Length);
+        return Results.Ok(new { label, file = $"/images/categories/{slug}.png", bytes = bytes.Length, v = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() });
+    }
+    catch (System.ClientModel.ClientResultException cre)
+    {
+        logger.LogError(cre, "ClientResult failure during regenerate for label {Label}. Status={Status} Message={Message}", label, (int?)cre.Status, cre.Message);
+        return Results.Problem(title: "client_result", detail: cre.Message, statusCode: (int?)cre.Status ?? 500);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Unexpected failure during regenerate for label {Label}", label);
+        return Results.Problem(title: "exception", detail: ex.Message, statusCode: 500);
+    }
+}).RequireAuthorization(new AuthorizeAttribute { Roles = "Admin" });
 
 using (var scope = app.Services.CreateScope())
 {
@@ -423,71 +463,5 @@ using (var scope = app.Services.CreateScope())
 
 var appInsightsTelemetryClient = builder.Services.BuildServiceProvider().GetService<TelemetryClient>();
 
-app.Lifetime.ApplicationStarted.Register(() =>
-{
-    // Only log Application Insights info if not in development
-    if (!app.Environment.IsDevelopment())
-    {
-        // Log the Application Insights connection string length (securely)
-        var connectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
-        Log.Information("ApplicationInsights connection string length: {Length}", 
-                       connectionString?.Length ?? 0);
-
-        // Send structured logs with emoji and properties for easier querying
-        var properties = new Dictionary<string, string>
-        {
-            ["Environment"] = app.Environment.EnvironmentName,
-            ["IsAzure"] = isAzure.ToString(),
-            ["ApplicationName"] = "WiseUpDude"
-        };
-
-        // Track events directly with TelemetryClient as well
-        appInsightsTelemetryClient?.TrackEvent("ApplicationStarted", properties);
-
-        // Log to Serilog as well (these should appear in App Insights)
-        Log.Information("🔥 WiseUpDude application started successfully. {@Properties}", properties);
-        Log.Information("🔥 Test log from Azure to Application Insights. {@Properties}", properties);
-        Log.Information("🔥 Test log from Azure to File. {@Properties}", properties);
-        Log.Information("🔥 Test log from Azure to Console. {@Properties}", properties);
-        
-        // Add a specific event for testing Application Insights
-        Log.Information("Application started in environment: {Environment} with isAzure: {IsAzure}", 
-                        app.Environment.EnvironmentName, isAzure);
-    }
-    else
-    {
-        Log.Information("🚀 WiseUpDude application started in Development mode (Application Insights disabled)");
-    }
-});
-
-// Register a background task to flush App Insights telemetry periodically
-// This ensures telemetry is sent even if the app is idle
-System.Threading.Timer? timer = null;
-if (!app.Environment.IsDevelopment())
-{
-    timer = new System.Threading.Timer(_ => {
-        appInsightsTelemetryClient?.Flush();
-    }, null, TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(15));
-}
-
-app.Lifetime.ApplicationStopping.Register(() => 
-{
-    Log.Information("Application is stopping");
-    
-    if (!app.Environment.IsDevelopment())
-    {
-        // Ensure any pending telemetry is sent before the app stops
-        appInsightsTelemetryClient?.Flush();
-        
-        // Important: Wait for telemetry to be sent before closing
-        System.Threading.Thread.Sleep(1000);
-    }
-    
-    // Dispose the timer
-    timer?.Dispose();
-    
-    // Close Serilog
-    Log.CloseAndFlush();
-});
-
-await app.RunAsync();
+// Ensure the app runs
+app.Run();

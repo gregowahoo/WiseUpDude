@@ -13,8 +13,8 @@
 <h2>User Management</h2>  
 
 <div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card">
+    <div class="col-md-4">
+        <div class="card h-100">
             <div class="card-header">
                 <h5 class="mb-0">Quiz Management</h5>
             </div>
@@ -24,14 +24,27 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card">
+    <div class="col-md-4">
+        <div class="card h-100">
             <div class="card-header">
                 <h5 class="mb-0">User Management</h5>
             </div>
             <div class="card-body">
                 <p class="card-text">Add, edit, and remove users from the system.</p>
                 <button class="btn btn-success" @onclick="AddUser">Add New User</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Category Art</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Generate and preview AI icons for categories.</p>
+                <a href="/admin/category-art" class="btn btn-outline-secondary">
+                    <i class="bi bi-magic"></i> Open Category Art Tools
+                </a>
             </div>
         </div>
     </div>

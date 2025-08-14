@@ -43,6 +43,7 @@
 		<PackageReference Include="Azure.AI.OpenAI" Version="2.2.0-beta.4" />
 		<PackageReference Include="Microsoft.Extensions.AI" Version="9.8.0" />
 		<PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.3.0-preview.1.25161.3" />
+		<PackageReference Include="OpenAI" Version="2.2.0-beta.4" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -79,5 +80,11 @@
 		<Content Remove="wwwroot\appsettings*.json" />
 		<Content Remove="Logs\**" />
 		<None Remove="Logs\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Update="wwwroot\css\site.css">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 </Project>

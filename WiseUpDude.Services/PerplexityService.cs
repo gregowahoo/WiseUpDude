@@ -217,14 +217,14 @@ namespace WiseUpDude.Services
                 if (!string.IsNullOrWhiteSpace(json))
                 {
                     json = json.Trim();
-                    if (json.StartsWith("```"))
+                    if (json.StartsWith("```") )
                     {
                         int firstNewline = json.IndexOf('\n');
                         if (firstNewline > 0)
                         {
                             json = json.Substring(firstNewline + 1);
                         }
-                        if (json.EndsWith("```"))
+                        if (json.EndsWith("```") )
                         {
                             json = json.Substring(0, json.Length - 3).TrimEnd();
                         }
@@ -381,9 +381,10 @@ When generating answers and explanations:
                             .Where(c => !(string.IsNullOrWhiteSpace(c.Title) || c.Title == c.Url) && !string.IsNullOrWhiteSpace(c.Description))
                             .ToList();
                     }
-                    // Verification for True/False questions (refactored)
-                    await VerifyAndFixTrueFalseQuestionAsync(question);
                 }
+
+                // Batch verification for True/False questions to reduce API roundtrips
+                await VerifyAndFixTrueFalseQuestionsBatchAsync(quiz.Questions);
 
                 // Apply answer randomization to ensure even distribution across positions
                 quiz = _answerRandomizer.DistributeAnswersEvenly(quiz);
@@ -583,6 +584,93 @@ When generating answers and explanations:
             else
             {
                 _logger.LogInformation("[TF_VERIFY_OK] Q: {Question} | Answer: {Answer} | Explanation: {Explanation} | No flip needed.", question.Question, question.Answer, question.Explanation);
+            }
+        }
+
+        // New: Batch verification to speed up processing of True/False questions
+        private async Task VerifyAndFixTrueFalseQuestionsBatchAsync(List<QuizQuestion> questions)
+        {
+            try
+            {
+                var tfItems = questions
+                    .Select((q, idx) => new { q, idx })
+                    .Where(x => x.q.QuestionType == QuizQuestionType.TrueFalse
+                                && !string.IsNullOrWhiteSpace(x.q.Question)
+                                && !string.IsNullOrWhiteSpace(x.q.Answer)
+                                && !string.IsNullOrWhiteSpace(x.q.Explanation))
+                    .ToList();
+
+                if (tfItems.Count == 0)
+                    return;
+
+                // Build a compact prompt that asks for a JSON array of Yes/No corresponding to each item in order.
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine("For each of the following True/False items, determine whether the Explanation fully justifies and supports the Answer for the Question.");
+                sb.AppendLine("Return only a JSON array of strings ('Yes' or 'No') in the same order as provided. No extra text, no markdown, no keys.");
+                sb.AppendLine();
+                for (int i = 0; i < tfItems.Count; i++)
+                {
+                    var item = tfItems[i].q;
+                    sb.AppendLine($"Item {i + 1}:");
+                    sb.AppendLine($"Question: {item.Question}");
+                    sb.AppendLine($"Answer: {item.Answer}");
+                    sb.AppendLine($"Explanation: {item.Explanation}");
+                    sb.AppendLine();
+                }
+
+                var (json, err) = await GetPerplexityQuizJsonAsync(sb.ToString());
+                if (err != null)
+                {
+                    _logger.LogWarning("[TF_VERIFY_BATCH] Batch verification failed, falling back to per-item verification. Error: {Error}", err);
+                    // Optional fallback: do nothing (skip), or fall back to per-item checks with low concurrency
+                    // Here we skip to avoid N extra calls. Uncomment to fallback:
+                    // await Task.WhenAll(tfItems.Select(x => VerifyAndFixTrueFalseQuestionAsync(x.q)));
+                    return;
+                }
+
+                List<string>? decisions = null;
+                try
+                {
+                    decisions = JsonSerializer.Deserialize<List<string>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "[TF_VERIFY_BATCH] Failed to deserialize batch verification response. Raw: {Raw}", json);
+                }
+
+                if (decisions == null || decisions.Count != tfItems.Count)
+                {
+                    _logger.LogWarning("[TF_VERIFY_BATCH] Decisions count mismatch. Expected {Expected}, Got {Got}. Skipping flips.", tfItems.Count, decisions?.Count ?? 0);
+                    return;
+                }
+
+                for (int i = 0; i < decisions.Count; i++)
+                {
+                    var decision = decisions[i];
+                    var item = tfItems[i].q;
+                    bool isValid = decision.Equals("Yes", StringComparison.OrdinalIgnoreCase);
+                    if (!isValid)
+                    {
+                        var originalAnswer = item.Answer?.Trim();
+                        var normalized = (originalAnswer ?? string.Empty).Trim().ToLowerInvariant();
+                        string flipped;
+                        if (normalized == "true")
+                            flipped = "False";
+                        else if (normalized == "false")
+                            flipped = "True";
+                        else
+                        {
+                            _logger.LogWarning("[TF_VERIFY_FLIP] (Batch) Could not flip answer for Q: {Question} | Unrecognized answer: {Answer}", item.Question, item.Answer);
+                            continue;
+                        }
+                        _logger.LogWarning("[TF_VERIFY_FLIP] (Batch) Flipping answer for Q: {Question} | Old: {OldAnswer} | New: {NewAnswer} | Explanation: {Explanation}", item.Question, originalAnswer, flipped, item.Explanation);
+                        item.Answer = flipped;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[TF_VERIFY_BATCH] Unexpected error during batch TF verification. Skipping.");
             }
         }
 

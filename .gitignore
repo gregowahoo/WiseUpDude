@@ -374,3 +374,4 @@ FodyWeavers.xsd
 /WiseUpDude/local.settings.json
 /*.secrets
 /WiseUpDude/WiseUpDude.http
+/WiseUpDude/Properties/ServiceDependencies/WiseUpDude - Web Deploy4/profile.arm.json

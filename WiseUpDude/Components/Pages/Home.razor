@@ -33,65 +33,11 @@
 </div>
 
 <div class="container">
-    <!-- Dashboard Summary -->
-    <div class="row g-4 mb-5">
-        <div class="col-md-4">
-            <div class="dashboard-stats-card card border-0 h-100">
-                <div class="card-body d-flex align-items-center p-4">
-                    <div class="stats-icon-wrapper me-3">
-                        <i class="bi bi-clipboard-check-fill stats-icon text-primary"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h6 class="card-subtitle text-muted mb-1 fw-medium">Total Quizzes Taken</h6>
-                        <h2 class="card-title mb-0 fw-bold text-dark">@Summary?.TotalQuizzesTaken</h2>
-                    </div>
-                </div>
-                <div class="stats-accent stats-accent-primary"></div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="dashboard-stats-card card border-0 h-100">7
-                <div class="card-body d-flex align-items-center p-4">
-                    <div class="stats-icon-wrapper me-3">
-                        <i class="bi bi-graph-up-arrow stats-icon text-success"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h6 class="card-subtitle text-muted mb-1 fw-medium">Average Score</h6>
-                        <h2 class="card-title mb-0 fw-bold text-dark">@($"{Summary?.AverageScore:F0}%")</h2>
-                    </div>
-                </div>
-                <div class="stats-accent stats-accent-success"></div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="dashboard-stats-card card border-0 h-100">
-                <div class="card-body d-flex align-items-center p-4">
-                    <div class="stats-icon-wrapper me-3">
-                        <i class="bi bi-trophy-fill stats-icon text-warning"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h6 class="card-subtitle text-muted mb-1 fw-medium">Best Quiz</h6>
-                        <p class="card-text small text-truncate mb-1" title="@(Summary?.BestQuizName ?? "N/A")">
-                            @(Summary?.BestQuizName ?? "N/A")
-                        </p>
-                        <div class="d-flex align-items-center">
-                            <span class="badge bg-success-subtle text-success fw-semibold">
-                                Score: @($"{Summary?.BestQuizScore ?? 0:F0}%")
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div class="stats-accent stats-accent-warning"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Featured Quizzes Carousel -->
-    @* <FeaturedQuizzesCarousel FeaturedQuizzes="FeaturedQuizzes" OnTakeQuiz="TakeFeaturedQuiz" /> *@
+    <!-- Saved Quizzes Heading (moved above filter) -->
+    <h3 class="saved-quizzes-heading">Your Saved Quizzes...</h3>
 
     <!-- Quiz Filter -->
     <div class="mb-4">
-        @* <h5 class="mb-3">Filter Quizzes</h5> *@
         <div class="quiz-filter-pills">
             <input type="radio" class="btn-check" name="quizFilter" id="filterToday" autocomplete="off"
                    checked="@(selectedFilter == QuizFilterPeriod.Today)"
@@ -132,7 +78,6 @@
 
     <!-- Saved Quizzes -->
     <div>
-        <h3>@GetFilteredQuizzesTitle()</h3>
         @if (IsGenerating)
         {
             <p class="text-center text-muted">🦖 Generating your quiz...</p>

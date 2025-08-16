@@ -163,6 +163,51 @@
 .hero-header { padding: 2rem 0; }
 .dynamic-title { font-size: 2.75rem; font-weight: 700; line-height: 1.1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: 0 4px 12px rgba(102,126,234,.15); font-family: 'Inter','Segoe UI',system-ui,-apple-system,sans-serif; letter-spacing: -.02em; }
 .hero-subtitle { font-size: 1.1rem; font-weight: 400; color: #6b7280; max-width: 600px; margin: 0 auto; line-height: 1.6; font-family: 'Inter','Segoe UI',system-ui,-apple-system,sans-serif; }
+h3 {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: #1a1a1a;
+}
+
+/* Professional typography for hero section */
+.dynamic-title {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    font-size: 2.5rem;
+    color: #0d1117;
+    background: none;
+    -webkit-background-clip: initial;
+    -webkit-text-fill-color: initial;
+    background-clip: initial;
+    text-shadow: none;
+}
+
+.hero-subtitle {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    font-size: 1.125rem;
+    color: #57606a;
+    line-height: 1.5;
+}
+
+/* Additional refinements for a corporate look */
+.hero-header {
+    margin-bottom: 3rem !important;
+}
+
+/* Saved Quizzes heading - much smaller font */
+.saved-quizzes-heading {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.01em;
+}
 
 /* Responsive tweaks (kept as before) */
 @media (max-width: 768px) {

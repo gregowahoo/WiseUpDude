@@ -50,7 +50,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="dashboard-stats-card card border-0 h-100">
+            <div class="dashboard-stats-card card border-0 h-100">7
                 <div class="card-body d-flex align-items-center p-4">
                     <div class="stats-icon-wrapper me-3">
                         <i class="bi bi-graph-up-arrow stats-icon text-success"></i>
@@ -170,36 +170,16 @@
                                     }
                                     else
                                     {
-                                        <h5 class="quiz-card-title text-truncate" title="@quiz.Name">@quiz.Name</h5>
+                                        <h5 class="quiz-card-title" title="@quiz.Name">@quiz.Name</h5>
                                         <span class="quiz-score-badge @scoreClass" title="@($"{quiz.Score:F0}% Complete")">
                                             @($"{quiz.Score:F0}%")
                                         </span>
                                     }
                                 </div>
                                 <div class="quiz-card-body">
-                                    @if (quiz.Type == "Prompt")
-                                    {
-                                        <div class="quiz-type-badge badge-prompt">Prompt</div>
-                                        <p class="quiz-description">@quiz.Prompt</p>
-                                    }
-                                    else if (quiz.Type == "Topic")
-                                    {
-                                        <div class="quiz-type-badge badge-topic">Topic</div>
-                                        <p class="quiz-description">@quiz.Topic</p>
-                                    }
-                                    else if (quiz.Type == "Url")
-                                    {
-                                        <div class="quiz-type-badge badge-url">URL</div>
-                                        @if (!string.IsNullOrWhiteSpace(quiz.Url))
-                                        {
-                                            <p class="quiz-description">
-                                                <a href="@quiz.Url" target="_blank" class="text-decoration-none text-primary">@quiz.Url</a>
-                                            </p>
-                                        }
-                                    }
                                     @if (!string.IsNullOrWhiteSpace(quiz.Description))
                                     {
-                                        <p class="quiz-description mt-2">@quiz.Description</p>
+                                        <p class="quiz-description">@quiz.Description</p>
                                     }
                                 </div>
                                 <div class="quiz-card-actions">

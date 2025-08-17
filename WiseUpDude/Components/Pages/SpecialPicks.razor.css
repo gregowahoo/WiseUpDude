@@ -714,7 +714,7 @@
     cursor: pointer;
     font-family: 'Nunito', system-ui, -apple-system, sans-serif;
     font-weight: 600;
-    font-size: 0.9375rem;  /* Reduced from 1.15rem */
+    font-size: 1.125rem;  /* Changed from 0.9375rem to match .crumb-current */
 }
 .sp-breadcrumb .crumb-link:hover { color: #0b5ed7; }
 
@@ -732,6 +732,6 @@
 }
 
 @media (max-width: 768px) {
-    .sp-breadcrumb .crumb-link { font-size: 0.875rem; }
+    .sp-breadcrumb .crumb-link { font-size: 1rem; }  /* Changed from 0.875rem */
     .sp-breadcrumb .crumb-current { font-size: 1rem; }
 }

@@ -751,3 +751,33 @@
         -webkit-overflow-scrolling: touch;
     }
 }
+
+/* --- Match Home card sizing and spacing --- */
+
+/* 3 cols desktop, 2 cols tablet, 1 col mobile (like col-lg-4/col-md-6) */
+.specialpicks-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;               /* more breathing room */
+    padding: 0 0 2rem 0;
+}
+
+@media (max-width: 992px) {    /* ~Bootstrap lg breakpoint */
+    .specialpicks-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 576px) {    /* ~Bootstrap sm breakpoint */
+    .specialpicks-grid { grid-template-columns: 1fr; }
+}
+
+/* Make cards fill the grid cell like Home cards (no fixed width) */
+.featured-quiz-card {
+    width: 100%;
+    min-width: 0 !important;    /* override older fixed width */
+    max-width: none !important; /* override older fixed width */
+    min-height: 240px;          /* like .quiz-card-modern */
+    border-radius: 12px;        /* match Home */
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin: 0;                  /* spacing now handled by grid gap */
+}

@@ -64,13 +64,16 @@
     }
     else
     {
-        <!-- Selected category header -->
+        <!-- Selected category breadcrumb -->
         <div class="selected-type-bar">
-            <button class="back-btn" @onclick="ClearSelection"><i class="bi bi-arrow-left"></i> All Categories</button>
-            <div class="selected-type-meta">
-                <h3 class="mb-0">@selectedType.Name</h3>
+            <nav class="sp-breadcrumb" aria-label="breadcrumb">
+                <button type="button" class="crumb-link" title="Back to Special Picks" @onclick="ClearSelection">
+                    Special Picks
+                </button>
+                <span class="crumb-sep">/</span>
+                <span class="crumb-current">@selectedType.Name</span>
                 <span class="count-pill">@GetCount(selectedType.Id) quizzes</span>
-            </div>
+            </nav>
         </div>
 
         @if (isLoading)
@@ -227,6 +230,7 @@
     {
         selectedType = null;
         featuredQuizzesForType = null;
+        // re-render is automatic after event; StateHasChanged() not required here
     }
 
     private async Task SelectType(AssignmentType t)

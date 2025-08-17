@@ -2,6 +2,7 @@
 @using WiseUpDude.Model
 @using WiseUpDude.Services.Interfaces
 @using WiseUpDude.Services
+@using Microsoft.AspNetCore.Components
 @inject AssignmentTypeDbService AssignmentTypeService
 @inject SpecialQuizAssignmentService SpecialQuizAssignmentService
 @inject IUserQuizRepository<Quiz> UserQuizRepository
@@ -67,12 +68,9 @@
         <!-- Selected category breadcrumb -->
         <div class="selected-type-bar">
             <nav class="sp-breadcrumb" aria-label="breadcrumb">
-                <button type="button" class="crumb-link" title="Back to Special Picks" @onclick="ClearSelection">
-                    Special Picks
-                </button>
+                <a href="/specialpicks" class="crumb-link">Special Picks</a>
                 <span class="crumb-sep">/</span>
-                <span class="crumb-current">@selectedType.Name</span>
-                <span class="count-pill">@GetCount(selectedType.Id) quizzes</span>
+                <span class="crumb-current" aria-current="page">@selectedType.Name</span>
             </nav>
         </div>
 
@@ -124,15 +122,17 @@
 </div>
 
 @code {
+    // Query string: /specialpicks?typeId=123
+    [Parameter, SupplyParameterFromQuery(Name = "typeId")]
+    public int? TypeId { get; set; }
+
     private List<AssignmentType>? assignmentTypes;
     private AssignmentType? selectedType;
     private List<FeaturedQuizDisplay>? featuredQuizzesForType;
     private bool isLoading = false;
 
-    // Per-type counts
     private Dictionary<int, int> typeCounts = new();
 
-    // Curated keywords per category for better image accuracy
     private static readonly Dictionary<string, string> CategoryImageKeywords = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Featured"] = "spotlight, star, highlight",
@@ -159,10 +159,45 @@
         {
             assignmentTypes = await AssignmentTypeService.GetAllAsync();
             await ComputeTypeCountsAsync();
+            await UpdateSelectionFromQueryAsync();
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error during initialization");
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Fired when query string changes (e.g., clicking breadcrumb or category)
+        await UpdateSelectionFromQueryAsync();
+    }
+
+    private async Task UpdateSelectionFromQueryAsync()
+    {
+        if (TypeId is int id)
+        {
+            if (assignmentTypes == null) return; // wait for initialization
+            var type = assignmentTypes.FirstOrDefault(x => x.Id == id);
+            if (type == null)
+            {
+                ClearSelection();
+                return;
+            }
+
+            // Only reload if the selection changed or not loaded yet
+            if (selectedType?.Id != id || featuredQuizzesForType == null)
+            {
+                selectedType = type;
+                await LoadQuizzesForType(id);
+            }
+        }
+        else
+        {
+            if (selectedType != null)
+            {
+                ClearSelection();
+            }
         }
     }
 
@@ -230,13 +265,13 @@
     {
         selectedType = null;
         featuredQuizzesForType = null;
-        // re-render is automatic after event; StateHasChanged() not required here
     }
 
-    private async Task SelectType(AssignmentType t)
+    private Task SelectType(AssignmentType t)
     {
-        selectedType = t;
-        await LoadQuizzesForType(t.Id);
+        // Navigate with typeId so the breadcrumb link back to /specialpicks works reliably
+        NavigationManager.NavigateTo($"/specialpicks?typeId={t.Id}");
+        return Task.CompletedTask;
     }
 
     private async Task LoadQuizzesForType(int typeId)

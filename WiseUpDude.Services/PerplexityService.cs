@@ -67,7 +67,7 @@ namespace WiseUpDude.Services
             quizModel.Prompt = string.Empty;
             quizModel.Type = "Url";
             quizModel.Name = meta.Title ?? url;
-            quizModel.Description = meta.Description ?? meta.Title;
+            quizModel.Description = meta.Description ?? meta.Title ?? url;
             quizModel.Url = url;
             quizModel.CreationDate = DateTime.UtcNow;
 
@@ -444,12 +444,13 @@ When generating answers and explanations:
                 if (quiz.Questions == null || !quiz.Questions.Any())
                     return (null, "No quiz questions found in Perplexity response.");
 
-                // Do NOT fetch meta data for the original URL
+                // Fetch meta data for the original URL
+                var meta = await GetUrlMetaAsync(url);
                 quiz.UserId = userId;
                 quiz.Prompt = string.Empty;
                 quiz.Type = "Url";
-                quiz.Name = url;
-                quiz.Description = url;
+                quiz.Name = meta.Title ?? url;
+                quiz.Description = meta.Description ?? meta.Title ?? url;
                 quiz.Url = url;
                 quiz.CreationDate = DateTime.UtcNow;
 
@@ -463,9 +464,9 @@ When generating answers and explanations:
                             var citation = question.Citation[i];
                             if (!string.IsNullOrWhiteSpace(citation.Url) && IsValidUrl(citation.Url))
                             {
-                                var meta = await GetUrlMetaAsync(citation.Url);
-                                citation.Title = meta.Title;
-                                citation.Description = meta.Description;
+                                var citationMeta = await GetUrlMetaAsync(citation.Url);
+                                citation.Title = citationMeta.Title;
+                                citation.Description = citationMeta.Description;
                                 question.Citation[i] = citation;
                             }
                         }

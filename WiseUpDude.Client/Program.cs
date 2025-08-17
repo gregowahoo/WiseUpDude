@@ -36,19 +36,15 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseAddr
 builder.Services.AddScoped<QuizApiService>();
 builder.Services.AddScoped<UserQuizApiService>();
 //builder.Services.AddScoped<SpecialQuizAssignmentApiService>();
-
 builder.Services.AddScoped<LearningTrackQuizApiService>();
 builder.Services.AddScoped<LearningTrackQuizAttemptApiService>();
-
-// In both Server and WASM Program.cs  
 builder.Services.AddScoped<QuizState>();
-
 builder.Services.AddScoped<IUserQuizAttemptApiService, UserQuizAttemptApiService>();
 builder.Services.AddScoped<WiseUpDude.Shared.Services.UrlMetaClient>();
 builder.Services.AddBlazoredLocalStorage();
 
-// Add this registration for the HttpClient used by AssignmentTypeApiService
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+// Remove this duplicate HttpClient registration:
+// builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 // Register the service
 builder.Services.AddScoped<IAssignmentTypeService, AssignmentTypeApiService>();

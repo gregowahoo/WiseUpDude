@@ -266,7 +266,13 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 builder.Services.AddScoped<DashboardDataService>();
 
 builder.Services.AddScoped<QuizApiService>();
-builder.Services.AddScoped<UserQuizApiService>();
+
+// Uses same ApiBaseAddress key as your WASM app
+builder.Services.AddHttpClient<UserQuizApiService>(client =>
+{
+    var baseAddress = builder.Configuration["ApiBaseAddress"] ?? "https://localhost:7150/";
+    client.BaseAddress = new Uri(baseAddress);
+});
 
 builder.Services.AddScoped<LearningTrackQuizApiService>();
 builder.Services.AddScoped<LearningTrackQuizAttemptApiService>();

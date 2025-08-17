@@ -4,6 +4,7 @@ using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net; // + decode HTML entities
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -38,6 +39,9 @@ namespace WiseUpDude.Services
             _answerRandomizer = answerRandomizer;
         }
 
+        private static string? DecodeHtml(string? value) =>
+            string.IsNullOrWhiteSpace(value) ? null : WebUtility.HtmlDecode(value);
+
         // Add: GenerateQuizFromUserInputAsync for user quizzes (not LearningTrack)
         public async Task<(Quiz? Quiz, string? Error)> GenerateQuizFromUrlAsync(string url, string? userId)
         {
@@ -63,11 +67,14 @@ namespace WiseUpDude.Services
 
             // Fetch meta data for the URL
             var meta = await GetUrlMetaAsync(url);
+            var title = DecodeHtml(meta.Title);
+            var description = DecodeHtml(meta.Description);
+
             quizModel.UserId = userId;
             quizModel.Prompt = string.Empty;
             quizModel.Type = "Url";
-            quizModel.Name = meta.Title ?? url;
-            quizModel.Description = meta.Description ?? meta.Title ?? url;
+            quizModel.Name = title ?? url;
+            quizModel.Description = description ?? title ?? url;
             quizModel.Url = url;
             quizModel.CreationDate = DateTime.UtcNow;
 
@@ -371,8 +378,8 @@ When generating answers and explanations:
                             if (!string.IsNullOrWhiteSpace(citation.Url) && IsValidUrl(citation.Url))
                             {
                                 var meta = await GetUrlMetaAsync(citation.Url);
-                                citation.Title = meta.Title;
-                                citation.Description = meta.Description;
+                                citation.Title = DecodeHtml(meta.Title);
+                                citation.Description = DecodeHtml(meta.Description);
                                 question.Citation[i] = citation;
                             }
                         }
@@ -446,11 +453,14 @@ When generating answers and explanations:
 
                 // Fetch meta data for the original URL
                 var meta = await GetUrlMetaAsync(url);
+                var title = DecodeHtml(meta.Title);
+                var description = DecodeHtml(meta.Description);
+
                 quiz.UserId = userId;
                 quiz.Prompt = string.Empty;
                 quiz.Type = "Url";
-                quiz.Name = meta.Title ?? url;
-                quiz.Description = meta.Description ?? meta.Title ?? url;
+                quiz.Name = title ?? url;
+                quiz.Description = description ?? title ?? url;
                 quiz.Url = url;
                 quiz.CreationDate = DateTime.UtcNow;
 
@@ -465,8 +475,8 @@ When generating answers and explanations:
                             if (!string.IsNullOrWhiteSpace(citation.Url) && IsValidUrl(citation.Url))
                             {
                                 var citationMeta = await GetUrlMetaAsync(citation.Url);
-                                citation.Title = citationMeta.Title;
-                                citation.Description = citationMeta.Description;
+                                citation.Title = DecodeHtml(citationMeta.Title);
+                                citation.Description = DecodeHtml(citationMeta.Description);
                                 question.Citation[i] = citation;
                             }
                         }

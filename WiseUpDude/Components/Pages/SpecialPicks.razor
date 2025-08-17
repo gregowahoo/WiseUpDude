@@ -96,21 +96,19 @@
                     @foreach (var featured in GetDisplayedQuizzes())
                     {
                         var quiz = featured.Quiz;
-                        var type = featured.AssignmentType;
                         <div class="featured-quiz-card">
-                            <div class="featured-quiz-badge">@type.Name</div>
+                            <div class="featured-quiz-header">
+                                <h6 class="featured-quiz-title-header" title="@quiz.Name">@quiz.Name</h6>
+                            </div>
                             <div class="featured-quiz-content">
-                                @if (!string.IsNullOrWhiteSpace(quiz.Difficulty))
-                                {
-                                    <div class="featured-quiz-difficulty">@quiz.Difficulty</div>
-                                }
-                                <h6 class="featured-quiz-title" title="@quiz.Name">@quiz.Name</h6>
                                 @if (!string.IsNullOrWhiteSpace(quiz.Description))
                                 {
                                     <p class="featured-quiz-description" title="@quiz.Description">@quiz.Description</p>
                                 }
+                            </div>
+                            <div class="featured-quiz-footer">
                                 <button class="featured-quiz-btn" @onclick="() => TakeQuiz(quiz.Id)">
-                                    <i class="bi bi-play-fill"></i> Take
+                                    <i class="bi bi-play-fill"></i> Take Quiz
                                 </button>
                             </div>
                         </div>

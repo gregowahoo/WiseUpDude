@@ -66,24 +66,12 @@
         }
         else
         {
-            <!-- Selected category header + tools -->
+            <!-- Selected category header -->
             <div class="selected-type-bar">
                 <button class="back-btn" @onclick="ClearSelection"><i class="bi bi-arrow-left"></i> All Categories</button>
                 <div class="selected-type-meta">
                     <h3 class="mb-0">@selectedType.Name</h3>
                     <span class="count-pill">@GetCount(selectedType.Id) quizzes</span>
-                </div>
-                <div class="tools">
-                    <div class="search-input">
-                        <i class="bi bi-search"></i>
-                        <input type="text" class="form-control" placeholder="Search within @selectedType.Name..."
-                               @bind="searchText" @bind:event="oninput" />
-                    </div>
-                    <select class="form-select sort-select" @bind="sortBy">
-                        <option value="Newest">Newest</option>
-                        <option value="Name">Name</option>
-                        <option value="Difficulty">Difficulty</option>
-                    </select>
                 </div>
             </div>
 
@@ -140,10 +128,6 @@
     private AssignmentType? selectedType;
     private List<FeaturedQuizDisplay>? featuredQuizzesForType;
     private bool isLoading = false;
-
-    // UI state (used when a type is selected)
-    private string searchText = string.Empty;
-    private string sortBy = "Newest";
 
     // Per-type counts
     private Dictionary<int, int> typeCounts = new();
@@ -246,8 +230,6 @@
     {
         selectedType = null;
         featuredQuizzesForType = null;
-        searchText = string.Empty;
-        sortBy = "Newest";
     }
 
     private async Task SelectType(AssignmentType t)
@@ -291,27 +273,7 @@
     }
 
     private IEnumerable<FeaturedQuizDisplay> GetDisplayedQuizzes()
-    {
-        var list = featuredQuizzesForType ?? new List<FeaturedQuizDisplay>();
-
-        if (!string.IsNullOrWhiteSpace(searchText))
-        {
-            var s = searchText.Trim();
-            list = list.Where(f =>
-                (f.Quiz?.Name?.Contains(s, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (f.Quiz?.Description?.Contains(s, StringComparison.OrdinalIgnoreCase) ?? false)
-            ).ToList();
-        }
-
-        list = sortBy switch
-        {
-            "Name" => list.OrderBy(f => f.Quiz?.Name).ToList(),
-            "Difficulty" => list.OrderBy(f => f.Quiz?.Difficulty).ToList(),
-            _ => list.OrderByDescending(f => f.Quiz?.CreationDate).ToList()
-        };
-
-        return list;
-    }
+        => featuredQuizzesForType ?? Enumerable.Empty<FeaturedQuizDisplay>();
 
     private void TakeQuiz(int quizId)
     {

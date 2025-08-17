@@ -316,11 +316,27 @@
     .tools .sort-select { flex: 0 0 42%; }
 }
 
-@media (max-width: 420px) {
-    .specialpicks-grid { grid-template-columns: 1fr; }
-    .type-grid { grid-template-columns: 1fr; }
-    .search-input .form-control { padding-left: 2rem; font-size: 0.9rem; }
-    .type-title { font-size: 1rem; }
+/* Category title (e.g., "Seniors Need To Know") — use Nunito and reduce size */
+.selected-type-meta h3 {
+    font-family: 'Nunito', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;   /* down from 1.35rem */
+    line-height: 1.3;
+    letter-spacing: 0;
+    color: #0d1117;
+    margin: 0;
+}
+
+/* Keep the count pill aligned with the smaller title */
+.selected-type-bar .count-pill {
+    margin-top: 2px;
+    font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+    .selected-type-meta h3 {
+        font-size: 0.95rem; /* down from 1.125rem */
+    }
 }
 
 /* Featured Quiz Cards */

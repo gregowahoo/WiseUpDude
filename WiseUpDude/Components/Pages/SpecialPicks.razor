@@ -12,115 +12,112 @@
 
 <PageTitle>Special Picks</PageTitle>
 
-<div class="specialpicks-container">
-    <div class="specialpicks-shell">
-        <div class="specialpicks-hero">
-            <h1 class="specialpicks-title">
-                <i class="bi bi-lightbulb-fill me-2"></i>Special Picks
-            </h1>
-            <p class="specialpicks-subtitle">Curated favorites grouped by category. Pick a category to explore its quizzes.</p>
+<div class="container">
+    <div class="hero-header text-center mb-5">
+        <h1 class="dynamic-title mb-3">
+            <i class="bi bi-lightbulb-fill me-2"></i>Special Picks
+        </h1>
+        <p class="hero-subtitle text-muted">Curated favorites grouped by category. Pick a category to explore its quizzes.</p>
+    </div>
+
+    @if (assignmentTypes == null)
+    {
+        <div class="specialpicks-loading">
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+        </div>
+    }
+    else if (!assignmentTypes.Any())
+    {
+        <div class="specialpicks-empty">
+            <div class="alert alert-warning text-center">No favorite categories found.</div>
+        </div>
+    }
+    else if (selectedType == null)
+    {
+        @if (!assignmentTypes.Any(t => GetCount(t.Id) > 0))
+        {
+            <div class="specialpicks-empty">
+                <div class="alert alert-info text-center">No categories currently have active quizzes.</div>
+            </div>
+        }
+        else
+        {
+            <!-- Category grid -->
+            <div class="type-grid">
+                @foreach (var t in assignmentTypes.Where(t => GetCount(t.Id) > 0))
+                {
+                    var count = GetCount(t.Id);
+                    var localIcon = GetCategoryIconUrl(t);
+                    var fallbackThumb = GetCategoryPhotoUrl(t);
+                    <button class="type-card" title="@GetTooltip(t)" @onclick="() => SelectType(t)">
+                        <div class="type-thumb" title="@GetTooltip(t)">
+                            <img src="@localIcon" alt="@t.Name icon" onerror="this.onerror=null; this.src='@fallbackThumb';" style="width:100%;height:100%;object-fit:cover;border-radius:10px;display:block;" />
+                            <span class="type-count" title="Quizzes in this category">@count</span>
+                        </div>
+                        <div class="type-card-body">
+                            <h5 class="type-title text-truncate" title="@t.Name">@t.Name</h5>
+                        </div>
+                    </button>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <!-- Selected category header -->
+        <div class="selected-type-bar">
+            <button class="back-btn" @onclick="ClearSelection"><i class="bi bi-arrow-left"></i> All Categories</button>
+            <div class="selected-type-meta">
+                <h3 class="mb-0">@selectedType.Name</h3>
+                <span class="count-pill">@GetCount(selectedType.Id) quizzes</span>
+            </div>
         </div>
 
-        @if (assignmentTypes == null)
+        @if (isLoading)
         {
             <div class="specialpicks-loading">
                 <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
             </div>
         }
-        else if (!assignmentTypes.Any())
+        else if (featuredQuizzesForType == null || !featuredQuizzesForType.Any())
         {
-            <div class="specialpicks-empty">
-                <div class="alert alert-warning text-center">No favorite categories found.</div>
+            <div class="specialpicks-content">
+                <div class="specialpicks-empty-state">
+                    <i class="bi bi-stars text-muted mb-2"></i>
+                    <p class="text-muted mb-0">No quizzes in this category right now.</p>
+                </div>
             </div>
-        }
-        else if (selectedType == null)
-        {
-            @if (!assignmentTypes.Any(t => GetCount(t.Id) > 0))
-            {
-                <div class="specialpicks-empty">
-                    <div class="alert alert-info text-center">No categories currently have active quizzes.</div>
-                </div>
-            }
-            else
-            {
-                <!-- Category grid -->
-                <div class="type-grid">
-                    @foreach (var t in assignmentTypes.Where(t => GetCount(t.Id) > 0))
-                    {
-                        var count = GetCount(t.Id);
-                        var localIcon = GetCategoryIconUrl(t);
-                        var fallbackThumb = GetCategoryPhotoUrl(t);
-                        <button class="type-card" title="@GetTooltip(t)" @onclick="() => SelectType(t)">
-                            <div class="type-thumb" title="@GetTooltip(t)">
-                                <img src="@localIcon" alt="@t.Name icon" onerror="this.onerror=null; this.src='@fallbackThumb';" style="width:100%;height:100%;object-fit:cover;border-radius:10px;display:block;" />
-                                <span class="type-count" title="Quizzes in this category">@count</span>
-                            </div>
-                            <div class="type-card-body">
-                                <h5 class="type-title text-truncate" title="@t.Name">@t.Name</h5>
-                                @* Description moved to tooltip to keep cards compact *@
-                            </div>
-                        </button>
-                    }
-                </div>
-            }
         }
         else
         {
-            <!-- Selected category header -->
-            <div class="selected-type-bar">
-                <button class="back-btn" @onclick="ClearSelection"><i class="bi bi-arrow-left"></i> All Categories</button>
-                <div class="selected-type-meta">
-                    <h3 class="mb-0">@selectedType.Name</h3>
-                    <span class="count-pill">@GetCount(selectedType.Id) quizzes</span>
+            <div class="specialpicks-content">
+                <div class="specialpicks-grid">
+                    @foreach (var featured in GetDisplayedQuizzes())
+                    {
+                        var quiz = featured.Quiz;
+                        var type = featured.AssignmentType;
+                        <div class="featured-quiz-card">
+                            <div class="featured-quiz-badge">@type.Name</div>
+                            <div class="featured-quiz-content">
+                                @if (!string.IsNullOrWhiteSpace(quiz.Difficulty))
+                                {
+                                    <div class="featured-quiz-difficulty">@quiz.Difficulty</div>
+                                }
+                                <h6 class="featured-quiz-title" title="@quiz.Name">@quiz.Name</h6>
+                                @if (!string.IsNullOrWhiteSpace(quiz.Description))
+                                {
+                                    <p class="featured-quiz-description" title="@quiz.Description">@quiz.Description</p>
+                                }
+                                <button class="featured-quiz-btn" @onclick="() => TakeQuiz(quiz.Id)">
+                                    <i class="bi bi-play-fill"></i> Take
+                                </button>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
-
-            @if (isLoading)
-            {
-                <div class="specialpicks-loading">
-                    <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
-                </div>
-            }
-            else if (featuredQuizzesForType == null || !featuredQuizzesForType.Any())
-            {
-                <div class="specialpicks-content">
-                    <div class="specialpicks-empty-state">
-                        <i class="bi bi-stars text-muted mb-2"></i>
-                        <p class="text-muted mb-0">No quizzes in this category right now.</p>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="specialpicks-content">
-                    <div class="specialpicks-grid">
-                        @foreach (var featured in GetDisplayedQuizzes())
-                        {
-                            var quiz = featured.Quiz;
-                            var type = featured.AssignmentType;
-                            <div class="featured-quiz-card">
-                                <div class="featured-quiz-badge">@type.Name</div>
-                                <div class="featured-quiz-content">
-                                    @if (!string.IsNullOrWhiteSpace(quiz.Difficulty))
-                                    {
-                                        <div class="featured-quiz-difficulty">@quiz.Difficulty</div>
-                                    }
-                                    <h6 class="featured-quiz-title" title="@quiz.Name">@quiz.Name</h6>
-                                    @if (!string.IsNullOrWhiteSpace(quiz.Description))
-                                    {
-                                        <p class="featured-quiz-description" title="@quiz.Description">@quiz.Description</p>
-                                    }
-                                    <button class="featured-quiz-btn" @onclick="() => TakeQuiz(quiz.Id)">
-                                        <i class="bi bi-play-fill"></i> Take
-                                    </button>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
         }
-    </div>
+    }
 </div>
 
 @code {

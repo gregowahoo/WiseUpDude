@@ -230,3 +230,12 @@ h3 {
 @media (max-width: 480px) {
     .dynamic-title { font-size: 1.75rem; }
 }
+
+/* Apply Nunito to the hero header and subtitle */
+.hero-header .dynamic-title {
+    font-family: 'Nunito', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.hero-header .hero-subtitle {
+    font-family: 'Nunito', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}

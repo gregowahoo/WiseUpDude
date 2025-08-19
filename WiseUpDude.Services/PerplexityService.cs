@@ -480,10 +480,22 @@ When generating answers and explanations:
                                 question.Citation[i] = citation;
                             }
                         }
-                        // Remove citations with no info
+
+                        // Keep citations that have a URL (do not drop due to missing meta)
                         question.Citation = question.Citation
-                            .Where(c => !(string.IsNullOrWhiteSpace(c.Title) || c.Title == c.Url) && !string.IsNullOrWhiteSpace(c.Description))
+                            .Where(c => !string.IsNullOrWhiteSpace(c.Url))
                             .ToList();
+
+                        // Ensure the original source URL is present at least once
+                        if (!question.Citation.Any(c => string.Equals(c.Url, url, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            question.Citation.Add(new CitationMeta
+                            {
+                                Url = url,
+                                Title = DecodeHtml(title),
+                                Description = DecodeHtml(description)
+                            });
+                        }
                     }
                     // Verification for True/False questions (refactored)
                     //await VerifyAndFixTrueFalseQuestionAsync(question);

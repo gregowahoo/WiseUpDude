@@ -177,6 +177,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.S
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
+// Register user id lookup service for resolving SpecialPicks owner by email
+builder.Services.AddScoped<IUserIdLookupService, UserIdLookupService>();
+
 #endregion
 
 

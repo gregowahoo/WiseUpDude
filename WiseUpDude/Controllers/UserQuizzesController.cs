@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using WiseUpDude.Model;
 using WiseUpDude.Data.Repositories.Interfaces;
+using WiseUpDude.Services;
 
 namespace WiseUpDude.API.Controllers
 {
@@ -12,11 +13,13 @@ namespace WiseUpDude.API.Controllers
     {
         private readonly IUserQuizRepository<Quiz> _userQuizRepository;
         private readonly ILogger<UserQuizzesController> _logger;
+        private readonly IUserIdLookupService _userIdLookupService;
 
-        public UserQuizzesController(IUserQuizRepository<Quiz> userQuizRepository, ILogger<UserQuizzesController> logger)
+        public UserQuizzesController(IUserQuizRepository<Quiz> userQuizRepository, ILogger<UserQuizzesController> logger, IUserIdLookupService userIdLookupService)
         {
             _userQuizRepository = userQuizRepository;
             _logger = logger;
+            _userIdLookupService = userIdLookupService;
         }
 
         // GET: api/UserQuizzes
@@ -142,12 +145,34 @@ namespace WiseUpDude.API.Controllers
                 return NotFound();
             }
 
+            // Determine Special Picks owner UserId by email. Fallback to original owner if not found.
+            const string specialOwnerEmail = "SpecialPicksOwner@wiseupdude.com";
+            string? specialOwnerUserId = null;
+            try
+            {
+                specialOwnerUserId = await _userIdLookupService.GetUserIdByEmailAsync(specialOwnerEmail);
+                if (string.IsNullOrWhiteSpace(specialOwnerUserId))
+                {
+                    _logger.LogWarning("Special Picks owner not found by email {Email}. Falling back to original owner {OwnerId}", specialOwnerEmail, originalQuiz.UserId);
+                }
+                else
+                {
+                    _logger.LogInformation("Resolved Special Picks owner. Email={Email} UserId={UserId}", specialOwnerEmail, specialOwnerUserId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error resolving Special Picks owner by email {Email}. Falling back to original owner {OwnerId}", specialOwnerEmail, originalQuiz.UserId);
+            }
+
+            var ownerUserId = string.IsNullOrWhiteSpace(specialOwnerUserId) ? originalQuiz.UserId : specialOwnerUserId;
+
             // Deep copy the quiz (excluding Id and related navigation properties)
             var copy = new Quiz
             {
                 Name = originalQuiz.Name,
                 UserName = originalQuiz.UserName,
-                UserId = originalQuiz.UserId,
+                UserId = ownerUserId,
                 Type = originalQuiz.Type,
                 Topic = originalQuiz.Topic,
                 Prompt = originalQuiz.Prompt,
@@ -172,7 +197,7 @@ namespace WiseUpDude.API.Controllers
 
             // Use AddAsyncGetId to get the new quiz Id
             var newQuizId = await _userQuizRepository.AddAsyncGetId(copy);
-            _logger.LogInformation("UserQuizzes/CopyQuiz created new quiz id={NewId} from id={OldId}", newQuizId, id);
+            _logger.LogInformation("UserQuizzes/CopyQuiz created new quiz id={NewId} from id={OldId} ownedBy={OwnerId}", newQuizId, id, ownerUserId);
             return Ok(newQuizId);
         }
     }

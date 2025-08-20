@@ -8,6 +8,7 @@
 @inject IUserQuizRepository<Quiz> UserQuizRepository
 @inject NavigationManager NavigationManager
 @inject ILogger<SpecialPicks> Logger
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 @rendermode InteractiveServer
 
@@ -107,7 +108,7 @@
                                 }
                             </div>
                             <div class="featured-quiz-footer">
-                                <button class="featured-quiz-btn" @onclick="() => TakeQuiz(quiz.Id)">
+                                <button class="featured-quiz-btn" @onclick="async () => await TakeQuizAsync(quiz.Id)">
                                     <i class="bi bi-play-fill"></i> Take Quiz
                                 </button>
                             </div>
@@ -309,9 +310,67 @@
     private IEnumerable<FeaturedQuizDisplay> GetDisplayedQuizzes()
         => featuredQuizzesForType ?? Enumerable.Empty<FeaturedQuizDisplay>();
 
-    private void TakeQuiz(int quizId)
+    private async Task TakeQuizAsync(int quizId)
     {
-        Logger.LogInformation("TakeQuiz called for quizId: {QuizId}", quizId);
-        NavigationManager.NavigateTo($"/TakeAQuiz/{quizId}");
+        Logger.LogInformation("TakeQuizAsync called for quizId: {QuizId}", quizId);
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var currentUserId = user.FindFirst(c => c.Type == "sub" || c.Type.EndsWith("nameidentifier"))?.Value;
+
+            if (string.IsNullOrWhiteSpace(currentUserId))
+            {
+                Logger.LogWarning("User not authenticated when attempting to take Special Pick quiz. Navigating to shared quiz.");
+                NavigationManager.NavigateTo($"/TakeAQuiz/{quizId}");
+                return;
+            }
+
+            // Load the shared/special quiz to clone
+            var original = await UserQuizRepository.GetByIdAsync(quizId);
+            if (original == null)
+            {
+                Logger.LogWarning("Original quiz not found for id {QuizId}", quizId);
+                return;
+            }
+
+            // Build a per-user copy, clearing user answers
+            var copy = new Quiz
+            {
+                Name = original.Name,
+                UserId = currentUserId,
+                Type = original.Type,
+                Topic = original.Topic,
+                Prompt = original.Prompt,
+                Description = original.Description,
+                Url = original.Url,
+                Difficulty = original.Difficulty,
+                TopicId = original.TopicId,
+                CreationDate = DateTime.UtcNow,
+                LearnMode = false,
+                Questions = original.Questions?.Select(q => new QuizQuestion
+                {
+                    Question = q.Question,
+                    QuestionType = q.QuestionType,
+                    Options = q.Options != null ? new List<string>(q.Options) : new List<string>(),
+                    Answer = q.Answer,
+                    Explanation = q.Explanation,
+                    Difficulty = q.Difficulty,
+                    ContextSnippet = q.ContextSnippet,
+                    Citation = q.Citation != null ? new List<CitationMeta>(q.Citation) : new List<CitationMeta>(),
+                    UserAnswer = null
+                }).ToList() ?? new List<QuizQuestion>()
+            };
+
+            var newId = await UserQuizRepository.AddAsyncGetId(copy);
+            Logger.LogInformation("Created per-user quiz copy. NewId={NewId} From={OldId} Owner={Owner}", newId, quizId, currentUserId);
+            NavigationManager.NavigateTo($"/TakeAQuiz/{newId}");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to create per-user copy for quiz {QuizId}", quizId);
+            // As a fallback, navigate to the original quiz
+            NavigationManager.NavigateTo($"/TakeAQuiz/{quizId}");
+        }
     }
 }

@@ -94,35 +94,38 @@
         }
 
         <!-- Quiz Controls -->
-        <div class="d-flex align-items-center gap-4 mb-3">
+        <div class="quiz-controls">
             <button type="button"
-                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-                    @onclick="ToggleAutoSubmit">
-                <i class="bi @(autoSubmit ? "bi-lightning-fill" : "bi-lightning") me-1"></i>
-                @(autoSubmit ? "Auto-Submit On" : "Auto-Submit Off")
+                    class="quiz-control-btn @(autoSubmit ? "active" : "")"
+                    @onclick="ToggleAutoSubmit"
+                    title="@(autoSubmit ? "Turn off auto-submit" : "Turn on auto-submit")">
+                <i class="bi @(autoSubmit ? "bi-lightning-fill" : "bi-lightning")"></i>
+                <span>@(autoSubmit ? "Auto-Submit On" : "Auto-Submit Off")</span>
             </button>
 
             <button type="button"
-                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-                    @onclick="ToggleMute">
-                <i class="bi @(muteSound ? "bi-volume-mute-fill" : "bi-volume-up-fill") me-1"></i>
-                @(muteSound ? "Muted" : "Sound On")
+                    class="quiz-control-btn @(muteSound ? "" : "active")"
+                    @onclick="ToggleMute"
+                    title="@(muteSound ? "Turn on sound" : "Turn off sound")">
+                <i class="bi @(muteSound ? "bi-volume-mute-fill" : "bi-volume-up-fill")"></i>
+                <span>@(muteSound ? "Sound Off" : "Sound On")</span>
             </button>
 
             <button type="button"
-                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                    class="quiz-control-btn @(learnMode ? "active" : "")"
                     @onclick="ToggleLearnMode"
                     disabled="@(hasStartedQuiz || learnMode)"
                     title="Learn Mode: When enabled, your answers are saved and you cannot change your answer. You cannot turn off Learn Mode after starting, and you cannot enable it after answering a question.">
-                <i class="bi @(learnMode ? "bi-mortarboard-fill" : "bi-mortarboard") me-1"></i>
-                @(learnMode ? "Learn Mode On" : "Learn Mode Off")
+                <i class="bi @(learnMode ? "bi-mortarboard-fill" : "bi-mortarboard")"></i>
+                <span>@(learnMode ? "Learn Mode On" : "Learn Mode Off")</span>
             </button>
 
             <button type="button"
-                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-                    @onclick="ToggleAutoScroll">
-                <i class="bi @(autoScroll ? "bi-arrow-down-circle-fill" : "bi-arrow-down-circle") me-1"></i>
-                @(autoScroll ? "Auto-Scroll On" : "Auto-Scroll Off")
+                    class="quiz-control-btn @(autoScroll ? "active" : "")"
+                    @onclick="ToggleAutoScroll"
+                    title="@(autoScroll ? "Turn off auto-scroll" : "Turn on auto-scroll")">
+                <i class="bi @(autoScroll ? "bi-arrow-down-circle-fill" : "bi-arrow-down-circle")"></i>
+                <span>@(autoScroll ? "Auto-Scroll On" : "Auto-Scroll Off")</span>
             </button>
         </div>
 

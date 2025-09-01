@@ -31,7 +31,7 @@
 
 @if (IsAdmin)
 {
-@*     @if (OperatingSystem.IsBrowser())
+    @*     @if (OperatingSystem.IsBrowser())
     {
         <div class="alert alert-success">
             <strong>WASM Mode:</strong> This page is running in WebAssembly mode.
@@ -114,8 +114,8 @@
             <button type="button"
                     class="quiz-control-btn @(learnMode ? "active" : "")"
                     @onclick="ToggleLearnMode"
-                    disabled="@(hasStartedQuiz || learnMode)"
-                    title="Learn Mode: When enabled, your answers are saved and you cannot change your answer. You cannot turn off Learn Mode after starting, and you cannot enable it after answering a question.">
+                    disabled="@(hasStartedQuiz || (!learnMode && HasAnySavedAnswers))"
+                    title="@LearnModeTooltip">
                 <i class="bi @(learnMode ? "bi-mortarboard-fill" : "bi-mortarboard")"></i>
                 <span>@(learnMode ? "Learn Mode On" : "Learn Mode Off")</span>
             </button>
@@ -247,6 +247,7 @@
     private string SpecialAssignMessage = "";
     private bool adminChecked = false;
     private string? CurrentUserId;
+    private bool HasAnySavedAnswers => UserQuiz?.Questions?.Any(q => !string.IsNullOrWhiteSpace(q.UserAnswer)) == true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -282,7 +283,7 @@
             {
                 Logger.LogInformation($"Attempting to load assignment types. IsBrowser: {OperatingSystem.IsBrowser()}");
                 Logger.LogInformation($"HttpClient BaseAddress: {HttpClient?.BaseAddress}");
-                
+
                 AssignmentTypes = await AssignmentTypeService.GetAllAsync();
                 Logger.LogInformation($"Loaded {AssignmentTypes.Count} assignment types successfully in TakeAQuiz.razor.");
             }
@@ -360,22 +361,28 @@
 
     private async Task ToggleLearnMode()
     {
-        // Logger.LogInformation($"Method: ToggleLearnMode (learnMode={learnMode})");
-        if (UserQuiz?.Questions != null)
+        // Determine intent
+        bool enabling = !learnMode;
+
+        // Answers already exist (from prior session or current state)
+        bool hasAnySavedAnswers = UserQuiz?.Questions?.Any(q => !string.IsNullOrEmpty(q.UserAnswer)) == true;
+
+        // Rules:
+        // - You cannot enable Learn Mode if any answers already exist
+        // - You can disable Learn Mode before starting this attempt
+        if (enabling)
         {
-            answeredQuestions.Clear();
-            for (int i = 0; i < UserQuiz.Questions.Count; i++)
+            if (hasAnySavedAnswers || hasStartedQuiz || totalAnswered > 0)
             {
-                if (!string.IsNullOrEmpty(UserQuiz.Questions[i].UserAnswer))
-                {
-                    answeredQuestions.Add(i);
-                }
+                return;
             }
         }
-        if ((learnMode && answeredQuestions.Count > 0) ||
-            (!learnMode && answeredQuestions.Count > 0))
+        else // disabling
         {
-            return;
+            if (hasStartedQuiz)
+            {
+                return;
+            }
         }
 
         learnMode = !learnMode;
@@ -520,7 +527,7 @@
     {
         int answered = totalAnswered;
         double percent = answered > 0 ? (double)correctAnswers / answered * 100 : 0;
-        
+
         if (percent >= 97) return "A+";
         if (percent >= 93) return "A";
         if (percent >= 90) return "A-";
@@ -595,6 +602,20 @@
         finally
         {
             IsAssigningSpecial = false;
+        }
+    }
+
+    private string LearnModeTooltip
+    {
+        get
+        {
+            if (hasStartedQuiz)
+                return "You’ve started this attempt. Learn Mode can’t be changed now.";
+            if (learnMode)
+                return "Learn Mode is ON. Before you start, you may turn it OFF. While ON, each answer is saved and locked.";
+            if (HasAnySavedAnswers)
+                return "You can’t enable Learn Mode because this quiz already has saved answers. Clear answers to enable it.";
+            return "Learn Mode is OFF. Turn it ON to save and lock answers and record a graded attempt.";
         }
     }
 }

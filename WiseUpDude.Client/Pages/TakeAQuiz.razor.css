@@ -1,4 +1,4 @@
-/* TakeAQuiz page styles */
+﻿/* TakeAQuiz page styles */
 
 /* Quiz Controls Container */
 .quiz-controls {
@@ -150,4 +150,14 @@
         background: Highlight;
         color: HighlightText;
     }
+}
+
+/* Center quiz control buttons on large screens (≥992px) */
+@media (min-width: 992px) {
+  .quiz-controls {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem; /* space between buttons */
+  }
 }

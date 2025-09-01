@@ -6,6 +6,7 @@ using WiseUpDude.Services;
 using WiseUpDude.Shared.Services;
 using Microsoft.Extensions.Logging;
 using WiseUpDude.Shared.Services.Interfaces;
+using System;
 
 namespace WiseUpDude.Controllers
 {
@@ -36,6 +37,23 @@ namespace WiseUpDude.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        [HttpGet("active")]
+        public async Task<ActionResult<List<SpecialQuizAssignment>>> GetActive([FromQuery] DateTime? asOf = null)
+        {
+            try
+            {
+                var asOfUtc = (asOf ?? DateTime.UtcNow).ToUniversalTime();
+                _logger.LogInformation("Getting active SpecialQuizAssignments as of {AsOf}", asOfUtc);
+                return await _service.GetActiveAsync(asOfUtc);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetActive");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("type/{typeId}")]
         public async Task<ActionResult<List<SpecialQuizAssignment>>> GetByType(int typeId)
         {
@@ -96,6 +114,28 @@ namespace WiseUpDude.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        [HttpPost("{id}/deactivate")]
+        public async Task<ActionResult> Deactivate(int id)
+        {
+            try
+            {
+                var assignment = await _service.GetByIdAsync(id);
+                if (assignment == null)
+                {
+                    return NotFound();
+                }
+                assignment.EndDate = DateTime.UtcNow;
+                await _service.UpdateAsync(assignment);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in Deactivate. Id={Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {

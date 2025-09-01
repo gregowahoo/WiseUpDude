@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using WiseUpDude.Data.Entities;
 using WiseUpDude.Model;
+using System; // Added for DateTime
 
 namespace WiseUpDude.Data.Repositories
 {
@@ -56,6 +57,13 @@ namespace WiseUpDude.Data.Repositories
         {
             var entities = await _context.SpecialQuizAssignments
                 .Where(a => a.AssignmentTypeId == assignmentTypeId)
+                .ToListAsync();
+            return entities.Select(ToModel).ToList();
+        }
+        public async Task<List<WiseUpDude.Model.SpecialQuizAssignment>> GetActiveAsync(DateTime asOfUtc)
+        {
+            var entities = await _context.SpecialQuizAssignments
+                .Where(a => a.StartDate <= asOfUtc && a.EndDate >= asOfUtc)
                 .ToListAsync();
             return entities.Select(ToModel).ToList();
         }

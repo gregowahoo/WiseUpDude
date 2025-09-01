@@ -325,6 +325,13 @@ builder.Services.AddScoped<AssignmentTypeRepository>();
 builder.Services.AddScoped<SpecialQuizAssignmentRepository>();
 builder.Services.AddScoped<AssignmentTypeDbService>();
 
+// Optionally expose the API client on server too if any server component wants to call controller endpoints
+builder.Services.AddHttpClient<SpecialQuizAssignmentsApiService>(client =>
+{
+    var baseAddress = builder.Configuration["ApiBaseAddress"] ?? "https://localhost:7150/";
+    client.BaseAddress = new Uri(baseAddress);
+});
+
 // Category art generation services
 builder.Services.Configure<OpenAiImageOptions>(builder.Configuration.GetSection("OpenAI"));
 builder.Services.AddSingleton<ICategoryArtService, CategoryArtService>();

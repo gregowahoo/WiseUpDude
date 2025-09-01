@@ -1,0 +1,134 @@
+@page "/admin/special-assignments"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+
+@using Microsoft.AspNetCore.Authorization
+@using WiseUpDude.Model
+@inject WiseUpDude.Services.SpecialQuizAssignmentService SpecialSvc
+@inject WiseUpDude.Shared.Services.Interfaces.IAssignmentTypeService TypeSvc
+@inject ILogger<SpecialAssignments> Logger
+
+<h3>Special Assignments</h3>
+
+<div class="d-flex align-items-center gap-2 mb-3">
+    <button class="btn btn-primary btn-sm" @onclick="LoadActive">Active</button>
+    <button class="btn btn-secondary btn-sm" @onclick="LoadAll">All</button>
+    <button class="btn btn-outline-secondary btn-sm" @onclick="Refresh">Refresh</button>
+</div>
+
+@if (isLoading)
+{
+    <div class="alert alert-info">Loading...</div>
+}
+else if (items.Count == 0)
+{
+    <div class="alert alert-warning">No assignments found.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>QuizId</th>
+                    <th>Type</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Notes</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var a in items)
+            {
+                <tr>
+                    <td>@a.Id</td>
+                    <td>
+                        <a href="@($"/TakeAQuiz/{a.UserQuizId}")">#@a.UserQuizId</a>
+                    </td>
+                    <td>@GetTypeName(a.AssignmentTypeId)</td>
+                    <td style="min-width: 180px;">
+                        <input type="datetime-local" class="form-control form-control-sm"
+                               @bind="a.StartDate" @bind:format="yyyy-MM-ddTHH:mm" />
+                    </td>
+                    <td style="min-width: 180px;">
+                        <input type="datetime-local" class="form-control form-control-sm"
+                               @bind="a.EndDate" @bind:format="yyyy-MM-ddTHH:mm" />
+                    </td>
+                    <td style="min-width: 240px;">
+                        <input class="form-control form-control-sm" @bind="a.Notes" />
+                    </td>
+                    <td class="text-nowrap">
+                        <button class="btn btn-success btn-sm me-1" title="Save" @onclick="() => Save(a)">
+                            <i class="bi bi-check2"></i>
+                        </button>
+                        <button class="btn btn-warning btn-sm me-1" title="Deactivate now" @onclick="() => Deactivate(a)">
+                            <i class="bi bi-slash-circle"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" title="Delete" @onclick="() => Delete(a)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<SpecialQuizAssignment> items = new();
+    private List<AssignmentType> types = new();
+    private bool isLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        types = await TypeSvc.GetAllAsync();
+        await LoadActive();
+    }
+
+    private async Task LoadActive()
+    {
+        isLoading = true;
+        items = await SpecialSvc.GetActiveAsync(DateTime.UtcNow);
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task LoadAll()
+    {
+        isLoading = true;
+        items = await SpecialSvc.GetAllAsync();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task Refresh()
+    {
+        if (items.Any(a => a.EndDate >= DateTime.UtcNow && a.StartDate <= DateTime.UtcNow))
+            await LoadActive();
+        else
+            await LoadAll();
+    }
+
+    private async Task Save(SpecialQuizAssignment a)
+    {
+        await SpecialSvc.UpdateAsync(a);
+    }
+
+    private async Task Deactivate(SpecialQuizAssignment a)
+    {
+        a.EndDate = DateTime.UtcNow;
+        await SpecialSvc.UpdateAsync(a);
+        await LoadActive();
+    }
+
+    private async Task Delete(SpecialQuizAssignment a)
+    {
+        await SpecialSvc.DeleteAsync(a.Id);
+        await LoadAll();
+    }
+
+    private string GetTypeName(int id) => types.FirstOrDefault(t => t.Id == id)?.Name ?? $"Type {id}";
+}

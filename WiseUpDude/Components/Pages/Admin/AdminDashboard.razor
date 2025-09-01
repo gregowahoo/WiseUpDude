@@ -1,122 +1,41 @@
-@page "/admin/users"  
-@rendermode InteractiveServer  
-@attribute [Authorize(Roles = "Admin")]  
-  
-@using Microsoft.AspNetCore.Identity  
-@using WiseUpDude.Data  
-@using Microsoft.EntityFrameworkCore  
-@inject UserManager<ApplicationUser> UserManager  
-@inject NavigationManager NavigationManager  
-  
-<PageTitle>Admin - User Management</PageTitle>  
-  
-<h2>User Management</h2>  
+@page "/admin"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
 
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0">Quiz Management</h5>
-            </div>
-            <div class="card-body">
-                <p class="card-text">Manage Quiz of the Day settings and featured quizzes.</p>
-                <a href="/admin/quiz-of-the-day" class="btn btn-primary">Quiz of the Day Management</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0">User Management</h5>
-            </div>
-            <div class="card-body">
-                <p class="card-text">Add, edit, and remove users from the system.</p>
-                <button class="btn btn-success" @onclick="AddUser">Add New User</button>
+@inject NavigationManager Nav
+
+<PageTitle>Admin Dashboard</PageTitle>
+
+<div class="container my-4">
+    <h2 class="mb-4">Admin Dashboard</h2>
+
+    <div class="row g-3">
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-header"><h5 class="mb-0">Users</h5></div>
+                <div class="card-body">
+                    <p class="card-text">Search, paginate, and manage users and roles.</p>
+                    <a class="btn btn-primary" href="/admin/users"><i class="bi bi-people me-1"></i>Open Users</a>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0">Category Art</h5>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-header"><h5 class="mb-0">Special Assignments</h5></div>
+                <div class="card-body">
+                    <p class="card-text">Schedule featured quizzes and time-bound assignments.</p>
+                    <a class="btn btn-outline-secondary" href="/admin/special-assignments">Manage Assignments</a>
+                </div>
             </div>
-            <div class="card-body">
-                <p class="card-text">Generate and preview AI icons for categories.</p>
-                <a href="/admin/category-art" class="btn btn-outline-secondary">
-                    <i class="bi bi-magic"></i> Open Category Art Tools
-                </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-header"><h5 class="mb-0">Category Art</h5></div>
+                <div class="card-body">
+                    <p class="card-text">Generate and refresh category icons.</p>
+                    <a class="btn btn-outline-secondary" href="/admin/category-art"><i class="bi bi-magic me-1"></i>Category Art Tools</a>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
-<h3>Users</h3>
-  
-<p>  
-    <button class="btn btn-success" @onclick="AddUser">Add Another User</button>  
-</p>  
-  
-@if (users == null)  
-{  
-    <p>Loading users...</p>  
-}  
-else if (!users.Any())  
-{  
-    <p>No users found.</p>  
-}  
-else  
-{  
-    <table class="table table-striped">  
-        <thead>  
-            <tr>  
-                <th>Email</th>  
-                <th>Roles</th>  
-                <th>Actions</th>  
-            </tr>  
-        </thead>  
-        <tbody>  
-            @foreach (var user in users)  
-            {  
-                <tr>  
-                    <td>@user.Email</td>  
-                    <td>@(userRoles.ContainsKey(user.Id) ? string.Join(", ", userRoles[user.Id]) : "Loading...")</td>  
-                    <td>  
-                        <button class="btn btn-primary btn-sm" @onclick="() => EditUser(user.Id)">Edit</button>  
-                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteUser(user.Id)">Delete</button>  
-                    </td>  
-                </tr>  
-            }  
-        </tbody>  
-    </table>  
-}  
-  
-@code {  
-    private List<ApplicationUser>? users;  
-    private Dictionary<string, IList<string>> userRoles = new();  
-  
-    protected override async Task OnInitializedAsync()  
-    {  
-        // Use ToList() instead of ToListAsync() for compatibility  
-        users = UserManager.Users.ToList();  
-        foreach (var user in users)  
-        {  
-            var roles = await UserManager.GetRolesAsync(user);  
-            userRoles[user.Id] = roles;  
-        }  
-    }  
-  
-    private void AddUser()  
-    {  
-        NavigationManager.NavigateTo("/admin/users/add");  
-    }  
-  
-    private void EditUser(string userId)  
-    {  
-        NavigationManager.NavigateTo($"/admin/users/edit/{userId}");  
-    }  
-  
-    private void DeleteUser(string userId)  
-    {  
-        NavigationManager.NavigateTo($"/admin/users/delete/{userId}");  
-    }  
-}  

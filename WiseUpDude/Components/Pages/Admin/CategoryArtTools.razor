@@ -1,14 +1,14 @@
-@page "/admin/category-art"
+@page "/admin/category-art-js"
 @rendermode InteractiveServer
 @attribute [Authorize(Roles = "Admin")]
 
 @using WiseUpDude.Services.CategoryArt
 
-<PageTitle>Admin - Category Art</PageTitle>
+<PageTitle>Admin - Category Art (JS Legacy)</PageTitle>
 
 <div class="container my-4">
-    <h2 class="mb-3">Category Art</h2>
-    <p class="text-muted">Generate branded, transparent PNG icons for each category. Images are saved to <code>/wwwroot/images/categories</code>. Click an icon to regenerate just that one.</p>
+    <h2 class="mb-3">Category Art (Legacy JS)</h2>
+    <div class="alert alert-info">This page has been superseded by the C# version at <a href="/admin/category-art">/admin/category-art</a>. Keeping for reference.</div>
 
     <div class="d-flex align-items-center gap-2 mb-3">
         <button class="btn btn-primary" onclick="seedCategoryArt()">

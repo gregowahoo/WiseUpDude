@@ -1,0 +1,185 @@
+@page "/admin/category-art"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+
+@using WiseUpDude.Services.CategoryArt
+@inject IWebHostEnvironment Env
+@inject ICategoryArtService ArtService
+@inject ILogger<CategoryArtToolsCSharp> Logger
+
+<PageTitle>Admin - Category Art (C#)</PageTitle>
+
+<div class="container my-4">
+    <h2 class="mb-3">Category Art (C#)</h2>
+    <p class="text-muted">This version performs all actions using Blazor C# code-behind via DI services (no JS).</p>
+
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <button class="btn btn-primary" @onclick="SeedAllAsync" disabled="@isWorking">
+            @if (isWorking)
+            {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            }
+            <i class="bi bi-magic"></i> Generate / Refresh All Icons
+        </button>
+        <span class="text-muted small">Requires Admin. This may take 10-30s.</span>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(resultMessage))
+    {
+        <div class="mb-3 small @(hasErrors ? "text-danger" : "text-muted")">@((MarkupString)resultMessage)</div>
+    }
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+        @foreach (var label in CategoryArtPrompts.Map.Keys)
+        {
+            var slug = Slug(label);
+            var busy = busySlugs.Contains(slug);
+            var v = versions.TryGetValue(slug, out var ver) ? ver : 0L;
+            var path = $"/images/categories/{slug}.png?v={v}";
+            <div class="col">
+                <button type="button" class="card h-100 shadow-sm category-card-btn w-100" title="@path" @onclick="() => RegenerateAsync(slug, label)" disabled="@busy">
+                    <div class="card-body d-flex align-items-center gap-2">
+                        <div class="position-relative" style="width:48px;height:48px;">
+                            @if (busy)
+                            {
+                                <span class="spinner-border spinner-border-sm position-absolute top-50 start-50 translate-middle" role="status" aria-hidden="true"></span>
+                            }
+                            <img src="@path" alt="@label icon" width="48" height="48" style="object-fit:contain; opacity:@(busy ? 0.6 : 1);" onerror="this.src='/favicon.png'" />
+                        </div>
+                        <div>
+                            <div class="fw-semibold">@label</div>
+                            @if (busy)
+                            {
+                                <div class="text-muted small">Regenerating…</div>
+                            }
+                        </div>
+                    </div>
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private bool isWorking;
+    private string? resultMessage;
+    private bool hasErrors;
+
+    private readonly HashSet<string> busySlugs = new();
+    private readonly Dictionary<string, long> versions = new();
+
+    protected override void OnInitialized()
+    {
+        // Initialize a version for cache-busting so initial images render with a stable version value
+        foreach (var label in CategoryArtPrompts.Map.Keys)
+        {
+            var slug = Slug(label);
+            if (!versions.ContainsKey(slug))
+                versions[slug] = 0L; // initial; will update on regenerate/seed
+        }
+    }
+
+    private async Task SeedAllAsync()
+    {
+        if (isWorking) return;
+        isWorking = true;
+        resultMessage = "Working...";
+        hasErrors = false;
+        StateHasChanged();
+
+        var dir = Path.Combine(Env.WebRootPath, "images", "categories");
+        Directory.CreateDirectory(dir);
+
+        var generated = 0;
+        var skipped = 0;
+        var failed = new List<string>();
+
+        try
+        {
+            foreach (var label in CategoryArtPrompts.Map.Keys)
+            {
+                var slug = Slug(label);
+                var file = Path.Combine(dir, slug + ".png");
+                if (System.IO.File.Exists(file))
+                {
+                    skipped++;
+                    continue;
+                }
+
+                try
+                {
+                    var prompt = CategoryArtPrompts.BuildPrompt(label);
+                    var bytes = await ArtService.GeneratePngAsync(prompt, CancellationToken.None);
+                    await File.WriteAllBytesAsync(file, bytes, CancellationToken.None);
+                    generated++;
+                    versions[slug] = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                }
+                catch (System.ClientModel.ClientResultException cre)
+                {
+                    Logger.LogError(cre, "ClientResult failure for label {Label}", label);
+                    failed.Add($"{label}: client_result {(int?)cre.Status} {cre.Message}");
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Unexpected failure for label {Label}", label);
+                    failed.Add($"{label}: {ex.Message}");
+                }
+
+                StateHasChanged();
+            }
+        }
+        finally
+        {
+            isWorking = false;
+        }
+
+        hasErrors = failed.Count > 0;
+        resultMessage = $"Generated: {generated}. Skipped (already exist): {skipped}. Failures: {failed.Count}." +
+                        (failed.Count > 0 ? $"<pre class=\"mt-2\">{System.Net.WebUtility.HtmlEncode(string.Join("\n", failed))}</pre>" : "");
+
+        StateHasChanged();
+    }
+
+    private async Task RegenerateAsync(string slug, string label)
+    {
+        if (busySlugs.Contains(slug)) return;
+        busySlugs.Add(slug);
+        StateHasChanged();
+
+        try
+        {
+            var dir = Path.Combine(Env.WebRootPath, "images", "categories");
+            Directory.CreateDirectory(dir);
+            var file = Path.Combine(dir, slug + ".png");
+
+            var prompt = CategoryArtPrompts.BuildPrompt(label);
+            var bytes = await ArtService.GeneratePngAsync(prompt, CancellationToken.None);
+            await File.WriteAllBytesAsync(file, bytes, CancellationToken.None);
+
+            // Update version to bust cache in <img>
+            versions[slug] = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            resultMessage = $"Regenerated {label}.";
+            hasErrors = false;
+        }
+        catch (System.ClientModel.ClientResultException cre)
+        {
+            Logger.LogError(cre, "ClientResult failure during regenerate for label {Label}", label);
+            resultMessage = $"Failed to regenerate {label}: client_result {(int?)cre.Status} {cre.Message}";
+            hasErrors = true;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Unexpected failure during regenerate for label {Label}", label);
+            resultMessage = $"Failed to regenerate {label}: {ex.Message}";
+            hasErrors = true;
+        }
+        finally
+        {
+            busySlugs.Remove(slug);
+            StateHasChanged();
+        }
+    }
+
+    private static string Slug(string s) =>
+        System.Text.RegularExpressions.Regex.Replace(s.Trim().ToLowerInvariant(), "[^a-z0-9]+", "-").Trim('-');
+}

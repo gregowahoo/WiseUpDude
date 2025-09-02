@@ -6,6 +6,7 @@
 @using WiseUpDude.Model
 @inject WiseUpDude.Services.SpecialQuizAssignmentService SpecialSvc
 @inject WiseUpDude.Shared.Services.Interfaces.IAssignmentTypeService TypeSvc
+@inject WiseUpDude.Shared.Services.ToastService Toast
 @inject ILogger<SpecialAssignments> Logger
 
 <h3>Special Assignments</h3>
@@ -14,6 +15,8 @@
     <button class="btn btn-primary btn-sm" @onclick="LoadActive">Active</button>
     <button class="btn btn-secondary btn-sm" @onclick="LoadAll">All</button>
     <button class="btn btn-outline-secondary btn-sm" @onclick="Refresh">Refresh</button>
+    <div class="flex-fill"></div>
+    <button class="btn btn-success btn-sm" @onclick="OpenNew"><i class="bi bi-plus-lg me-1"></i>New Assignment</button>
 </div>
 
 @if (isLoading)
@@ -48,20 +51,12 @@ else
                         <a href="@($"/TakeAQuiz/{a.UserQuizId}")">#@a.UserQuizId</a>
                     </td>
                     <td>@GetTypeName(a.AssignmentTypeId)</td>
-                    <td style="min-width: 180px;">
-                        <input type="datetime-local" class="form-control form-control-sm"
-                               @bind="a.StartDate" @bind:format="yyyy-MM-ddTHH:mm" />
-                    </td>
-                    <td style="min-width: 180px;">
-                        <input type="datetime-local" class="form-control form-control-sm"
-                               @bind="a.EndDate" @bind:format="yyyy-MM-ddTHH:mm" />
-                    </td>
-                    <td style="min-width: 240px;">
-                        <input class="form-control form-control-sm" @bind="a.Notes" />
-                    </td>
+                    <td>@a.StartDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@a.EndDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    <td class="text-truncate" style="max-width: 320px;" title="@a.Notes">@a.Notes</td>
                     <td class="text-nowrap">
-                        <button class="btn btn-success btn-sm me-1" title="Save" @onclick="() => Save(a)">
-                            <i class="bi bi-check2"></i>
+                        <button class="btn btn-primary btn-sm me-1" title="Edit" @onclick="() => OpenEdit(a)">
+                            <i class="bi bi-pencil"></i>
                         </button>
                         <button class="btn btn-warning btn-sm me-1" title="Deactivate now" @onclick="() => Deactivate(a)">
                             <i class="bi bi-slash-circle"></i>
@@ -77,10 +72,70 @@ else
     </div>
 }
 
+@if (isEditorOpen && editItem is not null)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editItem.Id == 0 ? "New Assignment" : $"Edit Assignment #{editItem.Id}")</h5>
+                    <button type="button" class="btn-close" @onclick="CloseEditor"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">User Quiz Id</label>
+                        <input type="number" class="form-control" @bind-value="editItem.UserQuizId" />
+                        <div class="form-text">Open quiz: <a target="_blank" href="@($"/TakeAQuiz/{editItem.UserQuizId}")">/TakeAQuiz/@editItem.UserQuizId</a></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" @bind="editItem.AssignmentTypeId">
+                            <option value="0">Select type...</option>
+                            @foreach (var t in types)
+                            {
+                                <option value="@t.Id">@t.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Start</label>
+                            <input type="datetime-local" class="form-control" @bind="editItem.StartDate" @bind:format="yyyy-MM-ddTHH:mm" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">End</label>
+                            <input type="datetime-local" class="form-control" @bind="editItem.EndDate" @bind:format="yyyy-MM-ddTHH:mm" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" rows="3" @bind="editItem.Notes"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseEditor" disabled="@isSaving">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveEditor" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        <span>Save</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<SpecialQuizAssignment> items = new();
     private List<AssignmentType> types = new();
     private bool isLoading;
+    private bool showActive = true;
+
+    private bool isEditorOpen;
+    private bool isSaving;
+    private SpecialQuizAssignment? editItem;
 
     protected override async Task OnInitializedAsync()
     {
@@ -91,6 +146,7 @@ else
     private async Task LoadActive()
     {
         isLoading = true;
+        showActive = true;
         items = await SpecialSvc.GetActiveAsync(DateTime.UtcNow);
         isLoading = false;
         StateHasChanged();
@@ -99,6 +155,7 @@ else
     private async Task LoadAll()
     {
         isLoading = true;
+        showActive = false;
         items = await SpecialSvc.GetAllAsync();
         isLoading = false;
         StateHasChanged();
@@ -106,29 +163,124 @@ else
 
     private async Task Refresh()
     {
-        if (items.Any(a => a.EndDate >= DateTime.UtcNow && a.StartDate <= DateTime.UtcNow))
-            await LoadActive();
-        else
-            await LoadAll();
+        if (showActive) await LoadActive(); else await LoadAll();
     }
 
-    private async Task Save(SpecialQuizAssignment a)
+    private void OpenNew()
     {
-        await SpecialSvc.UpdateAsync(a);
+        editItem = new SpecialQuizAssignment
+        {
+            StartDate = DateTime.UtcNow,
+            EndDate = DateTime.UtcNow.AddDays(7)
+        };
+        isEditorOpen = true;
+    }
+
+    private void OpenEdit(SpecialQuizAssignment a)
+    {
+        editItem = Clone(a);
+        isEditorOpen = true;
+    }
+
+    private void CloseEditor()
+    {
+        isEditorOpen = false;
+        editItem = null;
+    }
+
+    private async Task SaveEditor()
+    {
+        if (editItem is null) return;
+        if (editItem.UserQuizId <= 0)
+        {
+            await Toast.ShowToast("Please enter a valid User Quiz Id.", WiseUpDude.Shared.Services.ToastLevel.Warning);
+            return;
+        }
+        if (editItem.AssignmentTypeId <= 0)
+        {
+            await Toast.ShowToast("Please select an assignment type.", WiseUpDude.Shared.Services.ToastLevel.Warning);
+            return;
+        }
+        if (editItem.EndDate <= editItem.StartDate)
+        {
+            await Toast.ShowToast("End date must be after start date.", WiseUpDude.Shared.Services.ToastLevel.Warning);
+            return;
+        }
+
+        try
+        {
+            isSaving = true;
+            // Normalize to UTC if values are local
+            editItem.StartDate = DateTime.SpecifyKind(editItem.StartDate, DateTimeKind.Utc) == editItem.StartDate ? editItem.StartDate : editItem.StartDate.ToUniversalTime();
+            editItem.EndDate = DateTime.SpecifyKind(editItem.EndDate, DateTimeKind.Utc) == editItem.EndDate ? editItem.EndDate : editItem.EndDate.ToUniversalTime();
+
+            if (editItem.Id == 0)
+            {
+                editItem.CreatedAt = DateTime.UtcNow;
+                await SpecialSvc.AddAsync(editItem);
+                await Toast.ShowToast("Assignment created.", WiseUpDude.Shared.Services.ToastLevel.Success);
+            }
+            else
+            {
+                await SpecialSvc.UpdateAsync(editItem);
+                await Toast.ShowToast("Assignment updated.", WiseUpDude.Shared.Services.ToastLevel.Success);
+            }
+            CloseEditor();
+            await Refresh();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to save assignment {Id}", editItem.Id);
+            await Toast.ShowToast("Failed to save assignment.", WiseUpDude.Shared.Services.ToastLevel.Error);
+        }
+        finally
+        {
+            isSaving = false;
+        }
     }
 
     private async Task Deactivate(SpecialQuizAssignment a)
     {
-        a.EndDate = DateTime.UtcNow;
-        await SpecialSvc.UpdateAsync(a);
-        await LoadActive();
+        try
+        {
+            a.EndDate = DateTime.UtcNow;
+            await SpecialSvc.UpdateAsync(a);
+            await Toast.ShowToast("Assignment deactivated.", WiseUpDude.Shared.Services.ToastLevel.Success);
+            await LoadActive();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Deactivate failed for {Id}", a.Id);
+            await Toast.ShowToast("Failed to deactivate.", WiseUpDude.Shared.Services.ToastLevel.Error);
+        }
     }
 
     private async Task Delete(SpecialQuizAssignment a)
     {
-        await SpecialSvc.DeleteAsync(a.Id);
-        await LoadAll();
+        try
+        {
+            await SpecialSvc.DeleteAsync(a.Id);
+            await Toast.ShowToast("Assignment deleted.", WiseUpDude.Shared.Services.ToastLevel.Success);
+            await Refresh();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Delete failed for {Id}", a.Id);
+            await Toast.ShowToast("Failed to delete assignment.", WiseUpDude.Shared.Services.ToastLevel.Error);
+        }
     }
 
     private string GetTypeName(int id) => types.FirstOrDefault(t => t.Id == id)?.Name ?? $"Type {id}";
+
+    private static SpecialQuizAssignment Clone(SpecialQuizAssignment a) => new()
+    {
+        Id = a.Id,
+        UserQuizId = a.UserQuizId,
+        AssignedByUserId = a.AssignedByUserId,
+        AssignmentTypeId = a.AssignmentTypeId,
+        StartDate = a.StartDate,
+        EndDate = a.EndDate,
+        Notes = a.Notes,
+        CreatedAt = a.CreatedAt
+    };
 }
